@@ -54,7 +54,8 @@ openssl rand -hex 32
 npm run hash-password -- "DeinSicheresPasswort"
 # → Ausgabe in .env bei ADMIN_PASSWORD_HASH einsetzen
 
-# Datenbank anlegen (lokal, SQLite — kein Extra-Setup nötig):
+# Datenbank anlegen (Postgres — DATABASE_URL muss vorher in .env gesetzt sein,
+# z.B. eine kostenlose Neon-Datenbank, siehe Kapitel 5):
 npm run db:push
 
 # 2 Demo-Events anlegen (optional, aber empfohlen zum Testen):
@@ -105,26 +106,29 @@ Ohne eigene Domain kannst du zum Testen vorübergehend eine private Gmail-Adress
 mit [App-Passwort](https://myaccount.google.com/apppasswords) nutzen
 (`SMTP_HOST="smtp.gmail.com"`, `SMTP_PORT="587"`).
 
-## 5. Deployment (empfohlen: Vercel + Supabase/Neon)
+## 5. Deployment (Vercel, mit GitHub-Account)
 
-SQLite eignet sich nur für lokale Tests. Für den Live-Betrieb:
-
-1. Kostenlose Postgres-Datenbank anlegen, z.B. bei
-   [Supabase](https://supabase.com) oder [Neon](https://neon.tech).
-2. In `prisma/schema.prisma` den datasource-Block anpassen:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
+1. Neues, leeres Repository auf GitHub anlegen (ohne README/.gitignore, da schon
+   vorhanden), Code pushen:
+   ```bash
+   cd soul-berlin
+   git remote add origin git@github.com:DEIN-USERNAME/soul-berlin.git
+   git branch -M main
+   git push -u origin main
    ```
-3. `DATABASE_URL` in den Vercel-Umgebungsvariablen auf die Postgres-Connection-URL
-   setzen (alle anderen `.env`-Werte ebenfalls als Vercel Environment Variables
-   eintragen — inkl. `APP_URL` auf deine echte Domain).
-4. Projekt zu GitHub pushen, bei [Vercel](https://vercel.com) importieren, deployen.
-5. Nach dem ersten Deploy einmalig `npx prisma db push` gegen die Produktions-DB
-   laufen lassen (z.B. lokal mit der Produktions-`DATABASE_URL` in `.env`).
-6. Stripe-Webhook (siehe oben) auf die echte Domain umstellen.
+2. Auf [vercel.com](https://vercel.com) mit **"Continue with GitHub"** anmelden
+   (kein separates Passwort nötig) und das `soul-berlin`-Repo importieren.
+3. Im Vercel-Projekt unter **Storage** eine kostenlose **Postgres**-Datenbank
+   anlegen (Neon-Integration) — `DATABASE_URL` wird dabei automatisch als
+   Umgebungsvariable gesetzt.
+4. Unter **Settings → Environment Variables** die restlichen Werte aus `.env`
+   eintragen: `APP_URL` (deine Vercel-Domain, z.B. `https://soul-berlin.vercel.app`),
+   `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` (Stripe/SMTP optional, siehe
+   oben).
+5. Deployen.
+6. Nach dem ersten Deploy einmalig `npx prisma db push` gegen die Produktions-DB
+   laufen lassen (lokal, mit der Vercel-`DATABASE_URL` in `.env` eingetragen).
+7. Stripe-Webhook (siehe oben) auf die echte Domain umstellen.
 
 ## 6. Branding anpassen
 

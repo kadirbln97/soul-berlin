@@ -1,17 +1,18 @@
 // SØUL Berlin — Datenbankschema
 //
-// Standard-Datenbank: SQLite (lokale Datei, kein Setup nötig).
-// Für Produktion empfohlen: Postgres (z.B. kostenlos bei Supabase oder Neon).
-// Umstellen: provider unten auf "postgresql" ändern und DATABASE_URL in .env setzen.
-// Enums werden bewusst NICHT verwendet, weil SQLite sie nicht unterstützt — Werte werden
-// stattdessen per Zod im Code validiert (siehe src/lib/validation.ts).
+// Datenbank: Postgres (kostenlos z.B. über Vercel/Neon oder Supabase — nötig für
+// Deployment auf Vercel, da SQLite dort nicht funktioniert/persistiert).
+// Lokale Entwicklung: entweder eine lokale Postgres-Instanz oder einfach dieselbe
+// kostenlose Neon/Supabase-Datenbank auch für "npm run dev" verwenden.
+// Enums werden bewusst NICHT verwendet — Werte werden stattdessen per Zod im Code
+// validiert (siehe src/lib/validation.ts), das hält das Schema portabel.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
