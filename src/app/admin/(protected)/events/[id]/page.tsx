@@ -12,7 +12,10 @@ export default async function AdminEventDetailPage({
 }: {
   params: { id: string };
 }) {
-  const event = await prisma.event.findUnique({ where: { id: params.id } });
+  const event = await prisma.event.findUnique({
+    where: { id: params.id },
+    include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
+  });
   if (!event) notFound();
 
   const tickets = await prisma.ticket.findMany({
@@ -51,7 +54,11 @@ export default async function AdminEventDetailPage({
               ticketMode: event.ticketMode,
               priceCents: event.priceCents,
               capacity: event.capacity,
-              status: event.status
+              status: event.status,
+              guestlistTiers: event.guestlistTiers.map((tier) => ({
+                untilTime: tier.untilTime.toISOString(),
+                priceCents: tier.priceCents
+              }))
             }}
           />
         </div>
@@ -70,6 +77,7 @@ export default async function AdminEventDetailPage({
             status: t.status,
             amountCents: t.amountCents,
             currency: t.currency,
+            isPaidOnline: Boolean(t.stripePaymentIntentId),
             checkedInAt: t.checkedInAt ? t.checkedInAt.toISOString() : null,
             createdAt: t.createdAt.toISOString()
           }))}

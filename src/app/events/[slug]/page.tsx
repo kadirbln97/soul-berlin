@@ -5,6 +5,7 @@ import { SignupForm } from "@/components/SignupForm";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate, formatPrice } from "@/lib/format";
+import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,16 @@ export default async function EventDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  const event = await prisma.event.findUnique({
+    where: { slug: params.slug },
+    include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
+  });
 
   if (!event || event.status !== "PUBLISHED") {
     notFound();
   }
+
+  const guestlistPrice = getCurrentGuestlistPrice(event.guestlistTiers);
 
   const activeTickets = await countActiveTickets(event.id);
   const isSoldOut = event.capacity ? activeTickets >= event.capacity : false;
@@ -71,9 +77,41 @@ export default async function EventDetailPage({
               <span className="text-display text-xl text-soul-orange">
                 {event.ticketMode === "PAID" && event.priceCents
                   ? formatPrice(event.priceCents, event.currency)
-                  : "Free"}
+                  : guestlistPrice
+                    ? formatPrice(guestlistPrice, event.currency)
+                    : "Free"}
               </span>
             </div>
+
+            {event.ticketMode === "GUESTLIST" && event.guestlistTiers.length > 0 && (
+              <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">
+                <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/40">
+                  Preisstaffeln (Zahlung an der Abendkasse)
+                </p>
+                {event.guestlistTiers.map((tier) => {
+                  const isActive = tier.priceCents === guestlistPrice;
+                  return (
+                    <div
+                      key={tier.id}
+                      className={`flex items-center justify-between text-sm ${
+                        isActive ? "text-soul-orange" : "text-paper/60"
+                      }`}
+                    >
+                      <span>
+                        bis {new Date(tier.untilTime).toLocaleTimeString("de-DE", {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}{" "}
+                        Uhr
+                      </span>
+                      <span className="font-semibold">
+                        {formatPrice(tier.priceCents, event.currency)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
               <p className="mb-4 text-xs uppercase tracking-widest text-soul-orange">

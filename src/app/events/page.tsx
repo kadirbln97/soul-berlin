@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EventCard } from "@/components/EventCard";
 import { getUpcomingPublishedEvents, getPastPublishedEvents } from "@/lib/events";
+import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function EventsPage() {
                 dateStart={event.dateStart}
                 ticketMode={event.ticketMode}
                 priceCents={event.priceCents}
+                guestlistPriceCents={getCurrentGuestlistPrice(event.guestlistTiers)}
                 isSoldOut={event.isSoldOut}
               />
             ))}

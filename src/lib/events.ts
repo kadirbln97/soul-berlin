@@ -5,7 +5,8 @@ export async function getUpcomingPublishedEvents(limit?: number) {
   const events = await prisma.event.findMany({
     where: { status: "PUBLISHED", dateStart: { gte: new Date(new Date().toDateString()) } },
     orderBy: { dateStart: "asc" },
-    take: limit
+    take: limit,
+    include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
   });
 
   return Promise.all(

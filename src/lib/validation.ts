@@ -13,6 +13,12 @@ export const loginSchema = z.object({
   password: z.string().min(1)
 });
 
+export const guestlistTierSchema = z.object({
+  untilTime: z.string().min(1),
+  // Obergrenze 5.000 € — verhindert Tippfehler mit absurden Beträgen.
+  priceCents: z.coerce.number().int().min(0).max(500_000)
+});
+
 export const eventSchema = z.object({
   title: z.string().trim().min(2).max(120),
   subtitle: z.string().trim().max(160).optional().or(z.literal("")),
@@ -27,7 +33,10 @@ export const eventSchema = z.object({
   // absurden Beträgen und dient als grobe Plausibilitätsprüfung.
   priceCents: z.coerce.number().int().min(0).max(500_000).optional(),
   capacity: z.coerce.number().int().min(1).max(20_000).optional(),
-  status: z.enum(EVENT_STATUS)
+  status: z.enum(EVENT_STATUS),
+  // Bis zu 3 zeitbasierte Preis-Staffeln für die Gästeliste (informativ,
+  // Zahlung an der Abendkasse — nur relevant bei ticketMode = GUESTLIST).
+  guestlistTiers: z.array(guestlistTierSchema).max(3).optional()
 });
 
 export const validateTokenSchema = z.object({

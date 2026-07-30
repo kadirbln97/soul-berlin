@@ -10,6 +10,7 @@ export function EventCard({
   dateStart,
   ticketMode,
   priceCents,
+  guestlistPriceCents,
   isSoldOut
 }: {
   slug: string;
@@ -20,6 +21,8 @@ export function EventCard({
   dateStart: Date | string;
   ticketMode: string;
   priceCents?: number | null;
+  // Aktuell gültiger Gästeliste-Staffelpreis (null = weiterhin kostenlos).
+  guestlistPriceCents?: number | null;
   isSoldOut: boolean;
 }) {
   const badge = isSoldOut
@@ -28,7 +31,9 @@ export function EventCard({
       ? priceCents
         ? formatPrice(priceCents)
         : "Tickets"
-      : "Guestlist";
+      : guestlistPriceCents
+        ? `Ab ${formatPrice(guestlistPriceCents)}`
+        : "Guestlist";
 
   return (
     <Link

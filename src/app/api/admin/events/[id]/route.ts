@@ -32,6 +32,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
 
+  const tiers = data.ticketMode === "GUESTLIST" ? (data.guestlistTiers ?? []) : [];
+
+  // Staffeln komplett neu anlegen ist einfacher & sicherer als einzeln
+  // abzugleichen — es sind maximal 3 pro Event, kein Performance-Thema.
   const event = await prisma.event.update({
     where: { id: params.id },
     data: {
@@ -46,7 +50,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ticketMode: data.ticketMode,
       priceCents: data.ticketMode === "PAID" ? data.priceCents : null,
       capacity: data.capacity || null,
-      status: data.status
+      status: data.status,
+      guestlistTiers: {
+        deleteMany: {},
+        create: tiers.map((tier, i) => ({
+          untilTime: new Date(tier.untilTime),
+          priceCents: tier.priceCents,
+          order: i
+        }))
+      }
     }
   });
 

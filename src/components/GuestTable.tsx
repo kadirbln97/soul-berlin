@@ -12,6 +12,9 @@ type Ticket = {
   status: string;
   amountCents: number | null;
   currency: string;
+  // War es eine echte Online-Zahlung über Stripe? (im Unterschied zu einem
+  // informativen Abendkassen-Preis bei gestaffelten Gästelisten)
+  isPaidOnline: boolean;
   checkedInAt: string | null;
   createdAt: string;
 };
@@ -58,9 +61,8 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
   }
 
   async function handleRefund(ticket: Ticket) {
-    const isPaid = Boolean(ticket.amountCents);
     const confirmed = window.confirm(
-      isPaid
+      ticket.isPaidOnline
         ? `Ticket von ${ticket.name} stornieren und über Stripe zurückerstatten?`
         : `Ticket von ${ticket.name} stornieren (kein Einlass mehr möglich)?`
     );
@@ -124,7 +126,18 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
                 </span>
               </td>
               <td className="px-5 py-4 text-paper/60">
-                {ticket.amountCents ? formatPrice(ticket.amountCents, ticket.currency) : "—"}
+                {ticket.amountCents ? (
+                  <>
+                    {formatPrice(ticket.amountCents, ticket.currency)}
+                    {!ticket.isPaidOnline && (
+                      <span className="ml-1 text-[10px] uppercase text-paper/30">
+                        Abendkasse
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  "—"
+                )}
               </td>
               <td className="px-5 py-4 text-paper/50">{formatEventDate(ticket.createdAt)}</td>
               <td className="px-5 py-4 text-right">
@@ -137,7 +150,7 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
                     >
                       {loadingId === ticket.id
                         ? "…"
-                        : ticket.amountCents
+                        : ticket.isPaidOnline
                           ? "Erstatten"
                           : "Stornieren"}
                     </button>

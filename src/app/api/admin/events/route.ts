@@ -35,6 +35,8 @@ export async function POST(req: Request) {
     slug = `${baseSlug}-${++i}`;
   }
 
+  const tiers = data.ticketMode === "GUESTLIST" ? (data.guestlistTiers ?? []) : [];
+
   const event = await prisma.event.create({
     data: {
       slug,
@@ -49,7 +51,14 @@ export async function POST(req: Request) {
       ticketMode: data.ticketMode,
       priceCents: data.ticketMode === "PAID" ? data.priceCents : null,
       capacity: data.capacity || null,
-      status: data.status
+      status: data.status,
+      guestlistTiers: {
+        create: tiers.map((tier, i) => ({
+          untilTime: new Date(tier.untilTime),
+          priceCents: tier.priceCents,
+          order: i
+        }))
+      }
     }
   });
 

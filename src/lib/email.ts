@@ -27,6 +27,9 @@ export async function sendTicketEmail(params: {
   eventVenue: string;
   eventAddress?: string | null;
   isPaid: boolean;
+  // true bei kostenpflichtigen Gästelisten-Staffeln — Preis ist nur eine Info,
+  // Zahlung erfolgt an der Abendkasse (kein Online-Payment).
+  isDoorPrice?: boolean;
   amountCents?: number | null;
 }) {
   const qr = await ticketQrBuffer(params.ticketId);
@@ -44,7 +47,11 @@ export async function sendTicketEmail(params: {
     ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Bezahlt: ${(
         (params.amountCents ?? 0) / 100
       ).toFixed(2)} €</p>`
-    : "";
+    : params.isDoorPrice && params.amountCents
+      ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Preis an der Abendkasse: ${(
+          params.amountCents / 100
+        ).toFixed(2)} € (keine Online-Zahlung nötig)</p>`
+      : "";
 
   const html = `
   <div style="background:#0a0a0a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">

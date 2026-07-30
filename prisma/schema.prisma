@@ -44,7 +44,30 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tickets     Ticket[]
+  tickets         Ticket[]
+  guestlistTiers  GuestlistTier[]
+}
+
+// Bis zu 3 zeitbasierte Preis-Staffeln für Gästeliste-Events (z.B. "bis 23 Uhr
+// 5€, bis 00 Uhr 10€, danach 15€"). Rein informativ — es wird nicht online
+// bezahlt, die Gäste zahlen an der Abendkasse. Ohne Staffeln bleibt die
+// Gästeliste wie gehabt kostenlos.
+model GuestlistTier {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Staffel gilt bis zu diesem Zeitpunkt (danach greift die nächste Staffel
+  // bzw. bleibt die letzte Staffel als Endpreis bestehen).
+  untilTime  DateTime
+  priceCents Int
+
+  // Reihenfolge der Staffeln (0 = früheste/günstigste)
+  order      Int      @default(0)
+
+  createdAt  DateTime @default(now())
+
+  @@index([eventId])
 }
 
 model Ticket {

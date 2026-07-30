@@ -41,6 +41,7 @@ export async function createTicketAndSendEmail(params: {
       eventVenue: params.event.venue,
       eventAddress: params.event.address,
       isPaid: params.event.ticketMode === "PAID",
+      isDoorPrice: params.event.ticketMode === "GUESTLIST",
       amountCents: ticket.amountCents
     });
     await prisma.ticket.update({
