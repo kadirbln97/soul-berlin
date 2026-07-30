@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { ticketQrBuffer } from "./qr";
 import { formatEventDate } from "./format";
+import { escapeHtml } from "./escapeHtml";
 
 function getTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
@@ -32,6 +33,13 @@ export async function sendTicketEmail(params: {
   const transport = getTransport();
   const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
 
+  // Nutzereingaben (Name) vor dem Einbetten in HTML escapen — verhindert
+  // HTML/Markup-Injection im E-Mail-Client.
+  const safeName = escapeHtml(params.name);
+  const safeEventTitle = escapeHtml(params.eventTitle);
+  const safeVenue = escapeHtml(params.eventVenue);
+  const safeAddress = params.eventAddress ? escapeHtml(params.eventAddress) : null;
+
   const priceLine = params.isPaid
     ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Bezahlt: ${(
         (params.amountCents ?? 0) / 100
@@ -43,12 +51,12 @@ export async function sendTicketEmail(params: {
     <div style="max-width:480px;margin:0 auto;background:#111111;border:1px solid #262626;border-radius:16px;overflow:hidden;">
       <div style="padding:28px 28px 0;">
         <p style="color:#ff6a1a;letter-spacing:.2em;font-size:12px;font-weight:bold;margin:0 0 4px;">SØUL BERLIN</p>
-        <h1 style="color:#f5f3ee;font-size:24px;margin:0 0 4px;">${params.eventTitle}</h1>
+        <h1 style="color:#f5f3ee;font-size:24px;margin:0 0 4px;">${safeEventTitle}</h1>
         <p style="color:#f5f3ee;opacity:.7;font-size:14px;margin:0 0 2px;">${formatEventDate(
           params.eventDateStart
         )}</p>
-        <p style="color:#f5f3ee;opacity:.7;font-size:14px;margin:0 0 20px;">${params.eventVenue}${
-    params.eventAddress ? " · " + params.eventAddress : ""
+        <p style="color:#f5f3ee;opacity:.7;font-size:14px;margin:0 0 20px;">${safeVenue}${
+    safeAddress ? " · " + safeAddress : ""
   }</p>
       </div>
       <div style="background:#f5f3ee;padding:24px;text-align:center;">
@@ -58,7 +66,7 @@ export async function sendTicketEmail(params: {
         }</p>
       </div>
       <div style="padding:24px 28px 28px;">
-        <p style="color:#f5f3ee;margin:0 0 4px;">Hi ${params.name},</p>
+        <p style="color:#f5f3ee;margin:0 0 4px;">Hi ${safeName},</p>
         <p style="color:#f5f3ee;opacity:.8;font-size:14px;line-height:1.6;margin:0 0 12px;">
           hier ist dein Ticket. Zeig einfach diesen QR-Code am Einlass — er wird gescannt und ist
           nur einmal gültig.

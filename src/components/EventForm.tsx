@@ -223,7 +223,11 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
       <button type="submit" disabled={loading} className="btn-primary self-start">
         {loading ? "Speichern …" : isEdit ? "Änderungen speichern" : "Event erstellen"}

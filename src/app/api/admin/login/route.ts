@@ -2,8 +2,19 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validation";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Brute-Force-Schutz: max. 8 Login-Versuche pro 10 Minuten pro IP.
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`login:${ip}`, 8, 10 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Login-Versuche. Bitte in ein paar Minuten erneut versuchen." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = loginSchema.safeParse(body);
 

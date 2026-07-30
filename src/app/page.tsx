@@ -14,7 +14,7 @@ export default async function HomePage() {
   return (
     <>
       <Header />
-      <main>
+      <main id="main-content">
         <section className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-5 pb-16 pt-16 text-center sm:pt-24">
           <Image
             src="/logo.png"

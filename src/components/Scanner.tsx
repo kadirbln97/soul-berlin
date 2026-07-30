@@ -71,7 +71,7 @@ export function Scanner({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-paper/15">
-      <div id={READER_ID} className="w-full" />
+      <div id={READER_ID} role="img" aria-label="Kamerabild zum QR-Code-Scannen" className="w-full" />
     </div>
   );
 }

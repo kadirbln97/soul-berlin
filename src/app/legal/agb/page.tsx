@@ -5,7 +5,7 @@ export default function AgbPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-5 py-16">
+      <main id="main-content" className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-display mb-6 text-3xl uppercase text-paper">
           Allgemeine Geschäftsbedingungen
         </h1>

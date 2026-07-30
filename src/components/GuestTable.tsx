@@ -35,6 +35,28 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function handleErasure(ticket: Ticket) {
+    const confirmed = window.confirm(
+      `Alle personenbezogenen Daten von ${ticket.name} unwiderruflich löschen (DSGVO Art. 17)?\n\nDas entfernt den kompletten Datensatz (Name, E-Mail, Telefon) aus der Datenbank — nicht nur eine Stornierung. Kann nicht rückgängig gemacht werden.`
+    );
+    if (!confirmed) return;
+
+    setLoadingId(ticket.id);
+    setError(null);
+
+    const res = await fetch(`/api/tickets/${ticket.id}`, { method: "DELETE" });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Löschen fehlgeschlagen.");
+      setLoadingId(null);
+      return;
+    }
+
+    setLoadingId(null);
+    router.refresh();
+  }
+
   async function handleRefund(ticket: Ticket) {
     const isPaid = Boolean(ticket.amountCents);
     const confirmed = window.confirm(
@@ -70,7 +92,11 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
 
   return (
     <div className="overflow-hidden rounded-2xl card-border">
-      {error && <p className="bg-red-500/10 px-5 py-2 text-sm text-red-400">{error}</p>}
+      {error && (
+        <p role="alert" className="bg-red-500/10 px-5 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
       <table className="w-full text-left text-sm">
         <thead className="bg-white/5 text-xs uppercase tracking-widest text-paper/50">
           <tr>
@@ -102,19 +128,29 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
               </td>
               <td className="px-5 py-4 text-paper/50">{formatEventDate(ticket.createdAt)}</td>
               <td className="px-5 py-4 text-right">
-                {(ticket.status === "VALID" || ticket.status === "CHECKED_IN") && (
+                <div className="flex justify-end gap-4">
+                  {(ticket.status === "VALID" || ticket.status === "CHECKED_IN") && (
+                    <button
+                      onClick={() => handleRefund(ticket)}
+                      disabled={loadingId === ticket.id}
+                      className="text-xs font-semibold uppercase tracking-widest text-red-400 hover:underline disabled:opacity-40"
+                    >
+                      {loadingId === ticket.id
+                        ? "…"
+                        : ticket.amountCents
+                          ? "Erstatten"
+                          : "Stornieren"}
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleRefund(ticket)}
+                    onClick={() => handleErasure(ticket)}
                     disabled={loadingId === ticket.id}
-                    className="text-xs font-semibold uppercase tracking-widest text-red-400 hover:underline disabled:opacity-40"
+                    title="Personenbezogene Daten unwiderruflich löschen (DSGVO Art. 17)"
+                    className="text-xs font-semibold uppercase tracking-widest text-paper/40 hover:text-paper hover:underline disabled:opacity-40"
                   >
-                    {loadingId === ticket.id
-                      ? "…"
-                      : ticket.amountCents
-                        ? "Erstatten"
-                        : "Stornieren"}
+                    DSGVO löschen
                   </button>
-                )}
+                </div>
               </td>
             </tr>
           ))}

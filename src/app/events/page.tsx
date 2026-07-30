@@ -14,7 +14,7 @@ export default async function EventsPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-5 py-16">
+      <main id="main-content" className="mx-auto max-w-6xl px-5 py-16">
         <h1 className="text-display mb-10 text-4xl uppercase text-paper">Events</h1>
 
         {upcoming.length === 0 ? (

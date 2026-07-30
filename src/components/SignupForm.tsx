@@ -51,7 +51,10 @@ export function SignupForm({
 
   if (success) {
     return (
-      <div className="rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center">
+      <div
+        role="status"
+        className="rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center"
+      >
         <p className="text-display text-xl uppercase text-paper">Du bist auf der Liste 🎉</p>
         <p className="mt-2 text-sm text-paper/70">
           Check dein Postfach — dein QR-Ticket ist unterwegs an deine E-Mail-Adresse.
@@ -103,7 +106,11 @@ export function SignupForm({
         />
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
       <button type="submit" disabled={loading} className="btn-primary mt-2">
         {loading

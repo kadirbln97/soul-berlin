@@ -26,7 +26,7 @@ export default async function EventDetailPage({
   return (
     <>
       <Header />
-      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">
+      <main id="main-content" className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">
         <div>
           <div className="relative mb-8 aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-900">
             {event.imageUrl ? (

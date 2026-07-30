@@ -5,7 +5,7 @@ export default function ImpressumPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-5 py-16">
+      <main id="main-content" className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-display mb-6 text-3xl uppercase text-paper">Impressum</h1>
         <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/10 p-4 text-sm text-paper/80">
           Platzhalter — hier fehlen noch deine echten Pflichtangaben nach § 5 TMG /

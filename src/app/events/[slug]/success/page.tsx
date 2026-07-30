@@ -46,7 +46,7 @@ function SuccessContent() {
   return (
     <>
       <Header />
-      <main className="mx-auto flex max-w-xl flex-col items-center gap-6 px-5 py-24 text-center">
+      <main id="main-content" className="mx-auto flex max-w-xl flex-col items-center gap-6 px-5 py-24 text-center">
         {!sessionId ? (
           <p className="text-paper/60">Keine gültige Zahlungssitzung gefunden.</p>
         ) : ticket ? (

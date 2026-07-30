@@ -2,8 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validation";
 import { createTicketAndSendEmail, countActiveTickets } from "@/lib/createTicket";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Schutz vor Spam-Anmeldungen / E-Mail-Flut: max. 5 Anmeldungen pro 10 Minuten pro IP.
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`guestlist:${ip}`, 5, 10 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Anmeldungen. Bitte in ein paar Minuten erneut versuchen." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = signupSchema.safeParse(body);
 

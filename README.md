@@ -148,7 +148,39 @@ SQLite eignet sich nur für lokale Tests. Für den Live-Betrieb:
 5. Mehrere Türsteher können sich gleichzeitig mit demselben Admin-Login auf
    ihren eigenen Handys einloggen und parallel scannen.
 
-## 8. Struktur (falls du selbst weiterbauen willst)
+## 8. Sicherheit & DSGVO — was schon eingebaut ist
+
+**Sicherheit:**
+- Passwort-Hashing (bcrypt), signierte Session-Cookies (httpOnly, secure in Produktion, SameSite)
+- Fälschungssichere, HMAC-signierte QR-Codes (nicht erratbar)
+- Stripe-Webhook-Signaturprüfung + Idempotenz (keine doppelten Tickets)
+- Rate-Limiting auf Login, Gästeliste, Checkout & Scanner (Schutz vor Brute-Force/Spam)
+- Security-Header (X-Frame-Options, X-Content-Type-Options, Referrer-Policy,
+  Permissions-Policy — Kamera nur für die eigene Seite)
+- HTML-Escaping von Nutzereingaben in E-Mails (verhindert Markup-Injection)
+- Serverseitige Eingabevalidierung (Zod) mit sinnvollen Ober-/Untergrenzen
+
+**DSGVO:**
+- Datensparsamkeit: nur Name, E-Mail, optional Telefon — keine Tracking-Cookies,
+  kein Analytics/Werbe-Skript eingebaut, deshalb bewusst **kein** Cookie-Banner
+  (rechtlich für rein technische Cookies nicht nötig)
+- "DSGVO löschen"-Button im Admin-Bereich pro Ticket → löscht personenbezogene
+  Daten (Art. 17 DSGVO, Recht auf Löschung) vollständig und unwiderruflich
+- Datenschutzerklärung mit Rechtsgrundlagen, Auftragsverarbeitern (Stripe, SMTP,
+  Hosting) und Betroffenenrechten vorbereitet (`/legal/datenschutz`) — Platzhalter
+  `[...]` bitte vor Live-Gang ausfüllen (Retention-Frist, Kontakt-E-Mail etc.)
+
+**Was du trotzdem noch selbst erledigen musst:**
+- Echte Impressum-/AGB-Angaben eintragen (Pflicht in Deutschland)
+- HTTPS sicherstellen (bei Vercel automatisch inklusive)
+- Auftragsverarbeitungsverträge (AVV) mit Stripe & deinem E-Mail-Anbieter abschließen
+  bzw. akzeptieren (meist direkt im jeweiligen Dashboard)
+- Falls du später Analytics/Werbe-Pixel einbaust: Cookie-Consent-Banner nachrüsten
+- Bei sehr hohem Traffic auf Serverless (Vercel): Rate-Limiting durch einen
+  verteilten Dienst (z.B. Upstash Redis) ersetzen — die eingebaute Variante ist
+  In-Memory pro Server-Prozess
+
+## 9. Struktur (falls du selbst weiterbauen willst)
 
 ```
 src/app/            Seiten (App Router) — öffentlich, /admin, /api

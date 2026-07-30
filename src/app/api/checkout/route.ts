@@ -3,8 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { signupSchema } from "@/lib/validation";
 import { countActiveTickets } from "@/lib/createTicket";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  // Schutz vor Checkout-Session-Spam: max. 10 Versuche pro 10 Minuten pro IP.
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`checkout:${ip}`, 10, 10 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Versuche. Bitte in ein paar Minuten erneut versuchen." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = signupSchema.safeParse(body);
 

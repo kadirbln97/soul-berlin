@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/authGuard";
 import { verifyTicketToken } from "@/lib/ticketToken";
 import { validateTokenSchema } from "@/lib/validation";
 import { formatEventDate } from "@/lib/format";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 /**
  * Wird vom Scanner (Handy-Browser) nach jedem QR-Scan aufgerufen.
@@ -13,6 +14,14 @@ export async function POST(req: Request) {
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
+  }
+
+  // Grober Schutz gegen automatisiertes Durchprobieren von Ticket-IDs,
+  // selbst durch einen eingeloggten Account: max. 120 Scans/Minute.
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`validate:${ip}`, 120, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ result: "INVALID", message: "Zu viele Anfragen — kurz warten." });
   }
 
   const body = await req.json().catch(() => null);

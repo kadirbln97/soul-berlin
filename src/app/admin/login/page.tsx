@@ -72,7 +72,11 @@ function LoginForm() {
           className="input-field mb-6"
         />
 
-        {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-red-400">
+            {error}
+          </p>
+        )}
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "Einen Moment …" : "Login"}

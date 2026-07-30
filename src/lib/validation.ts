@@ -23,8 +23,10 @@ export const eventSchema = z.object({
   dateStart: z.string().min(1),
   dateEnd: z.string().optional().or(z.literal("")),
   ticketMode: z.enum(TICKET_MODES),
-  priceCents: z.coerce.number().int().min(0).optional(),
-  capacity: z.coerce.number().int().min(1).optional(),
+  // Obergrenze 5.000 € pro Ticket / 20.000 Plätze — verhindert Tippfehler mit
+  // absurden Beträgen und dient als grobe Plausibilitätsprüfung.
+  priceCents: z.coerce.number().int().min(0).max(500_000).optional(),
+  capacity: z.coerce.number().int().min(1).max(20_000).optional(),
   status: z.enum(EVENT_STATUS)
 });
 

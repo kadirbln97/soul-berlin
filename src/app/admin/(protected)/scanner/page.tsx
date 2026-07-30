@@ -61,7 +61,11 @@ export default function ScannerPage() {
       <Scanner active={active} onScan={handleScan} />
 
       {result && (
-        <div className={`mt-6 rounded-2xl border p-6 text-center ${RESULT_STYLE[result.result]}`}>
+        <div
+          role="status"
+          aria-live="assertive"
+          className={`mt-6 rounded-2xl border p-6 text-center ${RESULT_STYLE[result.result]}`}
+        >
           <p className="text-display text-xl uppercase">{RESULT_TITLE[result.result]}</p>
           {result.guestName && <p className="mt-2 text-paper">{result.guestName}</p>}
           {result.eventTitle && <p className="text-sm text-paper/60">{result.eventTitle}</p>}

@@ -32,15 +32,15 @@ body {
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-full bg-soul-orange px-6 py-3 text-sm font-semibold uppercase tracking-widest text-ink transition hover:bg-soul-orangeLight disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-soul-orange px-6 py-3 text-sm font-semibold uppercase tracking-widest text-ink transition hover:bg-soul-orangeLight disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
 }
 
 .btn-outline {
-  @apply inline-flex items-center justify-center gap-2 rounded-full border border-paper/30 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-paper transition hover:border-soul-orange hover:text-soul-orange disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-paper/30 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-paper transition hover:border-soul-orange hover:text-soul-orange disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
 }
 
 .input-field {
-  @apply w-full rounded-lg border border-paper/15 bg-paper/5 px-4 py-3 text-paper placeholder:text-paper/40 outline-none transition focus:border-soul-orange;
+  @apply w-full rounded-lg border border-paper/15 bg-paper/5 px-4 py-3 text-paper placeholder:text-paper/40 outline-none transition focus:border-soul-orange focus:ring-1 focus:ring-soul-orange;
 }
 
 .label-field {
