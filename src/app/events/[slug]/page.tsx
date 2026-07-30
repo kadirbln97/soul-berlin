@@ -1,0 +1,100 @@
+import { notFound } from "next/navigation";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { SignupForm } from "@/components/SignupForm";
+import { prisma } from "@/lib/prisma";
+import { countActiveTickets } from "@/lib/createTicket";
+import { formatEventDate, formatPrice } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
+
+export default async function EventDetailPage({
+  params
+}: {
+  params: { slug: string };
+}) {
+  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+
+  if (!event || event.status !== "PUBLISHED") {
+    notFound();
+  }
+
+  const activeTickets = await countActiveTickets(event.id);
+  const isSoldOut = event.capacity ? activeTickets >= event.capacity : false;
+  const spotsLeft = event.capacity ? Math.max(event.capacity - activeTickets, 0) : null;
+
+  return (
+    <>
+      <Header />
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">
+        <div>
+          <div className="relative mb-8 aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-900">
+            {event.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={event.imageUrl}
+                alt={event.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-display text-6xl italic-skew text-paper/20">
+                SØUL
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs font-semibold uppercase tracking-widest text-soul-orange">
+            {formatEventDate(event.dateStart)}
+          </p>
+          <h1 className="text-display mt-2 text-4xl uppercase leading-none text-paper sm:text-5xl">
+            {event.title}
+          </h1>
+          {event.subtitle && (
+            <p className="mt-3 text-lg text-paper/70">{event.subtitle}</p>
+          )}
+          <p className="mt-4 text-sm uppercase tracking-widest text-paper/50">
+            {event.venue}
+            {event.address ? ` · ${event.address}` : ""}
+          </p>
+
+          <div className="mt-8 whitespace-pre-line text-paper/80 leading-relaxed">
+            {event.description}
+          </div>
+        </div>
+
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-2xl card-border bg-white/[0.02] p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
+                {event.ticketMode === "PAID" ? "Ticket" : "Gästeliste"}
+              </span>
+              <span className="text-display text-xl text-soul-orange">
+                {event.ticketMode === "PAID" && event.priceCents
+                  ? formatPrice(event.priceCents, event.currency)
+                  : "Free"}
+              </span>
+            </div>
+
+            {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
+              <p className="mb-4 text-xs uppercase tracking-widest text-soul-orange">
+                Nur noch {spotsLeft} Plätze
+              </p>
+            )}
+
+            {isSoldOut ? (
+              <div className="rounded-xl border border-paper/15 p-6 text-center">
+                <p className="text-display text-lg uppercase text-paper/60">Sold out</p>
+                <p className="mt-2 text-sm text-paper/40">
+                  Dieses Event ist leider ausgebucht.
+                </p>
+              </div>
+            ) : (
+              <SignupForm eventId={event.id} ticketMode={event.ticketMode} />
+            )}
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}

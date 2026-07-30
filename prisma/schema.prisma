@@ -1,0 +1,77 @@
+// SØUL Berlin — Datenbankschema
+//
+// Standard-Datenbank: SQLite (lokale Datei, kein Setup nötig).
+// Für Produktion empfohlen: Postgres (z.B. kostenlos bei Supabase oder Neon).
+// Umstellen: provider unten auf "postgresql" ändern und DATABASE_URL in .env setzen.
+// Enums werden bewusst NICHT verwendet, weil SQLite sie nicht unterstützt — Werte werden
+// stattdessen per Zod im Code validiert (siehe src/lib/validation.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  subtitle    String?
+  description String
+  venue       String
+  address     String?
+  imageUrl    String?
+  dateStart   DateTime
+  dateEnd     DateTime?
+
+  // "PAID" | "GUESTLIST"
+  ticketMode  String   @default("GUESTLIST")
+
+  // Preis in Cent (nur relevant bei ticketMode = PAID)
+  priceCents  Int?
+  currency    String   @default("eur")
+
+  // optionales Kapazitätslimit (null = unbegrenzt)
+  capacity    Int?
+
+  // "DRAFT" | "PUBLISHED"
+  status      String   @default("DRAFT")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  name        String
+  email       String
+  phone       String?
+
+  // "VALID" | "CHECKED_IN" | "REFUNDED" | "CANCELLED"
+  status      String   @default("VALID")
+
+  amountCents Int?
+  currency    String   @default("eur")
+
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String?
+
+  checkedInAt DateTime?
+  checkedInBy String?
+
+  emailSentAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([email])
+}

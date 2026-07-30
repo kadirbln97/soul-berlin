@@ -1,0 +1,36 @@
+import Link from "next/link";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-paper/10 py-10">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 text-center">
+        <p className="text-display text-2xl italic-skew text-paper">SØUL BERLIN</p>
+        <p className="text-xs uppercase tracking-widest text-paper/50">
+          Good people. Good music.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-paper/50">
+          <Link href="/legal/impressum" className="hover:text-soul-orange">
+            Impressum
+          </Link>
+          <Link href="/legal/agb" className="hover:text-soul-orange">
+            AGB
+          </Link>
+          <Link href="/legal/datenschutz" className="hover:text-soul-orange">
+            Datenschutz
+          </Link>
+          <a
+            href="https://www.instagram.com/soulberliin/"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="hover:text-soul-orange"
+          >
+            Instagram
+          </a>
+        </div>
+        <p className="text-[11px] text-paper/30">
+          © {new Date().getFullYear()} SØUL Berlin
+        </p>
+      </div>
+    </footer>
+  );
+}

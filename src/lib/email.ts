@@ -1,0 +1,87 @@
+import nodemailer from "nodemailer";
+import { ticketQrBuffer } from "./qr";
+import { formatEventDate } from "./format";
+
+function getTransport() {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    throw new Error(
+      "SMTP-Zugangsdaten fehlen in .env (SMTP_HOST/SMTP_USER/SMTP_PASS) — E-Mail-Versand kann nicht funktionieren."
+    );
+  }
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT ?? 587),
+    secure: Number(SMTP_PORT ?? 587) === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+}
+
+export async function sendTicketEmail(params: {
+  to: string;
+  name: string;
+  ticketId: string;
+  eventTitle: string;
+  eventDateStart: Date;
+  eventVenue: string;
+  eventAddress?: string | null;
+  isPaid: boolean;
+  amountCents?: number | null;
+}) {
+  const qr = await ticketQrBuffer(params.ticketId);
+  const transport = getTransport();
+  const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
+
+  const priceLine = params.isPaid
+    ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Bezahlt: ${(
+        (params.amountCents ?? 0) / 100
+      ).toFixed(2)} €</p>`
+    : "";
+
+  const html = `
+  <div style="background:#0a0a0a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
+    <div style="max-width:480px;margin:0 auto;background:#111111;border:1px solid #262626;border-radius:16px;overflow:hidden;">
+      <div style="padding:28px 28px 0;">
+        <p style="color:#ff6a1a;letter-spacing:.2em;font-size:12px;font-weight:bold;margin:0 0 4px;">SØUL BERLIN</p>
+        <h1 style="color:#f5f3ee;font-size:24px;margin:0 0 4px;">${params.eventTitle}</h1>
+        <p style="color:#f5f3ee;opacity:.7;font-size:14px;margin:0 0 2px;">${formatEventDate(
+          params.eventDateStart
+        )}</p>
+        <p style="color:#f5f3ee;opacity:.7;font-size:14px;margin:0 0 20px;">${params.eventVenue}${
+    params.eventAddress ? " · " + params.eventAddress : ""
+  }</p>
+      </div>
+      <div style="background:#f5f3ee;padding:24px;text-align:center;">
+        <img src="cid:ticketqr" alt="QR Code" width="240" height="240" style="display:block;margin:0 auto;" />
+        <p style="color:#0a0a0a;font-size:12px;letter-spacing:.05em;margin:12px 0 0;">Ticket-ID: ${
+          params.ticketId
+        }</p>
+      </div>
+      <div style="padding:24px 28px 28px;">
+        <p style="color:#f5f3ee;margin:0 0 4px;">Hi ${params.name},</p>
+        <p style="color:#f5f3ee;opacity:.8;font-size:14px;line-height:1.6;margin:0 0 12px;">
+          hier ist dein Ticket. Zeig einfach diesen QR-Code am Einlass — er wird gescannt und ist
+          nur einmal gültig.
+        </p>
+        ${priceLine}
+        <p style="color:#f5f3ee;opacity:.5;font-size:12px;margin:16px 0 0;">
+          Good people. Good music. — SØUL Berlin
+        </p>
+      </div>
+    </div>
+  </div>`;
+
+  await transport.sendMail({
+    from,
+    to: params.to,
+    subject: `Dein Ticket · ${params.eventTitle}`,
+    html,
+    attachments: [
+      {
+        filename: "ticket-qr.png",
+        content: qr,
+        cid: "ticketqr"
+      }
+    ]
+  });
+}
