@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EventCard } from "@/components/EventCard";
+import { Gallery } from "@/components/Gallery";
 import { getUpcomingPublishedEvents } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
@@ -15,32 +16,46 @@ export default async function HomePage() {
     <>
       <Header />
       <main id="main-content">
-        <section className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-5 pb-16 pt-16 text-center sm:pt-24">
+        <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[640px]">
+          {/* Priority + kleine Auflösung (1600px/WebP, ~270KB) hält den größten
+              Seiteninhalt (LCP) trotz echtem Eventfoto schnell. */}
           <Image
-            src="/logo.png"
-            alt="SØUL Berlin"
-            width={280}
-            height={280}
+            src="/media/photos/hero-entrance.webp"
+            alt="Einlass bei einem SØUL Berlin Event"
+            fill
             priority
-            className="h-20 w-auto sm:h-28"
+            sizes="100vw"
+            className="object-cover object-top"
           />
-          <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper sm:text-6xl">
-            Good people.
-            <br />
-            <span className="text-soul-orange italic-skew">Good music.</span>
-          </h1>
-          <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/50">
-            House Music Culture · Berlin
-          </p>
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
 
-          {nextEvent && (
-            <Link
-              href={`/events/${nextEvent.slug}`}
-              className="btn-primary mt-2"
-            >
-              Nächstes Event: {nextEvent.title} →
-            </Link>
-          )}
+          <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-8">
+            <Image
+              src="/logo.png"
+              alt="SØUL Berlin"
+              width={280}
+              height={280}
+              priority
+              className="h-20 w-auto sm:h-28"
+            />
+            <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper sm:text-6xl">
+              Good people.
+              <br />
+              <span className="text-soul-orange italic-skew">Good music.</span>
+            </h1>
+            <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/50">
+              House Music Culture · Berlin
+            </p>
+
+            {nextEvent && (
+              <Link
+                href={`/events/${nextEvent.slug}`}
+                className="btn-primary mt-2"
+              >
+                Nächstes Event: {nextEvent.title} →
+              </Link>
+            )}
+          </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-24">
@@ -78,6 +93,18 @@ export default async function HomePage() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="mx-auto max-w-6xl px-5 pb-24">
+          <div className="mb-8">
+            <h2 className="text-display text-2xl uppercase text-paper sm:text-3xl">
+              SØUL in Action
+            </h2>
+            <p className="mt-1 text-sm text-paper/50">
+              Impressionen von den letzten Events — Fotos & kurze Clips.
+            </p>
+          </div>
+          <Gallery />
         </section>
       </main>
       <Footer />
