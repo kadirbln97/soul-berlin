@@ -65,9 +65,17 @@ export default async function AdminEventDetailPage({
       </div>
 
       <div>
-        <h2 className="text-display mb-6 text-2xl uppercase text-paper">
-          Gästeliste / Tickets ({tickets.length})
-        </h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-display text-2xl uppercase text-paper">
+            Gästeliste / Tickets ({tickets.length})
+          </h2>
+          <a
+            href={`/api/admin/events/${event.id}/export`}
+            className="text-xs font-semibold uppercase tracking-widest text-paper/60 hover:text-soul-orange"
+          >
+            Als Excel exportieren ↓
+          </a>
+        </div>
         <GuestTable
           tickets={tickets.map((t) => ({
             id: t.id,

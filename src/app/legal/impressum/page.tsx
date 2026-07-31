@@ -7,30 +7,23 @@ export default function ImpressumPage() {
       <Header />
       <main id="main-content" className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-display mb-6 text-3xl uppercase text-paper">Impressum</h1>
-        <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/10 p-4 text-sm text-paper/80">
-          Platzhalter — hier fehlen noch deine echten Pflichtangaben nach § 5 TMG /
-          Anbieterkennzeichnung. Bitte vor dem Live-Gang ausfüllen bzw. von einem Anwalt/Steuerberater
-          prüfen lassen (insbesondere wenn Tickets verkauft werden).
-        </div>
         <div className="mt-8 space-y-4 text-paper/70">
           <p>
-            [Vor- und Nachname bzw. Firmenname]
+            Kadir Alik
             <br />
-            [Straße und Hausnummer]
+            Schleiermacher Str. 23
             <br />
-            [PLZ und Ort]
+            10961 Berlin
           </p>
           <p>
             Kontakt:
             <br />
-            E-Mail: [deine@email.de]
-            <br />
-            Telefon: [optional]
+            E-Mail: kandir1997@googlemail.com
           </p>
           <p>
-            Umsatzsteuer-ID (falls vorhanden): [DE...]
+            Steuernummer: 14/204/05109
             <br />
-            Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV: [Name]
+            Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV: Kadir Alik
           </p>
         </div>
       </main>

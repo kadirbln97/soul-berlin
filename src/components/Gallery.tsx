@@ -1,5 +1,7 @@
 import { LazyVideo } from "./LazyVideo";
 
+// 13 Fotos + 3 Videos = 16 Kacheln — bei 4 Spalten (Desktop) ergibt das exakt
+// 4 volle Reihen, damit kein Video allein in einer unvollständigen Reihe landet.
 const PHOTOS = [
   "gallery-01",
   "gallery-02",
@@ -13,8 +15,7 @@ const PHOTOS = [
   "gallery-10",
   "gallery-11",
   "gallery-12",
-  "gallery-13",
-  "gallery-14"
+  "gallery-13"
 ];
 
 const VIDEOS = [

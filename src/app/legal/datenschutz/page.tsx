@@ -8,15 +8,17 @@ export default function DatenschutzPage() {
       <main id="main-content" className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-display mb-6 text-3xl uppercase text-paper">Datenschutzerklärung</h1>
         <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/10 p-4 text-sm text-paper/80">
-          Diese Seite ist inhaltlich vorbereitet, ersetzt aber keine Rechtsberatung. Bitte die
-          eckigen Klammern [...] ausfüllen und vor dem Live-Gang von einem Anwalt/einer
-          Datenschutzberatung prüfen lassen.
+          Diese Seite ist inhaltlich vorbereitet, ersetzt aber keine Rechtsberatung. Vor dem
+          Live-Gang idealerweise von einer Datenschutzberatung prüfen lassen.
         </div>
 
         <div className="mt-8 space-y-6 text-paper/70">
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">1. Verantwortlicher</h2>
-            <p>[Name/Firma], [Adresse], [E-Mail] — siehe auch Impressum.</p>
+            <p>
+              Kadir Alik, Schleiermacher Str. 23, 10961 Berlin, kandir1997@googlemail.com — siehe
+              auch Impressum.
+            </p>
           </section>
 
           <section>
@@ -63,8 +65,8 @@ export default function DatenschutzPage() {
             <h2 className="mb-2 text-lg font-semibold text-paper">5. Empfänger / Auftragsverarbeiter</h2>
             <ul className="list-inside list-disc space-y-1">
               <li>Stripe (Zahlungsabwicklung) — eigene Datenschutzerklärung: stripe.com/de/privacy</li>
-              <li>[E-Mail-Anbieter, z.B. Resend/Brevo] (Versand des Ticket-QR-Codes)</li>
-              <li>[Hosting-Anbieter, z.B. Vercel/Supabase] (Serverbetrieb & Datenbank)</li>
+              <li>Resend (Versand des Ticket-QR-Codes per E-Mail)</li>
+              <li>Vercel (Hosting, Bild-Speicherung) und Neon (Datenbank) — Serverbetrieb</li>
             </ul>
             <p className="mt-2">
               Mit allen genannten Dienstleistern besteht bzw. wird ein Auftragsverarbeitungsvertrag
@@ -75,8 +77,8 @@ export default function DatenschutzPage() {
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">6. Speicherdauer</h2>
             <p>
-              Ticket-/Gästelistendaten werden [z.B. 90 Tage nach dem Event] aufbewahrt, sofern
-              keine gesetzlichen Aufbewahrungspflichten (z.B. Rechnungsdaten bei Zahlungen)
+              Ticket-/Gästelistendaten werden 90 Tage nach dem Event aufbewahrt, sofern keine
+              gesetzlichen Aufbewahrungspflichten (z.B. Rechnungsdaten bei Zahlungen)
               entgegenstehen, und danach gelöscht.
             </p>
           </section>
@@ -86,8 +88,8 @@ export default function DatenschutzPage() {
             <p>
               Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
               Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Für eine
-              Löschanfrage genügt eine E-Mail an [Kontakt-E-Mail] — wir löschen deine Daten dann
-              vollständig aus unserem System.
+              Löschanfrage genügt eine E-Mail an kandir1997@googlemail.com — wir löschen deine
+              Daten dann vollständig aus unserem System.
             </p>
           </section>
 

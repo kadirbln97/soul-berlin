@@ -34,7 +34,9 @@ export default async function EventDetailPage({
       <Header />
       <main id="main-content" className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">
         <div>
-          <div className="relative mb-8 aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-900">
+          {/* Gleiches Seitenverhältnis (4:5) wie die Event-Card auf der Startseite/Übersicht,
+              damit ein hochgeladenes Bild überall im selben Ausschnitt gut aussieht. */}
+          <div className="relative mb-8 aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-900">
             {event.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
