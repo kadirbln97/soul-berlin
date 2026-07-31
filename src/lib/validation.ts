@@ -13,14 +13,6 @@ export const loginSchema = z.object({
   password: z.string().min(1)
 });
 
-// 6-stelliger Code aus der Authenticator-App (Schritt 2 des Admin-Logins).
-export const totpCodeSchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .regex(/^\d{6}$/, "Bitte den 6-stelligen Code aus der App eingeben")
-});
-
 export const guestlistTierSchema = z.object({
   untilTime: z.string().min(1),
   // Obergrenze 5.000 € — verhindert Tippfehler mit absurden Beträgen.

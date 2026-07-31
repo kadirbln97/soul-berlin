@@ -54,12 +54,6 @@ openssl rand -hex 32
 npm run hash-password -- "DeinSicheresPasswort"
 # → Ausgabe in .env bei ADMIN_PASSWORD_HASH einsetzen
 
-# Zwei-Faktor-Authentifizierung einrichten (Pflicht — ohne das bleibt der
-# Admin-Login gesperrt, siehe Kapitel "Admin-Login absichern (2FA)" unten):
-npm run generate-2fa-secret -- deine@email.de
-# → Ausgabe in .env bei ADMIN_TOTP_SECRET einsetzen, QR-Code (2fa-qr.png) mit
-#   Google Authenticator/Authy/1Password scannen, Datei danach löschen
-
 # Datenbank anlegen (Postgres — DATABASE_URL muss vorher in .env gesetzt sein,
 # z.B. eine kostenlose Neon-Datenbank, siehe Kapitel 5):
 npm run db:push
@@ -72,22 +66,7 @@ npm run dev
 ```
 
 Seite läuft dann unter http://localhost:3000, Admin-Bereich unter
-http://localhost:3000/admin (Login mit `ADMIN_EMAIL` + Passwort + 6-stelligem
-Code aus der Authenticator-App).
-
-### Admin-Login absichern (2FA)
-
-Der Admin-Login (Dashboard + Scanner) verlangt zwingend einen zweiten Faktor
-(TOTP, wie bei Google Authenticator/Authy/1Password üblich) — ohne
-`ADMIN_TOTP_SECRET` in der Umgebung ist `/admin/login` komplett gesperrt
-(fail-closed), auch mit korrektem Passwort.
-
-Einrichtung: `npm run generate-2fa-secret -- deine@email.de` erzeugt lokal
-ein neues Secret + einen QR-Code (`2fa-qr.png`). Secret in `ADMIN_TOTP_SECRET`
-eintragen (lokal in `.env`, live bei Vercel unter Environment Variables), QR
-mit der Authenticator-App scannen, `2fa-qr.png` danach löschen. Das Secret
-landet nie im Quellcode/Repo — nur in der Umgebungsvariable, die ausschließlich
-du kennst.
+http://localhost:3000/admin (Login mit `ADMIN_EMAIL` + Passwort).
 
 ## 3. Stripe einrichten (nur für bezahlte Tickets nötig)
 
@@ -144,7 +123,7 @@ mit [App-Passwort](https://myaccount.google.com/apppasswords) nutzen
    Umgebungsvariable gesetzt.
 4. Unter **Settings → Environment Variables** die restlichen Werte aus `.env`
    eintragen: `APP_URL` (deine Vercel-Domain, z.B. `https://soul-berlin.vercel.app`),
-   `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `ADMIN_TOTP_SECRET`
+   `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`
    (Stripe/SMTP optional, siehe oben).
 5. Deployen.
 6. Nach dem ersten Deploy einmalig `npx prisma db push` gegen die Produktions-DB

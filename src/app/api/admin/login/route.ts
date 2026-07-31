@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validation";
-import { createPendingTwoFactorToken, PENDING_2FA_COOKIE } from "@/lib/auth";
+import { createSessionToken, SESSION_COOKIE } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
@@ -26,24 +26,10 @@ export async function POST(req: Request) {
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminHash = process.env.ADMIN_PASSWORD_HASH;
-  const totpSecret = process.env.ADMIN_TOTP_SECRET;
 
   if (!adminEmail || !adminHash) {
     return NextResponse.json(
       { error: "Admin-Zugang ist server-seitig nicht konfiguriert (.env)" },
-      { status: 500 }
-    );
-  }
-
-  // Fail-closed: ohne eingerichtete 2FA bleibt der Admin-Login komplett
-  // gesperrt, statt (unsicher) auf reines Passwort zurückzufallen. Einrichten
-  // mit: npm run generate-2fa-secret -- deine@email.de
-  if (!totpSecret) {
-    return NextResponse.json(
-      {
-        error:
-          "Zwei-Faktor-Authentifizierung ist noch nicht eingerichtet (ADMIN_TOTP_SECRET fehlt). Admin-Login ist bis dahin gesperrt."
-      },
       { status: 500 }
     );
   }
@@ -55,17 +41,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "E-Mail oder Passwort falsch" }, { status: 401 });
   }
 
-  // Passwort korrekt — aber noch keine volle Session. Erst nach dem korrekten
-  // 6-stelligen Code aus der Authenticator-App (siehe verify-2fa/route.ts)
-  // wird das echte Session-Cookie gesetzt.
-  const pendingToken = await createPendingTwoFactorToken(adminEmail);
-  const res = NextResponse.json({ ok: true, requires2FA: true });
-  res.cookies.set(PENDING_2FA_COOKIE, pendingToken, {
+  const token = await createSessionToken(adminEmail);
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 5
+    maxAge: 60 * 60 * 24 * 7
   });
   return res;
 }

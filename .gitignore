@@ -8,6 +8,4 @@ dist
 prisma/dev.db
 prisma/dev.db-journal
 .DS_Store
-# Vom generate-2fa-secret Script erzeugter QR-Code — enthält das 2FA-Secret
-# als Bild, darf nie ins Repo.
-2fa-qr.png
+tsconfig.tsbuildinfo
