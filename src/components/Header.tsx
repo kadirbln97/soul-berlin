@@ -17,7 +17,7 @@ export function Header() {
             alt="SØUL Berlin"
             width={160}
             height={160}
-            className="h-12 w-auto invert-0 sm:h-14"
+            className="h-20 w-auto invert-0 sm:h-24"
             priority
           />
         </Link>

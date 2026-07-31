@@ -20,27 +20,31 @@ export default async function HomePage() {
         <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[640px]">
           {/* Priority + kleine Auflösung (1600px/WebP, ~260KB) hält den größten
               Seiteninhalt (LCP) trotz echtem Eventfoto schnell.
-              object-position ist so gewählt (rechts der Mitte, oberes Drittel),
-              dass das rot leuchtende SØUL-Schild im Hintergrund sowohl im
-              schmalen Mobile- als auch im breiten Desktop-Ausschnitt sichtbar bleibt. */}
+              object-position ist responsiv: mobil zeigt der Ausschnitt mehr vom
+              Foto (inkl. Tänzerin), ab sm-Breakpoint (breiterer/flacherer Crop)
+              rutscht der Ausschnitt höher Richtung Decke, damit oberhalb des
+              Kopfes genug dunkler Platz für das Logo bleibt. Das SØUL-Schild
+              bleibt in beiden Fällen sichtbar. */}
           <Image
             src="/media/photos/hero-dancefloor.webp"
             alt="Tanzfläche mit leuchtendem SØUL-Schild bei einem SØUL Berlin Event"
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[64%_30%]"
+            className="object-cover object-[64%_30%] sm:object-[64%_12%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
 
           <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-8">
+            {/* Nach oben versetzt (relative -top), damit das Wordmark im dunklen
+                Deckenbereich des Fotos sitzt statt über dem Kopf der Tänzerin. */}
             <Image
               src="/logo.png"
               alt="SØUL Berlin"
               width={280}
               height={280}
               priority
-              className="h-20 w-auto sm:h-28"
+              className="relative -top-[60px] h-20 w-auto sm:top-0 sm:h-28"
             />
             <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper sm:text-6xl">
               Good people.
