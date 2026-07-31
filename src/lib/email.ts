@@ -100,3 +100,49 @@ export async function sendTicketEmail(params: {
     ]
   });
 }
+
+const TOPIC_LABEL: Record<string, string> = {
+  general: "Allgemeine Anfrage",
+  bug: "Bug-Report",
+  feature: "Feature-Wunsch"
+};
+
+/** Sendet eine Kontaktformular-Anfrage ans Admin-Postfach (ADMIN_EMAIL). */
+export async function sendContactEmail(params: {
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+}) {
+  const to = process.env.ADMIN_EMAIL;
+  if (!to) {
+    throw new Error("ADMIN_EMAIL fehlt in .env — Kontaktformular kann nicht zugestellt werden.");
+  }
+
+  const transport = getTransport();
+  const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
+
+  const safeName = escapeHtml(params.name);
+  const safeEmail = escapeHtml(params.email);
+  const safeMessage = escapeHtml(params.message).replace(/\n/g, "<br/>");
+  const topicLabel = TOPIC_LABEL[params.topic] ?? params.topic;
+
+  const html = `
+  <div style="background:#0a0a0a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#111111;border:1px solid #262626;border-radius:16px;padding:28px;">
+      <p style="color:#ff6a1a;letter-spacing:.2em;font-size:12px;font-weight:bold;margin:0 0 12px;">
+        KONTAKTFORMULAR · ${escapeHtml(topicLabel)}
+      </p>
+      <p style="color:#f5f3ee;margin:0 0 4px;"><strong>Von:</strong> ${safeName} (${safeEmail})</p>
+      <p style="color:#f5f3ee;opacity:.85;font-size:14px;line-height:1.6;margin:16px 0 0;">${safeMessage}</p>
+    </div>
+  </div>`;
+
+  await transport.sendMail({
+    from,
+    to,
+    replyTo: params.email,
+    subject: `[${topicLabel}] Neue Nachricht von ${params.name}`,
+    html
+  });
+}

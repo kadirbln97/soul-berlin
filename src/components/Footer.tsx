@@ -9,6 +9,9 @@ export function Footer() {
           Good people. Good music.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-paper/50">
+          <Link href="/kontakt" className="hover:text-soul-orange">
+            Kontakt
+          </Link>
           <Link href="/legal/impressum" className="hover:text-soul-orange">
             Impressum
           </Link>
@@ -25,6 +28,14 @@ export function Footer() {
             className="hover:text-soul-orange"
           >
             Instagram
+          </a>
+          <a
+            href="https://chat.whatsapp.com/FGUD95jUIRz4TeJ7fcRqq8"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="hover:text-soul-orange"
+          >
+            WhatsApp-Community
           </a>
         </div>
         <p className="text-[11px] text-paper/30">

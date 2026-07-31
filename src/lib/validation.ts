@@ -44,6 +44,14 @@ export const eventSchema = z.object({
   guestlistTiers: z.array(guestlistTierSchema).max(3).optional()
 });
 
+export const contactSchema = z.object({
+  name: z.string().trim().min(2, "Bitte vollständigen Namen angeben").max(100),
+  email: z.string().trim().email("Bitte gültige E-Mail angeben"),
+  // Grobe Themen-Einordnung fürs Admin-Postfach (Bug/Feature/Sonstiges).
+  topic: z.enum(["general", "bug", "feature"]).default("general"),
+  message: z.string().trim().min(10, "Bitte etwas ausführlicher beschreiben").max(2000)
+});
+
 export const validateTokenSchema = z.object({
   token: z.string().min(1)
 });

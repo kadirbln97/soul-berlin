@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
@@ -10,6 +11,40 @@ import { formatEventDate, formatEventTime, formatPrice } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+
+  if (!event || event.status !== "PUBLISHED") {
+    return { title: "Event nicht gefunden" };
+  }
+
+  const title = event.subtitle ? `${event.title} — ${event.subtitle}` : event.title;
+  const description = event.description.slice(0, 160);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/events/${event.slug}` },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `/events/${event.slug}`,
+      images: event.imageUrl ? [{ url: event.imageUrl, width: 1200, height: 1500 }] : undefined
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: event.imageUrl ? [event.imageUrl] : undefined
+    }
+  };
+}
 
 export default async function EventDetailPage({
   params

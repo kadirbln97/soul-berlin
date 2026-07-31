@@ -16,14 +16,27 @@ const body = Inter({
   display: "swap"
 });
 
+const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "SØUL BERLIN — Good people. Good music.",
+  metadataBase: new URL(appUrl),
+  title: {
+    default: "SØUL BERLIN — Good people. Good music.",
+    template: "%s · SØUL BERLIN"
+  },
   description:
     "SØUL Berlin ist House Music Culture: Events, Guestlist & Tickets. Good people. Good music.",
   openGraph: {
     title: "SØUL BERLIN",
     description: "Good people. Good music.",
-    type: "website"
+    type: "website",
+    siteName: "SØUL BERLIN",
+    locale: "de_DE"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SØUL BERLIN",
+    description: "Good people. Good music."
   }
 };
 
