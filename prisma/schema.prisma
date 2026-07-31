@@ -62,6 +62,12 @@ model GuestlistTier {
   untilTime  DateTime
   priceCents Int
 
+  // Optionaler Name der Staffel (z.B. "Early Bird", "Regular", "Last Call").
+  // Wird beim Ticket-Kauf/Gästelisten-Eintrag als Snapshot auf Ticket.tierLabel
+  // übernommen, damit spätere Auswertungen (Check-in pro Kategorie) auch dann
+  // noch stimmen, wenn Staffeln nachträglich umbenannt/gelöscht werden.
+  label      String?
+
   // Reihenfolge der Staffeln (0 = früheste/günstigste)
   order      Int      @default(0)
 
@@ -84,6 +90,11 @@ model Ticket {
 
   amountCents Int?
   currency    String   @default("eur")
+
+  // Snapshot des Namens der Preisstaffel zum Zeitpunkt der Anmeldung/des Kaufs
+  // (z.B. "Early Bird") — für die Check-in-Statistik pro Kategorie im Scanner.
+  // Null bei Events ohne Staffeln oder bei älteren Tickets vor diesem Feature.
+  tierLabel   String?
 
   stripeSessionId       String? @unique
   stripePaymentIntentId String?

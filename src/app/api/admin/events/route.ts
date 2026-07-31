@@ -56,6 +56,7 @@ export async function POST(req: Request) {
         create: tiers.map((tier, i) => ({
           untilTime: new Date(tier.untilTime),
           priceCents: tier.priceCents,
+          label: tier.label || null,
           order: i
         }))
       }

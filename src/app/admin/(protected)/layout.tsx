@@ -10,11 +10,11 @@ export default function AdminProtectedLayout({
   return (
     <div className="min-h-screen bg-ink">
       <header className="border-b border-paper/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4">
           <Link href="/admin" className="text-display text-lg uppercase text-paper">
             SØUL Admin
           </Link>
-          <nav className="flex items-center gap-5 text-xs font-semibold uppercase tracking-widest text-paper/70">
+          <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold uppercase tracking-widest text-paper/70 sm:gap-x-5">
             <Link href="/admin" className="hover:text-soul-orange">
               Dashboard
             </Link>
@@ -28,7 +28,7 @@ export default function AdminProtectedLayout({
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-10">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
     </div>
   );
 }

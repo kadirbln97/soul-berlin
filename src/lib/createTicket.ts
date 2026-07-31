@@ -14,6 +14,7 @@ export async function createTicketAndSendEmail(params: {
   email: string;
   phone?: string | null;
   amountCents?: number | null;
+  tierLabel?: string | null;
   stripeSessionId?: string | null;
   stripePaymentIntentId?: string | null;
 }) {
@@ -24,6 +25,7 @@ export async function createTicketAndSendEmail(params: {
       email: params.email,
       phone: params.phone || null,
       amountCents: params.amountCents ?? null,
+      tierLabel: params.tierLabel ?? null,
       currency: params.event.currency,
       status: "VALID",
       stripeSessionId: params.stripeSessionId ?? null,

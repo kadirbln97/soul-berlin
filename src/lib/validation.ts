@@ -16,7 +16,9 @@ export const loginSchema = z.object({
 export const guestlistTierSchema = z.object({
   untilTime: z.string().min(1),
   // Obergrenze 5.000 € — verhindert Tippfehler mit absurden Beträgen.
-  priceCents: z.coerce.number().int().min(0).max(500_000)
+  priceCents: z.coerce.number().int().min(0).max(500_000),
+  // Optionaler Name der Staffel (z.B. "Early Bird") für die Check-in-Statistik.
+  label: z.string().trim().max(60).optional().nullable()
 });
 
 export const eventSchema = z.object({
@@ -41,4 +43,18 @@ export const eventSchema = z.object({
 
 export const validateTokenSchema = z.object({
   token: z.string().min(1)
+});
+
+// Batch von offline gescannten Tickets, die nach Rückkehr der Internetverbindung
+// mit dem Server abgeglichen werden (siehe scanner/page.tsx Offline-Modus).
+export const offlineSyncSchema = z.object({
+  scans: z
+    .array(
+      z.object({
+        ticketId: z.string().min(1),
+        scannedAt: z.string().min(1)
+      })
+    )
+    .min(1)
+    .max(500)
 });

@@ -26,8 +26,8 @@ export default async function AdminEventDetailPage({
   return (
     <div className="flex flex-col gap-12">
       <div>
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-display text-3xl uppercase text-paper">{event.title}</h1>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-display text-2xl uppercase text-paper sm:text-3xl">{event.title}</h1>
           <div className="flex items-center gap-4">
             <Link
               href={`/events/${event.slug}`}
@@ -57,7 +57,8 @@ export default async function AdminEventDetailPage({
               status: event.status,
               guestlistTiers: event.guestlistTiers.map((tier) => ({
                 untilTime: tier.untilTime.toISOString(),
-                priceCents: tier.priceCents
+                priceCents: tier.priceCents,
+                label: tier.label
               }))
             }}
           />
@@ -65,8 +66,8 @@ export default async function AdminEventDetailPage({
       </div>
 
       <div>
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-display text-2xl uppercase text-paper">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-display text-xl uppercase text-paper sm:text-2xl">
             Gästeliste / Tickets ({tickets.length})
           </h2>
           <a
@@ -84,6 +85,7 @@ export default async function AdminEventDetailPage({
             phone: t.phone,
             status: t.status,
             amountCents: t.amountCents,
+            tierLabel: t.tierLabel,
             currency: t.currency,
             isPaidOnline: Boolean(t.stripePaymentIntentId),
             checkedInAt: t.checkedInAt ? t.checkedInAt.toISOString() : null,

@@ -78,6 +78,7 @@ export async function POST(req: Request) {
     result: "VALID",
     message: "Willkommen! Einlass gewährt.",
     guestName: ticket.name,
-    eventTitle: ticket.event.title
+    eventTitle: ticket.event.title,
+    tierLabel: ticket.tierLabel
   });
 }

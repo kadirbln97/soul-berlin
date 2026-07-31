@@ -16,8 +16,8 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-display text-3xl uppercase text-paper">Events</h1>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-display text-2xl uppercase text-paper sm:text-3xl">Events</h1>
         <Link href="/admin/events/new" className="btn-primary">
           + Neues Event
         </Link>
@@ -29,7 +29,8 @@ export default async function AdminDashboardPage() {
         </p>
       ) : (
         <div className="overflow-hidden rounded-2xl card-border">
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-white/5 text-xs uppercase tracking-widest text-paper/50">
               <tr>
                 <th className="px-5 py-3">Titel</th>
@@ -75,6 +76,10 @@ export default async function AdminDashboardPage() {
               ))}
             </tbody>
           </table>
+          </div>
+          <p className="border-t border-paper/10 px-5 py-2 text-[11px] text-paper/30 sm:hidden">
+            Tabelle nach links/rechts wischen, um alle Spalten zu sehen.
+          </p>
         </div>
       )}
     </div>

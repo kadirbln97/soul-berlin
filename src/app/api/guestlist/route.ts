@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validation";
 import { createTicketAndSendEmail, countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
+import { getCurrentGuestlistTier } from "@/lib/guestlistTiers";
 
 export async function POST(req: Request) {
   // Schutz vor Spam-Anmeldungen / E-Mail-Flut: max. 5 Anmeldungen pro 10 Minuten pro IP.
@@ -66,17 +66,19 @@ export async function POST(req: Request) {
     );
   }
 
-  // Preis wird zum Zeitpunkt der Anmeldung anhand der Staffeln festgestellt
-  // und im Ticket gespeichert (informativ — Zahlung erfolgt an der
-  // Abendkasse, keine Online-Zahlung).
-  const doorPriceCents = getCurrentGuestlistPrice(event.guestlistTiers);
+  // Preis + Kategorie (Staffel) werden zum Zeitpunkt der Anmeldung festgestellt
+  // und als Snapshot im Ticket gespeichert (informativ — Zahlung erfolgt an
+  // der Abendkasse, keine Online-Zahlung). Der Staffel-Name wandert mit auf
+  // das Ticket, damit der Scanner später Check-ins pro Kategorie auswerten kann.
+  const currentTier = getCurrentGuestlistTier(event.guestlistTiers);
 
   const ticket = await createTicketAndSendEmail({
     event,
     name,
     email: email.toLowerCase(),
     phone,
-    amountCents: doorPriceCents
+    amountCents: currentTier ? currentTier.priceCents : null,
+    tierLabel: currentTier ? currentTier.resolvedLabel : null
   });
 
   return NextResponse.json({ ok: true, ticketId: ticket.id });

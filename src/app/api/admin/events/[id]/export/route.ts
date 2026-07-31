@@ -45,6 +45,7 @@ export async function GET(
     { header: "Name", key: "name", width: 26 },
     { header: "E-Mail", key: "email", width: 30 },
     { header: "Telefon", key: "phone", width: 18 },
+    { header: "Kategorie", key: "tierLabel", width: 18 },
     { header: "Status", key: "status", width: 14 },
     { header: "Betrag (€)", key: "amount", width: 12 },
     { header: "Zahlungsart", key: "paymentType", width: 16 },
@@ -71,6 +72,7 @@ export async function GET(
       name: t.name,
       email: t.email,
       phone: t.phone ?? "",
+      tierLabel: t.tierLabel ?? "",
       status: STATUS_LABEL[t.status] ?? t.status,
       amount: t.amountCents ? (t.amountCents / 100).toFixed(2) : "",
       paymentType: t.amountCents

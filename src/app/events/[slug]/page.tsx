@@ -99,7 +99,10 @@ export default async function EventDetailPage({
                         isActive ? "text-soul-orange" : "text-paper/60"
                       }`}
                     >
-                      <span>bis {formatEventTime(tier.untilTime)} Uhr</span>
+                      <span>
+                        {tier.label ? `${tier.label} — ` : ""}
+                        bis {formatEventTime(tier.untilTime)} Uhr
+                      </span>
                       <span className="font-semibold">
                         {formatPrice(tier.priceCents, event.currency)}
                       </span>

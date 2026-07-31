@@ -15,9 +15,9 @@ export function Header() {
           <Image
             src="/logo.png"
             alt="SØUL Berlin"
-            width={120}
-            height={120}
-            className="h-9 w-auto invert-0"
+            width={160}
+            height={160}
+            className="h-12 w-auto invert-0 sm:h-14"
             priority
           />
         </Link>

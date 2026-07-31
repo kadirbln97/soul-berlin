@@ -6,6 +6,7 @@ import { useRef, useState, type FormEvent } from "react";
 type GuestlistTierInitial = {
   untilTime: string;
   priceCents: number;
+  label?: string | null;
 };
 
 type EventInitial = {
@@ -28,6 +29,7 @@ type EventInitial = {
 type TierRow = {
   untilTime: string; // datetime-local Format
   priceEuro: string;
+  label: string;
 };
 
 const MAX_TIERS = 3;
@@ -66,7 +68,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   const [tiers, setTiers] = useState<TierRow[]>(
     (initial?.guestlistTiers ?? []).map((t) => ({
       untilTime: toLocalInputValue(t.untilTime),
-      priceEuro: (t.priceCents / 100).toString()
+      priceEuro: (t.priceCents / 100).toString(),
+      label: t.label ?? ""
     }))
   );
 
@@ -112,7 +115,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
 
   function addTier() {
     if (tiers.length >= MAX_TIERS) return;
-    setTiers([...tiers, { untilTime: "", priceEuro: "" }]);
+    setTiers([...tiers, { untilTime: "", priceEuro: "", label: "" }]);
   }
 
   function removeTier(index: number) {
@@ -131,7 +134,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       .filter((t) => t.untilTime && t.priceEuro !== "")
       .map((t) => ({
         untilTime: new Date(t.untilTime).toISOString(),
-        priceCents: Math.round(parseFloat(t.priceEuro) * 100)
+        priceCents: Math.round(parseFloat(t.priceEuro) * 100),
+        label: t.label.trim() || null
       }));
 
     if (ticketMode === "GUESTLIST" && tiers.length > 0 && tiersPayload.length !== tiers.length) {
@@ -356,10 +360,22 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {tiers.map((tier, i) => (
-                <div key={i} className="flex items-end gap-3">
-                  <div className="flex-1">
+                <div
+                  key={i}
+                  className="grid grid-cols-1 gap-3 rounded-lg border border-paper/5 p-3 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-end sm:border-0 sm:p-0"
+                >
+                  <div>
+                    <label className="label-field">Name (optional)</label>
+                    <input
+                      value={tier.label}
+                      onChange={(e) => updateTier(i, "label", e.target.value)}
+                      className="input-field"
+                      placeholder="z.B. Early Bird"
+                    />
+                  </div>
+                  <div>
                     <label className="label-field">Gültig bis</label>
                     <input
                       type="datetime-local"
@@ -368,7 +384,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       className="input-field"
                     />
                   </div>
-                  <div className="w-32">
+                  <div>
                     <label className="label-field">Preis (€)</label>
                     <input
                       type="number"
@@ -383,7 +399,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                   <button
                     type="button"
                     onClick={() => removeTier(i)}
-                    className="mb-1 text-xs font-semibold uppercase tracking-widest text-paper/40 hover:text-red-400"
+                    className="justify-self-start text-xs font-semibold uppercase tracking-widest text-paper/40 hover:text-red-400 sm:mb-1 sm:justify-self-auto"
                   >
                     Entfernen
                   </button>
