@@ -59,12 +59,12 @@ export async function POST(req: Request) {
 
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
-    // Automatisch statt fest verdrahteter Liste: Stripe zeigt dann alle im
-    // Dashboard aktivierten Zahlarten (Settings → Payment methods) an. Karte
-    // ist standardmäßig aktiv; Apple Pay/Google Pay laufen ohne weiteres Setup
-    // automatisch über "Karte" mit, sobald Browser/Gerät sie unterstützen —
-    // PayPal muss einmalig im Stripe-Dashboard aktiviert werden.
-    automatic_payment_methods: { enabled: true },
+    // payment_method_types bewusst weggelassen: Stripe Checkout zeigt dann
+    // automatisch alle im Dashboard aktivierten Zahlarten (Settings → Payment
+    // methods) an. Karte ist standardmäßig aktiv; Apple Pay/Google Pay laufen
+    // ohne weiteres Setup automatisch über "Karte" mit, sobald Browser/Gerät
+    // sie unterstützen. PayPal muss einmalig im Stripe-Dashboard aktiviert
+    // werden, danach erscheint es hier automatisch mit.
     customer_email: email,
     line_items: [
       {
