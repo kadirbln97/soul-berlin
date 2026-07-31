@@ -10,5 +10,8 @@ if (!password) {
 }
 
 const hash = bcrypt.hashSync(password, 10);
-console.log("\nFüge das in deine .env ein:\n");
+console.log("\nNur diese Zeile bei Vercel als Wert für ADMIN_PASSWORD_HASH eintragen");
+console.log("(OHNE Anführungszeichen, OHNE 'ADMIN_PASSWORD_HASH=' davor — nur der Teil zwischen >>> und <<<):\n");
+console.log(`>>>${hash}<<<\n`);
+console.log("Für lokale .env-Datei (dort MIT Anführungszeichen):\n");
 console.log(`ADMIN_PASSWORD_HASH="${hash}"\n`);
