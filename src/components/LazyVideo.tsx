@@ -15,7 +15,7 @@ export function LazyVideo({
   label
 }: {
   src: string;
-  poster: string;
+  poster?: string | null;
   label: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ export function LazyVideo({
       {shouldLoad ? (
         <video
           src={src}
-          poster={poster}
+          poster={poster ?? undefined}
           muted
           loop
           playsInline
@@ -56,7 +56,7 @@ export function LazyVideo({
           aria-label={label}
           className="h-full w-full object-cover"
         />
-      ) : (
+      ) : poster ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={poster}
@@ -64,6 +64,18 @@ export function LazyVideo({
           loading="lazy"
           className="h-full w-full object-cover"
         />
+      ) : (
+        // Kein Poster hinterlegt: einfaches Platzhalter-Tile mit Play-Symbol,
+        // bis das Video beim Reinscrollen geladen wird.
+        <div
+          role="img"
+          aria-label={label}
+          className="flex h-full w-full items-center justify-center bg-neutral-900"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-paper/10">
+            <div className="ml-1 h-0 w-0 border-y-8 border-l-[14px] border-y-transparent border-l-paper/60" />
+          </div>
+        </div>
       )}
     </div>
   );

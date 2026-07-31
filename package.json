@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "hash-password": "tsx scripts/hash-password.ts"
+    "hash-password": "tsx scripts/hash-password.ts",
+    "seed-gallery": "tsx prisma/seed-gallery.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

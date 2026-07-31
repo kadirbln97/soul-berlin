@@ -44,6 +44,18 @@ export const eventSchema = z.object({
   guestlistTiers: z.array(guestlistTierSchema).max(3).optional()
 });
 
+export const galleryItemSchema = z.object({
+  type: z.enum(["PHOTO", "VIDEO"]),
+  url: z.string().trim().min(1),
+  posterUrl: z.string().trim().optional().or(z.literal("")),
+  label: z.string().trim().max(120).optional().or(z.literal(""))
+});
+
+export const galleryReorderSchema = z.object({
+  // Vollständige Liste aller Galerie-IDs in der gewünschten neuen Reihenfolge.
+  ids: z.array(z.string().min(1)).min(1)
+});
+
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Bitte vollständigen Namen angeben").max(100),
   email: z.string().trim().email("Bitte gültige E-Mail angeben"),

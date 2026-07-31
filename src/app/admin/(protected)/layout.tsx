@@ -21,6 +21,9 @@ export default function AdminProtectedLayout({
             <Link href="/admin/scanner" className="hover:text-soul-orange">
               Scanner
             </Link>
+            <Link href="/admin/gallery" className="hover:text-soul-orange">
+              Galerie
+            </Link>
             <Link href="/" className="hover:text-soul-orange">
               Live-Seite
             </Link>

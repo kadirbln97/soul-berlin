@@ -81,6 +81,37 @@ model GuestlistTier {
   @@index([eventId])
 }
 
+// Foto-/Video-Kacheln für die "SØUL in Action"-Galerie auf der Startseite
+// (siehe src/components/Gallery.tsx). Reihenfolge, Hinzufügen, Löschen wird
+// komplett im Admin-Bereich verwaltet (/admin/gallery) — kein Code-Änderung
+// mehr nötig, um Medien auszutauschen.
+model GalleryItem {
+  id        String   @id @default(cuid())
+
+  // "PHOTO" | "VIDEO"
+  type      String
+
+  // Öffentliche URL der Datei (Vercel Blob oder /media/... für die
+  // ursprünglich fest eingebauten Medien).
+  url       String
+
+  // Nur bei Videos: Vorschaubild, das gezeigt wird, bevor das Video beim
+  // Reinscrollen geladen wird. Optional — ohne Poster wird ein einfaches
+  // Platzhalter-Tile gezeigt.
+  posterUrl String?
+
+  // Optionaler Alt-Text/Videobeschreibung (Barrierefreiheit).
+  label     String?
+
+  // Reihenfolge in der Galerie (0 = zuerst). Wird im Admin-Bereich per
+  // Hoch/Runter-Buttons verändert.
+  order     Int      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([order])
+}
+
 model Ticket {
   id          String   @id @default(cuid())
   eventId     String
