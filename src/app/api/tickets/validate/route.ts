@@ -45,12 +45,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ result: "INVALID", message: "Ticket nicht gefunden." });
   }
 
+  // Automatische Erkennung, auf welchem Weg das Ticket entstanden ist: eine
+  // Stripe-Session-ID heißt "online per Ticketkauf bezahlt", sonst kommt es
+  // von der Gästeliste (ggf. mit an der Tür fälligem Staffelpreis).
+  const ticketType = ticket.stripeSessionId ? "PAID_ONLINE" : "GUESTLIST";
+
   if (ticket.status === "REFUNDED" || ticket.status === "CANCELLED") {
     return NextResponse.json({
       result: "REFUNDED",
       message: "Dieses Ticket wurde storniert/erstattet — kein Einlass.",
       guestName: ticket.name,
-      eventTitle: ticket.event.title
+      eventTitle: ticket.event.title,
+      tierLabel: ticket.tierLabel,
+      ticketType,
+      amountCents: ticket.amountCents,
+      currency: ticket.currency
     });
   }
 
@@ -61,7 +70,11 @@ export async function POST(req: Request) {
         ticket.checkedInAt ? formatEventDate(ticket.checkedInAt) : ""
       }.`,
       guestName: ticket.name,
-      eventTitle: ticket.event.title
+      eventTitle: ticket.event.title,
+      tierLabel: ticket.tierLabel,
+      ticketType,
+      amountCents: ticket.amountCents,
+      currency: ticket.currency
     });
   }
 
@@ -79,6 +92,9 @@ export async function POST(req: Request) {
     message: "Willkommen! Einlass gewährt.",
     guestName: ticket.name,
     eventTitle: ticket.event.title,
-    tierLabel: ticket.tierLabel
+    tierLabel: ticket.tierLabel,
+    ticketType,
+    amountCents: ticket.amountCents,
+    currency: ticket.currency
   });
 }

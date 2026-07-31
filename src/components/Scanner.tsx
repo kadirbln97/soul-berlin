@@ -62,7 +62,10 @@ export function Scanner({
       if (active) {
         instance.resume();
       } else {
-        instance.pause(true);
+        // false = nur die Erkennung pausieren, das Kamerabild läuft weiter
+        // (kein eingefrorenes Standbild). true würde das Videobild einfrieren,
+        // was wie ein Hänger wirkt — genau das soll hier nicht passieren.
+        instance.pause(false);
       }
     } catch {
       // Kamera evtl. noch nicht bereit — kein Problem, nächster Effekt-Lauf greift.

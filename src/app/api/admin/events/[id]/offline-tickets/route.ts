@@ -28,14 +28,25 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       name: true,
       status: true,
       tierLabel: true,
-      checkedInAt: true
+      checkedInAt: true,
+      amountCents: true,
+      currency: true,
+      stripeSessionId: true
     }
   });
+
+  // stripeSessionId selbst wird nicht mit rausgegeben (nicht nötig fürs
+  // Scannen) — nur, ob eines gesetzt ist, um online bezahlte Tickets von
+  // Gästeliste-Einträgen zu unterscheiden (siehe /api/tickets/validate).
+  const ticketsForOffline = tickets.map(({ stripeSessionId, ...t }) => ({
+    ...t,
+    ticketType: stripeSessionId ? "PAID_ONLINE" : "GUESTLIST"
+  }));
 
   return NextResponse.json({
     eventId: event.id,
     eventTitle: event.title,
     fetchedAt: new Date().toISOString(),
-    tickets
+    tickets: ticketsForOffline
   });
 }

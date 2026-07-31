@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Scanner } from "@/components/Scanner";
-import { formatEventTime } from "@/lib/format";
+import { formatEventTime, formatPrice } from "@/lib/format";
 
 type EventOption = {
   id: string;
@@ -10,12 +10,19 @@ type EventOption = {
   status: string;
 };
 
+// "PAID_ONLINE" = per Stripe-Ticketkauf bezahlt, "GUESTLIST" = Gästeliste
+// (ggf. mit Staffelpreis, der an der Tür kassiert wird — siehe amountCents).
+type TicketType = "PAID_ONLINE" | "GUESTLIST";
+
 type ScanResult = {
   result: "VALID" | "ALREADY_USED" | "REFUNDED" | "INVALID";
   message: string;
   guestName?: string;
   eventTitle?: string;
   tierLabel?: string | null;
+  ticketType?: TicketType;
+  amountCents?: number | null;
+  currency?: string;
   offline?: boolean;
 };
 
@@ -25,6 +32,9 @@ type OfflineTicket = {
   status: string;
   tierLabel: string | null;
   checkedInAt: string | null;
+  ticketType: TicketType;
+  amountCents: number | null;
+  currency: string;
 };
 
 type OfflineDataset = {
@@ -89,6 +99,7 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
   const busyRef = useRef(false);
   const selectedEventIdRef = useRef(selectedEventId);
   selectedEventIdRef.current = selectedEventId;
+  const autoResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) ?? null,
@@ -353,6 +364,9 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
           message: "Dieses Ticket wurde storniert/erstattet — kein Einlass.",
           guestName: ticket.name,
           tierLabel: ticket.tierLabel,
+          ticketType: ticket.ticketType,
+          amountCents: ticket.amountCents,
+          currency: ticket.currency,
           offline: true
         });
         busyRef.current = false;
@@ -366,6 +380,9 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
           message: "Bereits eingecheckt (offline erfasst).",
           guestName: ticket.name,
           tierLabel: ticket.tierLabel,
+          ticketType: ticket.ticketType,
+          amountCents: ticket.amountCents,
+          currency: ticket.currency,
           offline: true
         });
         busyRef.current = false;
@@ -390,6 +407,9 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
         message: "Einlass gewährt (offline — wird synchronisiert, sobald wieder online).",
         guestName: ticket.name,
         tierLabel: ticket.tierLabel,
+        ticketType: ticket.ticketType,
+        amountCents: ticket.amountCents,
+        currency: ticket.currency,
         offline: true
       });
       busyRef.current = false;
@@ -398,9 +418,31 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
   );
 
   function scanNext() {
+    if (autoResumeTimerRef.current) {
+      clearTimeout(autoResumeTimerRef.current);
+      autoResumeTimerRef.current = null;
+    }
     setResult(null);
     setActive(true);
   }
+
+  // Nach jedem Scan automatisch weiterscannen, statt zwingend auf einen Tap
+  // auf "Weiter scannen" zu warten — an der Tür müssen viele Gäste schnell
+  // hintereinander eingelassen werden. Das Kamerabild bleibt dabei die ganze
+  // Zeit live (siehe Scanner.tsx), es "hängt" also nichts.
+  useEffect(() => {
+    if (!result) return;
+    autoResumeTimerRef.current = setTimeout(() => {
+      scanNext();
+    }, 4000);
+    return () => {
+      if (autoResumeTimerRef.current) {
+        clearTimeout(autoResumeTimerRef.current);
+        autoResumeTimerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
@@ -534,10 +576,42 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
             <p className="text-xs uppercase tracking-widest text-paper/50">{result.tierLabel}</p>
           )}
           {result.eventTitle && <p className="text-sm text-paper/60">{result.eventTitle}</p>}
-          <p className="mt-2 text-sm opacity-80">{result.message}</p>
+
+          {/* Ticket-Typ wird automatisch erkannt (online bezahlt vs. Gästeliste)
+              — bei Gästeliste mit Staffelpreis zusätzlich der an der Tür fällige
+              Betrag, prominent für schnelles Kassieren. */}
+          {result.ticketType && (
+            <div className="mt-3 flex flex-col items-center gap-2">
+              <span
+                className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                  result.ticketType === "PAID_ONLINE"
+                    ? "bg-green-500/15 text-green-400"
+                    : "bg-paper/10 text-paper/70"
+                }`}
+              >
+                {result.ticketType === "PAID_ONLINE" ? "Ticket · online bezahlt" : "Gästeliste"}
+              </span>
+              {result.ticketType === "GUESTLIST" &&
+                (result.amountCents ? (
+                  <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/10 px-4 py-2">
+                    <p className="text-[10px] uppercase tracking-widest text-soul-orange/80">
+                      Zu zahlen an der Tür
+                    </p>
+                    <p className="text-display text-lg text-soul-orange">
+                      {formatPrice(result.amountCents, result.currency ?? "eur")}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-paper/40">Kostenlos</p>
+                ))}
+            </div>
+          )}
+
+          <p className="mt-3 text-sm opacity-80">{result.message}</p>
           <button onClick={scanNext} className="btn-primary mt-5 w-full sm:w-auto">
             Weiter scannen
           </button>
+          <p className="mt-3 text-[11px] text-paper/40">Scannt in wenigen Sekunden automatisch weiter …</p>
         </div>
       )}
 
