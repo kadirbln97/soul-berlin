@@ -18,15 +18,18 @@ export default async function HomePage() {
       <Header />
       <main id="main-content">
         <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[640px]">
-          {/* Priority + kleine Auflösung (1600px/WebP, ~270KB) hält den größten
-              Seiteninhalt (LCP) trotz echtem Eventfoto schnell. */}
+          {/* Priority + kleine Auflösung (1600px/WebP, ~260KB) hält den größten
+              Seiteninhalt (LCP) trotz echtem Eventfoto schnell.
+              object-position ist so gewählt (rechts der Mitte, oberes Drittel),
+              dass das rot leuchtende SØUL-Schild im Hintergrund sowohl im
+              schmalen Mobile- als auch im breiten Desktop-Ausschnitt sichtbar bleibt. */}
           <Image
-            src="/media/photos/hero-entrance.webp"
-            alt="Einlass bei einem SØUL Berlin Event"
+            src="/media/photos/hero-dancefloor.webp"
+            alt="Tanzfläche mit leuchtendem SØUL-Schild bei einem SØUL Berlin Event"
             fill
             priority
             sizes="100vw"
-            className="object-cover object-top"
+            className="object-cover object-[64%_30%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
 
