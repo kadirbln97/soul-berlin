@@ -21,7 +21,10 @@ export async function POST(req: Request) {
 
   const data = parsed.data;
 
-  if (data.ticketMode === "PAID" && (!data.priceCents || data.priceCents <= 0)) {
+  if (
+    (data.ticketMode === "PAID" || data.ticketMode === "BOTH") &&
+    (!data.priceCents || data.priceCents <= 0)
+  ) {
     return NextResponse.json(
       { error: "Bei kostenpflichtigen Events muss ein Preis > 0 angegeben werden." },
       { status: 400 }
@@ -35,7 +38,10 @@ export async function POST(req: Request) {
     slug = `${baseSlug}-${++i}`;
   }
 
-  const tiers = data.ticketMode === "GUESTLIST" ? (data.guestlistTiers ?? []) : [];
+  const tiers =
+    data.ticketMode === "GUESTLIST" || data.ticketMode === "BOTH"
+      ? (data.guestlistTiers ?? [])
+      : [];
 
   const event = await prisma.event.create({
     data: {
@@ -49,7 +55,8 @@ export async function POST(req: Request) {
       dateStart: new Date(data.dateStart),
       dateEnd: data.dateEnd ? new Date(data.dateEnd) : null,
       ticketMode: data.ticketMode,
-      priceCents: data.ticketMode === "PAID" ? data.priceCents : null,
+      priceCents:
+        data.ticketMode === "PAID" || data.ticketMode === "BOTH" ? data.priceCents : null,
       capacity: data.capacity || null,
       ticketSalesEndAt: data.ticketSalesEndAt ? new Date(data.ticketSalesEndAt) : null,
       status: data.status,

@@ -33,6 +33,13 @@ export async function createTicketAndSendEmail(params: {
     }
   });
 
+  // isPaid/isDoorPrice werden bewusst am tatsächlichen Kaufweg dieses konkreten
+  // Tickets festgemacht (stripeSessionId gesetzt = online bezahlt) statt am
+  // event.ticketMode — bei ticketMode "BOTH" sagt der Event-Modus allein nicht
+  // mehr aus, ob dieses Ticket per Stripe-Kauf oder Gästeliste entstanden ist.
+  const isPaid = Boolean(params.stripeSessionId);
+  const isDoorPrice = !isPaid && Boolean(ticket.amountCents);
+
   try {
     await sendTicketEmail({
       to: ticket.email,
@@ -42,8 +49,8 @@ export async function createTicketAndSendEmail(params: {
       eventDateStart: params.event.dateStart,
       eventVenue: params.event.venue,
       eventAddress: params.event.address,
-      isPaid: params.event.ticketMode === "PAID",
-      isDoorPrice: params.event.ticketMode === "GUESTLIST",
+      isPaid,
+      isDoorPrice,
       amountCents: ticket.amountCents
     });
     await prisma.ticket.update({

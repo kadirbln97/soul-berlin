@@ -2,12 +2,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { SignupForm } from "@/components/SignupForm";
-import { TicketAvailabilityGate } from "@/components/TicketAvailabilityGate";
+import { TicketPurchasePanel } from "@/components/TicketPurchasePanel";
 import { LocationMap } from "@/components/LocationMap";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
-import { formatEventDate, formatEventTime, formatPrice } from "@/lib/format";
+import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 
 export const dynamic = "force-dynamic";
@@ -112,73 +111,23 @@ export default async function EventDetailPage({
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl card-border bg-white/[0.02] p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
-                {event.ticketMode === "PAID" ? "Ticket" : "Gästeliste"}
-              </span>
-              <span className="text-display text-xl text-soul-orange">
-                {event.ticketMode === "PAID" && event.priceCents
-                  ? formatPrice(event.priceCents, event.currency)
-                  : guestlistPrice
-                    ? formatPrice(guestlistPrice, event.currency)
-                    : "Free"}
-              </span>
-            </div>
-
-            {event.ticketMode === "GUESTLIST" && event.guestlistTiers.length > 0 && (
-              <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">
-                <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/40">
-                  Preisstaffeln (Zahlung an der Abendkasse)
-                </p>
-                {event.guestlistTiers.map((tier) => {
-                  const isActive = tier.priceCents === guestlistPrice;
-                  return (
-                    <div
-                      key={tier.id}
-                      className={`flex items-center justify-between text-sm ${
-                        isActive ? "text-soul-orange" : "text-paper/60"
-                      }`}
-                    >
-                      <span>
-                        {tier.label ? `${tier.label} — ` : ""}
-                        bis {formatEventTime(tier.untilTime)} Uhr
-                      </span>
-                      <span className="font-semibold">
-                        {formatPrice(tier.priceCents, event.currency)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
-              <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-soul-orange">
-                <span className="inline-flex h-1.5 w-1.5 rounded-full bg-soul-orange" />
-                Nur noch {spotsLeft} Plätze
-              </p>
-            )}
-
-            {isSoldOut ? (
-              <div className="rounded-xl border border-paper/15 p-6 text-center">
-                <p className="text-display text-lg uppercase text-paper/60">Sold out</p>
-                <p className="mt-2 text-sm text-paper/40">
-                  Dieses Event ist leider ausgebucht.
-                </p>
-              </div>
-            ) : (
-              <TicketAvailabilityGate ticketSalesEndAt={salesEndAtIso} initiallyClosed={salesClosed}>
-                <SignupForm eventId={event.id} ticketMode={event.ticketMode} />
-                {event.ticketMode === "PAID" && (
-                  <p className="mt-4 text-center text-[11px] text-paper/40">
-                    Sichere Zahlung via Karte, Apple&nbsp;Pay, Google&nbsp;Pay oder PayPal
-                    (abgewickelt von Stripe).
-                  </p>
-                )}
-              </TicketAvailabilityGate>
-            )}
-          </div>
+          <TicketPurchasePanel
+            eventId={event.id}
+            ticketMode={event.ticketMode}
+            priceCents={event.priceCents}
+            currency={event.currency}
+            guestlistTiers={event.guestlistTiers.map((tier) => ({
+              id: tier.id,
+              label: tier.label,
+              untilTime: tier.untilTime.toISOString(),
+              priceCents: tier.priceCents
+            }))}
+            guestlistPrice={guestlistPrice}
+            spotsLeft={spotsLeft}
+            isSoldOut={isSoldOut}
+            salesEndAtIso={salesEndAtIso}
+            salesClosed={salesClosed}
+          />
         </div>
       </main>
       <Footer />

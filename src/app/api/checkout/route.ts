@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
 
-  if (event.ticketMode !== "PAID" || !event.priceCents) {
+  if ((event.ticketMode !== "PAID" && event.ticketMode !== "BOTH") || !event.priceCents) {
     return NextResponse.json(
       { error: "Dieses Event läuft über die kostenlose Gästeliste, nicht über Ticketkauf." },
       { status: 400 }

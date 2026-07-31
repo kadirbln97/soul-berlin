@@ -31,9 +31,11 @@ export function EventCard({
       ? priceCents
         ? formatPrice(priceCents)
         : "Tickets"
-      : guestlistPriceCents
-        ? `Ab ${formatPrice(guestlistPriceCents)}`
-        : "Guestlist";
+      : ticketMode === "BOTH"
+        ? "Ticket & Gästeliste"
+        : guestlistPriceCents
+          ? `Ab ${formatPrice(guestlistPriceCents)}`
+          : "Guestlist";
 
   return (
     <Link

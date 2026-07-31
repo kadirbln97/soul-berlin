@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
 
-  if (event.ticketMode !== "GUESTLIST") {
+  if (event.ticketMode !== "GUESTLIST" && event.ticketMode !== "BOTH") {
     return NextResponse.json(
       { error: "Dieses Event läuft über kostenpflichtige Tickets, nicht über die Gästeliste." },
       { status: 400 }

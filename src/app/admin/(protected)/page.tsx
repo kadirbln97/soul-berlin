@@ -47,7 +47,11 @@ export default async function AdminDashboardPage() {
                   <td className="px-5 py-4 font-medium text-paper">{event.title}</td>
                   <td className="px-5 py-4 text-paper/60">{formatEventDate(event.dateStart)}</td>
                   <td className="px-5 py-4 text-paper/60">
-                    {event.ticketMode === "PAID" ? "Bezahlt" : "Gästeliste"}
+                    {event.ticketMode === "PAID"
+                      ? "Bezahlt"
+                      : event.ticketMode === "BOTH"
+                        ? "Ticket + Gästeliste"
+                        : "Gästeliste"}
                   </td>
                   <td className="px-5 py-4">
                     <span

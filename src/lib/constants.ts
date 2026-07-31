@@ -1,6 +1,8 @@
 // Zentrale "Enum"-Werte (als Strings, weil SQLite echte Enums nicht unterstützt).
 
-export const TICKET_MODES = ["PAID", "GUESTLIST"] as const;
+// "BOTH" bietet Ticketkauf UND Gästeliste parallel an — der Gast wählt auf
+// der Event-Seite selbst, welche Option er nutzen möchte.
+export const TICKET_MODES = ["PAID", "GUESTLIST", "BOTH"] as const;
 export type TicketMode = (typeof TICKET_MODES)[number];
 
 export const EVENT_STATUS = ["DRAFT", "PUBLISHED"] as const;

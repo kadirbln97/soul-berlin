@@ -28,10 +28,10 @@ model Event {
   dateStart   DateTime
   dateEnd     DateTime?
 
-  // "PAID" | "GUESTLIST"
+  // "PAID" | "GUESTLIST" | "BOTH" (Ticketkauf + Gästeliste parallel, Gast wählt selbst)
   ticketMode  String   @default("GUESTLIST")
 
-  // Preis in Cent (nur relevant bei ticketMode = PAID)
+  // Preis in Cent (relevant bei ticketMode = PAID oder BOTH)
   priceCents  Int?
   currency    String   @default("eur")
 

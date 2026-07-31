@@ -140,7 +140,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         label: t.label.trim() || null
       }));
 
-    if (ticketMode === "GUESTLIST" && tiers.length > 0 && tiersPayload.length !== tiers.length) {
+    const usesGuestlist = ticketMode === "GUESTLIST" || ticketMode === "BOTH";
+
+    if (usesGuestlist && tiers.length > 0 && tiersPayload.length !== tiers.length) {
       setError("Bitte bei jeder Preisstaffel Uhrzeit und Preis ausfüllen (oder die Zeile entfernen).");
       return;
     }
@@ -161,7 +163,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       capacity: capacity ? parseInt(capacity, 10) : undefined,
       ticketSalesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : "",
       status,
-      guestlistTiers: ticketMode === "GUESTLIST" ? tiersPayload : []
+      guestlistTiers: usesGuestlist ? tiersPayload : []
     };
 
     try {
@@ -311,11 +313,12 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           >
             <option value="GUESTLIST">Gästeliste</option>
             <option value="PAID">Bezahlte Tickets (Stripe)</option>
+            <option value="BOTH">Beides — Gast wählt (Ticket oder Gästeliste)</option>
           </select>
         </div>
-        {ticketMode === "PAID" && (
+        {(ticketMode === "PAID" || ticketMode === "BOTH") && (
           <div>
-            <label className="label-field">Preis (€)</label>
+            <label className="label-field">Preis Ticket (€)</label>
             <input
               required
               type="number"
@@ -326,6 +329,12 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               className="input-field"
               placeholder="15.00"
             />
+            {ticketMode === "BOTH" && (
+              <p className="mt-1 text-[11px] text-paper/40">
+                Gilt nur für den Online-Ticketkauf. Die Gästeliste unten kann einen eigenen
+                (niedrigeren oder kostenlosen) Preis haben.
+              </p>
+            )}
           </div>
         )}
         <div>
@@ -364,7 +373,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </p>
         </div>
 
-        {ticketMode === "GUESTLIST" && (
+        {(ticketMode === "GUESTLIST" || ticketMode === "BOTH") && (
           <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">
             <div className="mb-3 flex items-center justify-between">
               <div>
