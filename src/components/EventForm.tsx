@@ -73,11 +73,22 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadError(null);
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setUploadError(
+        `Datei zu groß (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximal 10 MB erlaubt.`
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -243,6 +254,10 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                 disabled={uploading}
                 className="text-sm text-paper/70 file:mr-3 file:rounded-full file:border-0 file:bg-soul-orange file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
               />
+              <p className="text-[11px] text-paper/40">
+                Empfohlen: mind. 1200 × 1500 Px (Hochformat, Verhältnis ca. 4:5) — wird auf
+                der Seite automatisch zugeschnitten. JPEG, PNG, WebP oder GIF, max. 10 MB.
+              </p>
               {uploading && <p className="text-xs text-paper/50">Lädt hoch …</p>}
               {uploadError && (
                 <p role="alert" className="text-xs text-red-400">

@@ -4,7 +4,7 @@ import { getAdminSession } from "@/lib/authGuard";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 /**
  * Nimmt einen Bild-Upload vom Admin-Bereich entgegen (Event-Cover) und legt
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
   if (file.size > MAX_BYTES) {
     return NextResponse.json(
-      { error: "Datei zu groß (max. 8 MB)." },
+      { error: "Datei zu groß (max. 10 MB)." },
       { status: 400 }
     );
   }

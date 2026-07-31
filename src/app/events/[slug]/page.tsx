@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
-import { formatEventDate, formatPrice } from "@/lib/format";
+import { formatEventDate, formatEventTime, formatPrice } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 
 export const dynamic = "force-dynamic";
@@ -97,13 +97,7 @@ export default async function EventDetailPage({
                         isActive ? "text-soul-orange" : "text-paper/60"
                       }`}
                     >
-                      <span>
-                        bis {new Date(tier.untilTime).toLocaleTimeString("de-DE", {
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })}{" "}
-                        Uhr
-                      </span>
+                      <span>bis {formatEventTime(tier.untilTime)} Uhr</span>
                       <span className="font-semibold">
                         {formatPrice(tier.priceCents, event.currency)}
                       </span>

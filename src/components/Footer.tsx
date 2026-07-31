@@ -28,7 +28,7 @@ export function Footer() {
           </a>
         </div>
         <p className="text-[11px] text-paper/30">
-          © {new Date().getFullYear()} SØUL Berlin
+          © {new Intl.DateTimeFormat("de-DE", { year: "numeric", timeZone: "Europe/Berlin" }).format(new Date())} SØUL Berlin
         </p>
       </div>
     </footer>
