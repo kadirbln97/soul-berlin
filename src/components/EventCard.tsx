@@ -38,7 +38,7 @@ export function EventCard({
   return (
     <Link
       href={`/events/${slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl card-border bg-white/[0.02] transition hover:border-soul-orange/60"
+      className="group relative flex flex-col overflow-hidden rounded-2xl card-border bg-white/[0.02] transition hover:-translate-y-1 hover:border-soul-orange/60 hover:shadow-xl hover:shadow-black/40"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-900">
         {imageUrl ? (

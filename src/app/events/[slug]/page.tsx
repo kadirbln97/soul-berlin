@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
+import { TicketAvailabilityGate } from "@/components/TicketAvailabilityGate";
+import { LocationMap } from "@/components/LocationMap";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate, formatEventTime, formatPrice } from "@/lib/format";
@@ -28,6 +30,8 @@ export default async function EventDetailPage({
   const activeTickets = await countActiveTickets(event.id);
   const isSoldOut = event.capacity ? activeTickets >= event.capacity : false;
   const spotsLeft = event.capacity ? Math.max(event.capacity - activeTickets, 0) : null;
+  const salesEndAtIso = event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null;
+  const salesClosed = event.ticketSalesEndAt ? new Date() > event.ticketSalesEndAt : false;
 
   return (
     <>
@@ -68,6 +72,8 @@ export default async function EventDetailPage({
           <div className="mt-8 whitespace-pre-line text-paper/80 leading-relaxed">
             {event.description}
           </div>
+
+          <LocationMap venue={event.venue} address={event.address} />
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
@@ -113,7 +119,8 @@ export default async function EventDetailPage({
             )}
 
             {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
-              <p className="mb-4 text-xs uppercase tracking-widest text-soul-orange">
+              <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-soul-orange">
+                <span className="inline-flex h-1.5 w-1.5 rounded-full bg-soul-orange" />
                 Nur noch {spotsLeft} Plätze
               </p>
             )}
@@ -126,7 +133,15 @@ export default async function EventDetailPage({
                 </p>
               </div>
             ) : (
-              <SignupForm eventId={event.id} ticketMode={event.ticketMode} />
+              <TicketAvailabilityGate ticketSalesEndAt={salesEndAtIso} initiallyClosed={salesClosed}>
+                <SignupForm eventId={event.id} ticketMode={event.ticketMode} />
+                {event.ticketMode === "PAID" && (
+                  <p className="mt-4 text-center text-[11px] text-paper/40">
+                    Sichere Zahlung via Karte, Apple&nbsp;Pay, Google&nbsp;Pay oder PayPal
+                    (abgewickelt von Stripe).
+                  </p>
+                )}
+              </TicketAvailabilityGate>
             )}
           </div>
         </div>

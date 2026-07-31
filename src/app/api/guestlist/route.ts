@@ -44,6 +44,13 @@ export async function POST(req: Request) {
     );
   }
 
+  if (event.ticketSalesEndAt && new Date() > event.ticketSalesEndAt) {
+    return NextResponse.json(
+      { error: "Die Anmeldung zur Gästeliste ist für dieses Event bereits geschlossen." },
+      { status: 400 }
+    );
+  }
+
   if (event.capacity) {
     const active = await countActiveTickets(event.id);
     if (active >= event.capacity) {

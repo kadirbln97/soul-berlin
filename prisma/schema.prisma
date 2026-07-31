@@ -38,6 +38,11 @@ model Event {
   // optionales Kapazitätslimit (null = unbegrenzt)
   capacity    Int?
 
+  // Optionaler Zeitpunkt, ab dem Gästeliste/Ticketverkauf automatisch
+  // schließt (null = kein Verkaufsschluss). Wird auf der Event-Seite als
+  // Countdown angezeigt; Checkout/Gästeliste-APIs lehnen Anmeldungen danach ab.
+  ticketSalesEndAt DateTime?
+
   // "DRAFT" | "PUBLISHED"
   status      String   @default("DRAFT")
 

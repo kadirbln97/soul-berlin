@@ -22,6 +22,7 @@ type EventInitial = {
   ticketMode: string;
   priceCents: number | null;
   capacity: number | null;
+  ticketSalesEndAt: string | null;
   status: string;
   guestlistTiers?: GuestlistTierInitial[];
 };
@@ -63,6 +64,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     initial?.priceCents ? (initial.priceCents / 100).toString() : ""
   );
   const [capacity, setCapacity] = useState(initial?.capacity ? String(initial.capacity) : "");
+  const [salesEndAt, setSalesEndAt] = useState(toLocalInputValue(initial?.ticketSalesEndAt));
   const [status, setStatus] = useState(initial?.status ?? "DRAFT");
 
   const [tiers, setTiers] = useState<TierRow[]>(
@@ -157,6 +159,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       ticketMode,
       priceCents: priceEuro ? Math.round(parseFloat(priceEuro) * 100) : undefined,
       capacity: capacity ? parseInt(capacity, 10) : undefined,
+      ticketSalesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : "",
       status,
       guestlistTiers: ticketMode === "GUESTLIST" ? tiersPayload : []
     };
@@ -346,6 +349,19 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             <option value="DRAFT">Entwurf (nicht sichtbar)</option>
             <option value="PUBLISHED">Veröffentlicht</option>
           </select>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="label-field">Anmelde-/Verkaufsschluss (optional)</label>
+          <input
+            type="datetime-local"
+            value={salesEndAt}
+            onChange={(e) => setSalesEndAt(e.target.value)}
+            className="input-field sm:max-w-xs"
+          />
+          <p className="mt-1 text-[11px] text-paper/40">
+            Ab diesem Zeitpunkt schließt die Gästeliste bzw. der Ticketverkauf automatisch.
+            Gäste sehen bis dahin einen Countdown auf der Event-Seite. Leer lassen für kein Limit.
+          </p>
         </div>
 
         {ticketMode === "GUESTLIST" && (

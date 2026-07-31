@@ -51,6 +51,7 @@ export async function POST(req: Request) {
       ticketMode: data.ticketMode,
       priceCents: data.ticketMode === "PAID" ? data.priceCents : null,
       capacity: data.capacity || null,
+      ticketSalesEndAt: data.ticketSalesEndAt ? new Date(data.ticketSalesEndAt) : null,
       status: data.status,
       guestlistTiers: {
         create: tiers.map((tier, i) => ({

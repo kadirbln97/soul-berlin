@@ -50,6 +50,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ticketMode: data.ticketMode,
       priceCents: data.ticketMode === "PAID" ? data.priceCents : null,
       capacity: data.capacity || null,
+      ticketSalesEndAt: data.ticketSalesEndAt ? new Date(data.ticketSalesEndAt) : null,
       status: data.status,
       guestlistTiers: {
         deleteMany: {},

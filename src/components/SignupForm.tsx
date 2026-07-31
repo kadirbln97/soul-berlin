@@ -112,12 +112,16 @@ export function SignupForm({
         </p>
       )}
 
-      <button type="submit" disabled={loading} className="btn-primary mt-2">
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-primary mt-2 w-full py-4 text-[13px]"
+      >
         {loading
           ? "Einen Moment …"
           : ticketMode === "PAID"
-            ? "Weiter zur Kasse"
-            : "Auf die Gästeliste"}
+            ? "Jetzt Ticket sichern →"
+            : "Jetzt auf die Gästeliste →"}
       </button>
       <p className="text-center text-[11px] text-paper/40">
         Mit der Anmeldung akzeptierst du unsere{" "}

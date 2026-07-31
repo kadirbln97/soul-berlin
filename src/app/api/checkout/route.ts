@@ -41,6 +41,13 @@ export async function POST(req: Request) {
     );
   }
 
+  if (event.ticketSalesEndAt && new Date() > event.ticketSalesEndAt) {
+    return NextResponse.json(
+      { error: "Der Ticketverkauf für dieses Event ist bereits geschlossen." },
+      { status: 400 }
+    );
+  }
+
   if (event.capacity) {
     const active = await countActiveTickets(event.id);
     if (active >= event.capacity) {
@@ -52,7 +59,12 @@ export async function POST(req: Request) {
 
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
-    payment_method_types: ["card"],
+    // Automatisch statt fest verdrahteter Liste: Stripe zeigt dann alle im
+    // Dashboard aktivierten Zahlarten (Settings → Payment methods) an. Karte
+    // ist standardmäßig aktiv; Apple Pay/Google Pay laufen ohne weiteres Setup
+    // automatisch über "Karte" mit, sobald Browser/Gerät sie unterstützen —
+    // PayPal muss einmalig im Stripe-Dashboard aktiviert werden.
+    automatic_payment_methods: { enabled: true },
     customer_email: email,
     line_items: [
       {
