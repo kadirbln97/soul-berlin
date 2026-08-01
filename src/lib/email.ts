@@ -105,7 +105,8 @@ export async function sendTicketEmail(params: {
 const TOPIC_LABEL: Record<string, string> = {
   general: "Allgemeine Anfrage",
   bug: "Bug-Report",
-  feature: "Feature-Wunsch"
+  feature: "Feature-Wunsch",
+  refund: "Ticket-Rückerstattung"
 };
 
 /**
@@ -118,6 +119,9 @@ export async function sendContactEmail(params: {
   email: string;
   topic: string;
   message: string;
+  /** Nur bei Rückerstattungs-Anfragen: Ticket-Nummer und Event des Gastes. */
+  ticketRef?: string;
+  eventName?: string;
 }) {
   const to = await getContactRecipient();
   if (!to) {
@@ -135,6 +139,26 @@ export async function sendContactEmail(params: {
   const safeMessage = escapeHtml(params.message).replace(/\n/g, "<br/>");
   const topicLabel = TOPIC_LABEL[params.topic] ?? params.topic;
 
+  // Bei Rückerstattungs-Anfragen die Ticket-Angaben deutlich hervorheben,
+  // damit das Ticket im Admin-Bereich schnell gefunden werden kann.
+  const ticketRows = [
+    params.ticketRef ? ["Ticket-Nr.", params.ticketRef] : null,
+    params.eventName ? ["Event", params.eventName] : null
+  ].filter(Boolean) as [string, string][];
+
+  const ticketBlock = ticketRows.length
+    ? `<div style="margin:16px 0 0;padding:12px 14px;border:1px solid #ff6a1a55;border-radius:10px;background:#ff6a1a12;">
+         ${ticketRows
+           .map(
+             ([k, v]) =>
+               `<p style="color:#f5f3ee;margin:0 0 2px;font-size:14px;"><strong>${escapeHtml(
+                 k
+               )}:</strong> ${escapeHtml(v)}</p>`
+           )
+           .join("")}
+       </div>`
+    : "";
+
   const html = `
   <div style="background:#0a0a0a;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
     <div style="max-width:520px;margin:0 auto;background:#111111;border:1px solid #262626;border-radius:16px;padding:28px;">
@@ -142,6 +166,7 @@ export async function sendContactEmail(params: {
         KONTAKTFORMULAR · ${escapeHtml(topicLabel)}
       </p>
       <p style="color:#f5f3ee;margin:0 0 4px;"><strong>Von:</strong> ${safeName} (${safeEmail})</p>
+      ${ticketBlock}
       <p style="color:#f5f3ee;opacity:.85;font-size:14px;line-height:1.6;margin:16px 0 0;">${safeMessage}</p>
     </div>
   </div>`;

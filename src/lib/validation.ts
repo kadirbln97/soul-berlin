@@ -59,9 +59,12 @@ export const galleryReorderSchema = z.object({
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Bitte vollständigen Namen angeben").max(100),
   email: z.string().trim().email("Bitte gültige E-Mail angeben"),
-  // Grobe Themen-Einordnung fürs Admin-Postfach (Bug/Feature/Sonstiges).
-  topic: z.enum(["general", "bug", "feature"]).default("general"),
-  message: z.string().trim().min(10, "Bitte etwas ausführlicher beschreiben").max(2000)
+  // Grobe Themen-Einordnung fürs Admin-Postfach.
+  topic: z.enum(["general", "bug", "feature", "refund"]).default("general"),
+  message: z.string().trim().min(10, "Bitte etwas ausführlicher beschreiben").max(2000),
+  // Nur bei topic = "refund" relevant: hilft, das Ticket schnell zu finden.
+  ticketRef: z.string().trim().max(200).optional().or(z.literal("")),
+  eventName: z.string().trim().max(200).optional().or(z.literal(""))
 });
 
 export const validateTokenSchema = z.object({

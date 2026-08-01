@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 
 const TOPICS = [
   { value: "general", label: "Allgemeine Anfrage" },
+  { value: "refund", label: "Ticket-Rückerstattung" },
   { value: "bug", label: "Fehler melden" },
   { value: "feature", label: "Idee / Feature-Wunsch" }
 ];
@@ -13,6 +14,8 @@ export function ContactForm() {
   const [email, setEmail] = useState("");
   const [topic, setTopic] = useState("general");
   const [message, setMessage] = useState("");
+  const [ticketRef, setTicketRef] = useState("");
+  const [eventName, setEventName] = useState("");
   const [website, setWebsite] = useState(""); // Honeypot — bleibt für Menschen leer
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +30,7 @@ export function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, topic, message, website })
+        body: JSON.stringify({ name, email, topic, message, website, ticketRef, eventName })
       });
       const data = await res.json();
 
@@ -106,6 +109,41 @@ export function ContactForm() {
           ))}
         </select>
       </div>
+      {/* Zusatzfelder nur bei Rückerstattungen — damit die Anfrage direkt alle
+          Angaben enthält, die zum Auffinden des Tickets nötig sind. */}
+      {topic === "refund" && (
+        <div className="flex flex-col gap-4 rounded-2xl border border-soul-orange/30 bg-soul-orange/5 p-4">
+          <p className="text-xs text-paper/60">
+            Damit wir dein Ticket schnell finden: Die Ticket-Nummer steht in deiner
+            Bestätigungs-E-Mail direkt beim QR-Code.
+          </p>
+          <div>
+            <label className="label-field" htmlFor="ticketRef">
+              Ticket-Nummer
+            </label>
+            <input
+              id="ticketRef"
+              value={ticketRef}
+              onChange={(e) => setTicketRef(e.target.value)}
+              className="input-field"
+              placeholder="z.B. cms97qb2y0001..."
+            />
+          </div>
+          <div>
+            <label className="label-field" htmlFor="eventName">
+              Event
+            </label>
+            <input
+              id="eventName"
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
+              className="input-field"
+              placeholder="z.B. SØUL @THE DOOR, 01.08."
+            />
+          </div>
+        </div>
+      )}
+
       <div>
         <label className="label-field" htmlFor="message">
           Nachricht
@@ -118,7 +156,11 @@ export function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="input-field resize-none"
-          placeholder="Wie können wir helfen?"
+          placeholder={
+            topic === "refund"
+              ? "Was ist passiert? (z.B. an der Tür abgewiesen, Event verpasst, doppelt gekauft)"
+              : "Wie können wir helfen?"
+          }
         />
       </div>
 

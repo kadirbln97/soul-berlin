@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       result: "REFUNDED",
       message: "Dieses Ticket wurde storniert/erstattet — kein Einlass.",
+      ticketId: ticket.id,
       guestName: ticket.name,
       eventTitle: ticket.event.title,
       tierLabel: ticket.tierLabel,
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       message: `Bereits eingecheckt am ${
         ticket.checkedInAt ? formatEventDate(ticket.checkedInAt) : ""
       }.`,
+      ticketId: ticket.id,
       guestName: ticket.name,
       eventTitle: ticket.event.title,
       tierLabel: ticket.tierLabel,
@@ -90,6 +92,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     result: "VALID",
     message: "Willkommen! Einlass gewährt.",
+    ticketId: ticket.id,
     guestName: ticket.name,
     eventTitle: ticket.event.title,
     tierLabel: ticket.tierLabel,

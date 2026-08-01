@@ -17,6 +17,7 @@ type TicketType = "PAID_ONLINE" | "GUESTLIST";
 type ScanResult = {
   result: "VALID" | "ALREADY_USED" | "REFUNDED" | "INVALID";
   message: string;
+  ticketId?: string;
   guestName?: string;
   eventTitle?: string;
   tierLabel?: string | null;
@@ -48,6 +49,21 @@ type PendingScan = {
   ticketId: string;
   scannedAt: string;
   guestName: string;
+};
+
+/**
+ * Die letzten Scans bleiben kurz sichtbar, damit an der Tür in Ruhe
+ * nachträglich erstattet werden kann — die eigentliche Ergebnisanzeige
+ * verschwindet ja nach wenigen Sekunden automatisch, damit die Schlange
+ * weiterläuft.
+ */
+type RecentScan = {
+  ticketId: string;
+  guestName: string;
+  ticketType?: TicketType;
+  amountCents?: number | null;
+  currency?: string;
+  refunded: boolean;
 };
 
 type TierStat = { label: string; total: number; checkedIn: number };
@@ -95,6 +111,9 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundError, setRefundError] = useState<string | null>(null);
 
   const busyRef = useRef(false);
   const selectedEventIdRef = useRef(selectedEventId);
@@ -417,6 +436,55 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
     [isOnline, refreshStats]
   );
 
+  // Jeden erkannten Gast in die Liste der letzten Scans aufnehmen (max. 5),
+  // damit die Erstattung nicht davon abhängt, ob man den 4-Sekunden-Moment
+  // der Ergebnisanzeige erwischt.
+  useEffect(() => {
+    if (!result?.ticketId || !result.guestName) return;
+    if (result.result !== "VALID" && result.result !== "ALREADY_USED") return;
+
+    const entry: RecentScan = {
+      ticketId: result.ticketId,
+      guestName: result.guestName,
+      ticketType: result.ticketType,
+      amountCents: result.amountCents,
+      currency: result.currency,
+      refunded: false
+    };
+    setRecentScans((prev) => [entry, ...prev.filter((s) => s.ticketId !== entry.ticketId)].slice(0, 5));
+  }, [result]);
+
+  /** Storniert das Ticket und erstattet bei Online-Käufen echtes Geld zurück. */
+  async function refundTicket(scan: RecentScan) {
+    const isPaid = scan.ticketType === "PAID_ONLINE";
+    const confirmText = isPaid
+      ? `${scan.guestName} abweisen und ${
+          scan.amountCents ? formatPrice(scan.amountCents, scan.currency ?? "eur") : "den Ticketpreis"
+        } zurückerstatten?\n\nDas Geld geht automatisch zurück, das Ticket wird ungültig. Das lässt sich nicht rückgängig machen.`
+      : `${scan.guestName} abweisen und den Gästeliste-Eintrag stornieren?\n\nDas lässt sich nicht rückgängig machen.`;
+
+    if (!confirm(confirmText)) return;
+
+    setRefundingId(scan.ticketId);
+    setRefundError(null);
+    try {
+      const res = await fetch(`/api/tickets/${scan.ticketId}/refund`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setRefundError(data.error ?? "Rückerstattung fehlgeschlagen.");
+        return;
+      }
+      setRecentScans((prev) =>
+        prev.map((s) => (s.ticketId === scan.ticketId ? { ...s, refunded: true } : s))
+      );
+      refreshStats();
+    } catch {
+      setRefundError("Verbindung fehlgeschlagen — Rückerstattung nicht ausgeführt.");
+    } finally {
+      setRefundingId(null);
+    }
+  }
+
   function scanNext() {
     if (autoResumeTimerRef.current) {
       clearTimeout(autoResumeTimerRef.current);
@@ -612,6 +680,70 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
             Weiter scannen
           </button>
           <p className="mt-3 text-[11px] text-paper/40">Scannt in wenigen Sekunden automatisch weiter …</p>
+        </div>
+      )}
+
+      {/* Letzte Scans — hierüber kann ein Gast, der doch abgewiesen wird, in
+          Ruhe erstattet werden, auch wenn die Ergebnisanzeige oben schon
+          weitergesprungen ist. */}
+      {recentScans.length > 0 && (
+        <div className="rounded-2xl card-border p-4">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-paper/40">
+            Letzte Scans
+          </p>
+
+          {refundError && (
+            <p role="alert" className="mb-3 text-xs text-red-400">
+              {refundError}
+            </p>
+          )}
+
+          <ul className="flex flex-col divide-y divide-paper/10">
+            {recentScans.map((scan) => (
+              <li
+                key={scan.ticketId}
+                className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-paper">{scan.guestName}</p>
+                  <p className="text-[11px] text-paper/40">
+                    {scan.ticketType === "PAID_ONLINE"
+                      ? `Online bezahlt${
+                          scan.amountCents
+                            ? " · " + formatPrice(scan.amountCents, scan.currency ?? "eur")
+                            : ""
+                        }`
+                      : "Gästeliste"}
+                  </p>
+                </div>
+
+                {scan.refunded ? (
+                  <span className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-red-400">
+                    {scan.ticketType === "PAID_ONLINE" ? "Erstattet ✓" : "Storniert ✓"}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => refundTicket(scan)}
+                    disabled={!isOnline || refundingId === scan.ticketId}
+                    className="shrink-0 rounded-full border border-red-500/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-red-400 hover:bg-red-500/10 disabled:opacity-30"
+                  >
+                    {refundingId === scan.ticketId
+                      ? "…"
+                      : scan.ticketType === "PAID_ONLINE"
+                        ? "Abweisen & Geld zurück"
+                        : "Abweisen"}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {!isOnline && (
+            <p className="mt-3 text-[11px] text-paper/40">
+              Rückerstattung braucht Internet — offline nicht möglich.
+            </p>
+          )}
         </div>
       )}
 
