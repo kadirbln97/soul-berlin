@@ -96,6 +96,16 @@ type Dict = {
     ticketNumber: string;
     eventName: string;
   };
+  success: {
+    noSession: string;
+    title: string;
+    thanks: (name: string) => string;
+    singleIntro: string;
+    multiIntro: (n: number) => string;
+    checkInbox: string;
+    confirming: string;
+    confirmingText: string;
+  };
   email: {
     ticketSubject: (event: string) => string;
     greeting: (name: string) => string;
@@ -193,6 +203,17 @@ const de: Dict = {
       "Damit wir dein Ticket schnell finden: Die Ticket-Nummer steht in deiner Bestätigungs-E-Mail direkt beim QR-Code.",
     ticketNumber: "Ticket-Nummer",
     eventName: "Event"
+  },
+  success: {
+    noSession: "Keine gültige Zahlungssitzung gefunden.",
+    title: "Zahlung erfolgreich 🎉",
+    thanks: (name) => `Danke, ${name}!`,
+    singleIntro: "Dein Ticket für",
+    multiIntro: (n) => `Deine ${n} Tickets für`,
+    checkInbox: "Check deinen Posteingang (ggf. auch Spam) für den QR-Code.",
+    confirming: "Zahlung wird bestätigt …",
+    confirmingText:
+      "Einen Moment, wir stellen dein Ticket aus. Diese Seite aktualisiert sich automatisch."
   },
   email: {
     ticketSubject: (event) => `Dein Ticket · ${event}`,
@@ -292,6 +313,16 @@ const en: Dict = {
       "So we can find your ticket quickly: the ticket number is in your confirmation email, right next to the QR code.",
     ticketNumber: "Ticket number",
     eventName: "Event"
+  },
+  success: {
+    noSession: "No valid payment session found.",
+    title: "Payment successful 🎉",
+    thanks: (name) => `Thanks, ${name}!`,
+    singleIntro: "Your ticket for",
+    multiIntro: (n) => `Your ${n} tickets for`,
+    checkInbox: "Check your inbox (and spam folder) for the QR code.",
+    confirming: "Confirming payment …",
+    confirmingText: "One moment, we're issuing your ticket. This page updates automatically."
   },
   email: {
     ticketSubject: (event) => `Your ticket · ${event}`,
