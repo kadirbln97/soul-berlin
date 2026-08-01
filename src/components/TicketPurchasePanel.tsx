@@ -127,7 +127,11 @@ export function TicketPurchasePanel({
           <p className="mt-2 text-sm text-paper/40">Dieses Event ist leider ausgebucht.</p>
         </div>
       ) : (
-        <TicketAvailabilityGate ticketSalesEndAt={salesEndAtIso} initiallyClosed={salesClosed}>
+        <TicketAvailabilityGate
+          ticketSalesEndAt={salesEndAtIso}
+          initiallyClosed={salesClosed}
+          mode={selected}
+        >
           {/* key sorgt dafür, dass das Formular beim Umschalten zwischen Ticket
               und Gästeliste zurückgesetzt wird (kein stehen gebliebener
               Erfolgs-/Fehlerzustand aus dem jeweils anderen Modus). */}
