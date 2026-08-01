@@ -26,8 +26,17 @@ async function uploadFile(file: File): Promise<{ url?: string; error?: string }>
   }
 }
 
-export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }) {
+export function GalleryManager({
+  initialItems,
+  defaultTiles
+}: {
+  initialItems: GalleryItem[];
+  /** Die fest eingebauten Standard-Medien — werden öffentlich angezeigt,
+   * solange hier noch nichts Eigenes angelegt wurde. */
+  defaultTiles: GalleryItem[];
+}) {
   const [items, setItems] = useState(initialItems);
+  const [adopting, setAdopting] = useState(false);
   const [type, setType] = useState<"PHOTO" | "VIDEO">("PHOTO");
   const [label, setLabel] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -65,6 +74,25 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
       setItems((prev) => prev.filter((i) => i.id !== id));
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function adoptDefaults() {
+    setAdopting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/gallery/adopt-defaults", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Übernehmen fehlgeschlagen.");
+        return;
+      }
+      // Seite neu laden, damit die Einträge mit ihren echten Datenbank-IDs
+      // (nötig fürs Sortieren/Löschen) erscheinen.
+      window.location.reload();
+    } catch {
+      setError("Verbindung fehlgeschlagen.");
+      setAdopting(false);
     }
   }
 
@@ -188,9 +216,54 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
       </form>
 
       {items.length === 0 ? (
-        <p className="rounded-2xl card-border p-10 text-center text-paper/50">
-          Noch keine Galerie-Einträge. Oben das erste Foto oder Video hinzufügen.
-        </p>
+        <div className="rounded-2xl card-border p-5">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-paper">
+                Aktuell laufen die Standard-Medien auf der Startseite
+              </p>
+              <p className="mt-1 text-xs text-paper/50">
+                Diese {defaultTiles.length} Fotos & Videos sind fest hinterlegt und werden
+                angezeigt, solange du hier nichts Eigenes anlegst. Zum Sortieren oder Löschen
+                musst du sie einmalig übernehmen — danach sind sie ganz normal bearbeitbar.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={adoptDefaults}
+              disabled={adopting}
+              className="btn-primary shrink-0"
+            >
+              {adopting ? "Übernehme …" : "Medien übernehmen"}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 opacity-60 sm:grid-cols-6 md:grid-cols-8">
+            {defaultTiles.map((tile) => (
+              <div
+                key={tile.id}
+                className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-neutral-900"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tile.type === "PHOTO" ? tile.url : (tile.posterUrl ?? tile.url)}
+                  alt={tile.label ?? ""}
+                  className="h-full w-full object-cover"
+                />
+                {tile.type === "VIDEO" && (
+                  <span className="absolute left-1 top-1 rounded-full bg-ink/70 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-paper/80">
+                    Video
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs text-paper/40">
+            Alternativ kannst du oben direkt eigene Medien hochladen — sobald der erste
+            eigene Eintrag existiert, ersetzt er die Standard-Medien komplett.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {items.map((item, index) => (

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getDefaultGalleryTiles } from "@/lib/galleryDefaults";
 import { GalleryManager } from "@/components/GalleryManager";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export default async function AdminGalleryPage() {
           posterUrl: i.posterUrl,
           label: i.label
         }))}
+        defaultTiles={getDefaultGalleryTiles()}
       />
     </div>
   );

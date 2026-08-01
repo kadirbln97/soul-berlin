@@ -15,7 +15,12 @@ const nextConfig = {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
+          // SAMEORIGIN statt DENY: fremde Seiten können die Seite weiterhin
+          // nicht einbetten (Schutz vor Clickjacking bleibt), aber die
+          // Live-Vorschau im Admin-Baukasten (/admin/homepage) darf die eigene
+          // Startseite in einem iframe anzeigen.
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
