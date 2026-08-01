@@ -38,7 +38,9 @@ export default function AgbPage() {
               den von Stripe angebotenen Zahlungsmethoden fällig. Bei Gästelisten-Events mit
               Preisstaffeln ("bis HH:MM Uhr X €") ist der angezeigte Betrag rein informativ — es
               erfolgt keine Online-Zahlung, die Bezahlung erfolgt bar oder per Karte direkt an der
-              Abendkasse vor Ort. Alle Preise verstehen sich in Euro.
+              Abendkasse vor Ort. Alle Preise verstehen sich in Euro und sind Endpreise. Als
+              Kleinunternehmer im Sinne von § 19 Abs. 1 UStG wird keine Umsatzsteuer berechnet und
+              daher auch nicht ausgewiesen.
             </p>
           </section>
           <section>
@@ -118,6 +120,33 @@ export default function AgbPage() {
               Gegenstände wird keine Haftung übernommen, soweit gesetzlich zulässig.
             </p>
           </section>
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              7. Bild- und Tonaufnahmen
+            </h2>
+            <p>
+              Auf unseren Veranstaltungen werden Foto- und Videoaufnahmen erstellt und zur
+              Bewerbung künftiger Events veröffentlicht. Auf die Aufnahmen wird am Einlass
+              hingewiesen. Wer nicht abgebildet werden möchte, kann dies vor Ort dem Team
+              mitteilen; bereits veröffentlichte Aufnahmen entfernen wir auf formlose Anfrage
+              (Details siehe Datenschutzerklärung).
+            </p>
+          </section>
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              8. Streitbeilegung & Schlussbestimmungen
+            </h2>
+            <p>
+              Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor
+              einer Verbraucherschlichtungsstelle teilzunehmen. Es gilt das Recht der
+              Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts; zwingende
+              Verbraucherschutzvorschriften des Staates, in dem der Verbraucher seinen
+              gewöhnlichen Aufenthalt hat, bleiben unberührt. Sollte eine Bestimmung dieser AGB
+              unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.
+            </p>
+          </section>
+
+          <p className="pt-2 text-xs text-paper/40">Stand: August 2026</p>
         </div>
       </main>
       <Footer />
