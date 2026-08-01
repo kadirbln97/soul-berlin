@@ -1,10 +1,10 @@
-import { getSiteContent } from "@/lib/siteContent";
+import { getSiteContentRaw } from "@/lib/siteContent";
 import { HomepageEditor } from "@/components/HomepageEditor";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomepagePage() {
-  const content = await getSiteContent();
+  const content = await getSiteContentRaw();
 
   return (
     <div>

@@ -3,6 +3,7 @@ import { ticketQrBuffer } from "./qr";
 import { formatEventDate } from "./format";
 import { escapeHtml } from "./escapeHtml";
 import { getContactRecipient } from "./siteContent";
+import { getDict, isLocale, DEFAULT_LOCALE, type Locale } from "./i18n";
 
 function getTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
@@ -34,7 +35,11 @@ export async function sendTicketEmail(params: {
   amountCents?: number | null;
   /** Servicegebühr bei Online-Käufen — wird in der Mail aufgeschlüsselt. */
   feeCents?: number | null;
+  /** Sprache des Gasts — bestimmt die Sprache der gesamten E-Mail. */
+  locale?: string | null;
 }) {
+  const locale: Locale = isLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
+  const t = getDict(locale).email;
   const qr = await ticketQrBuffer(params.ticketId);
   const transport = getTransport();
   const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
@@ -48,21 +53,21 @@ export async function sendTicketEmail(params: {
 
   const feeCents = params.feeCents ?? 0;
   const priceLine = params.isPaid
-    ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Ticket: ${(
+    ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">${t.ticketLabel}: ${(
         (params.amountCents ?? 0) / 100
       ).toFixed(2)} €</p>${
         feeCents > 0
-          ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Servicegebühr: ${(
+          ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">${t.serviceFee}: ${(
               feeCents / 100
             ).toFixed(2)} €</p>`
           : ""
-      }<p style="margin:0 0 4px;color:#f5f3ee;font-size:14px;"><strong>Bezahlt: ${(
+      }<p style="margin:0 0 4px;color:#f5f3ee;font-size:14px;"><strong>${t.paid}: ${(
         ((params.amountCents ?? 0) + feeCents) / 100
       ).toFixed(2)} €</strong></p>`
     : params.isDoorPrice && params.amountCents
-      ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Preis an der Abendkasse: ${(
+      ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">${t.doorPrice}: ${(
           params.amountCents / 100
-        ).toFixed(2)} € (keine Online-Zahlung nötig)</p>`
+        ).toFixed(2)} €</p>`
       : "";
 
   const html = `
@@ -80,19 +85,18 @@ export async function sendTicketEmail(params: {
       </div>
       <div style="background:#f5f3ee;padding:24px;text-align:center;">
         <img src="cid:ticketqr" alt="QR Code" width="240" height="240" style="display:block;margin:0 auto;" />
-        <p style="color:#0a0a0a;font-size:12px;letter-spacing:.05em;margin:12px 0 0;">Ticket-ID: ${
-          params.ticketId
-        }</p>
+        <p style="color:#0a0a0a;font-size:12px;letter-spacing:.05em;margin:12px 0 0;">${
+          t.ticketId
+        }: ${params.ticketId}</p>
       </div>
       <div style="padding:24px 28px 28px;">
-        <p style="color:#f5f3ee;margin:0 0 4px;">Hi ${safeName},</p>
+        <p style="color:#f5f3ee;margin:0 0 4px;">${t.greeting(safeName)}</p>
         <p style="color:#f5f3ee;opacity:.8;font-size:14px;line-height:1.6;margin:0 0 12px;">
-          hier ist dein Ticket. Zeig einfach diesen QR-Code am Einlass — er wird gescannt und ist
-          nur einmal gültig.
+          ${t.ticketIntro}
         </p>
         ${priceLine}
         <p style="color:#f5f3ee;opacity:.5;font-size:12px;margin:16px 0 0;">
-          Good people. Good music. — SØUL Berlin
+          ${t.signOff}
         </p>
       </div>
     </div>
@@ -101,7 +105,7 @@ export async function sendTicketEmail(params: {
   await transport.sendMail({
     from,
     to: params.to,
-    subject: `Dein Ticket · ${params.eventTitle}`,
+    subject: t.ticketSubject(params.eventTitle),
     html,
     attachments: [
       {

@@ -4,6 +4,7 @@ import { signupSchema } from "@/lib/validation";
 import { createTicketAndSendEmail, countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { getCurrentGuestlistTier } from "@/lib/guestlistTiers";
+import { getLocale } from "@/lib/serverLocale";
 
 export async function POST(req: Request) {
   // Schutz vor Spam-Anmeldungen / E-Mail-Flut: max. 5 Anmeldungen pro 10 Minuten pro IP.
@@ -85,7 +86,8 @@ export async function POST(req: Request) {
     email: email.toLowerCase(),
     phone,
     amountCents: currentTier ? currentTier.priceCents : null,
-    tierLabel: currentTier ? currentTier.resolvedLabel : null
+    tierLabel: currentTier ? currentTier.resolvedLabel : null,
+    locale: getLocale()
   });
 
   return NextResponse.json({ ok: true, ticketId: ticket.id });

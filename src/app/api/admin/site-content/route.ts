@@ -3,7 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { SITE_CONTENT_FIELDS } from "@/lib/siteContent";
 
-const ALLOWED_KEYS = new Set(SITE_CONTENT_FIELDS.map((f) => f.key));
+// Neben den Grundfeldern auch die englischen Varianten ("<key>_en") zulassen.
+const ALLOWED_KEYS = new Set([
+  ...SITE_CONTENT_FIELDS.map((f) => f.key),
+  ...SITE_CONTENT_FIELDS.filter((f) => f.translatable).map((f) => `${f.key}_en`)
+]);
 const MAX_VALUE_LENGTH = 2000;
 
 /**

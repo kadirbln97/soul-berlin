@@ -22,6 +22,12 @@ model Event {
   title       String
   subtitle    String?
   description String
+
+  // Optionale englische Fassung. Bleibt ein Feld leer, wird auf der englischen
+  // Seite der deutsche Text angezeigt — so entstehen nie leere Stellen.
+  titleEn       String?
+  subtitleEn    String?
+  descriptionEn String?
   venue       String
   address     String?
   imageUrl    String?
@@ -177,6 +183,10 @@ model Ticket {
   // Von welchem Promoter der Eintrag stammt — für die Auswertung, wer wie
   // viele Gäste gebracht hat.
   promoterName String?
+
+  // Sprache, in der sich der Gast angemeldet hat ("de"/"en") — bestimmt die
+  // Sprache der Ticket-E-Mail.
+  locale      String   @default("en")
 
   // Gewährter Rabatt (Summe für dieses Ticket) und der genutzte Code, als
   // Snapshot für die Auswertung.

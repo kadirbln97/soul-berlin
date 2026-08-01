@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatShortDate, formatPrice } from "@/lib/format";
+import { getTranslations } from "@/lib/serverLocale";
 
 export function EventCard({
   slug,
@@ -25,17 +26,19 @@ export function EventCard({
   guestlistPriceCents?: number | null;
   isSoldOut: boolean;
 }) {
+  const { t } = getTranslations();
+
   const badge = isSoldOut
-    ? "Sold out"
+    ? t.events.soldOut
     : ticketMode === "PAID"
       ? priceCents
         ? formatPrice(priceCents)
-        : "Tickets"
+        : t.events.ticket
       : ticketMode === "BOTH"
-        ? "Ticket & Gästeliste"
+        ? t.events.ticketAndGuestlist
         : guestlistPriceCents
-          ? `Ab ${formatPrice(guestlistPriceCents)}`
-          : "Guestlist";
+          ? `${t.events.from} ${formatPrice(guestlistPriceCents)}`
+          : t.events.guestlist;
 
   return (
     <Link
@@ -74,7 +77,7 @@ export function EventCard({
             {badge}
           </span>
           <span className="text-xs uppercase tracking-widest text-paper/50 transition group-hover:text-soul-orange">
-            Details →
+            {t.events.details}
           </span>
         </div>
       </div>

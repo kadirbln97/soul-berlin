@@ -19,7 +19,13 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   const isDirty = useMemo(
-    () => SITE_CONTENT_FIELDS.some((f) => (values[f.key] ?? "") !== (savedValues[f.key] ?? "")),
+    () =>
+      SITE_CONTENT_FIELDS.some(
+        (f) =>
+          (values[f.key] ?? "") !== (savedValues[f.key] ?? "") ||
+          (f.translatable &&
+            (values[`${f.key}_en`] ?? "") !== (savedValues[`${f.key}_en`] ?? ""))
+      ),
     [values, savedValues]
   );
 
@@ -163,6 +169,30 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
                       onChange={(e) => setValue(field.key, e.target.value)}
                       className="input-field"
                     />
+                  )}
+
+                  {field.translatable && (
+                    <div className="mt-2 border-l-2 border-soul-orange/30 pl-3">
+                      <label className="label-field" htmlFor={`${field.key}_en`}>
+                        English (optional)
+                      </label>
+                      {field.type === "textarea" ? (
+                        <textarea
+                          id={`${field.key}_en`}
+                          rows={2}
+                          value={values[`${field.key}_en`] ?? ""}
+                          onChange={(e) => setValue(`${field.key}_en`, e.target.value)}
+                          className="input-field"
+                        />
+                      ) : (
+                        <input
+                          id={`${field.key}_en`}
+                          value={values[`${field.key}_en`] ?? ""}
+                          onChange={(e) => setValue(`${field.key}_en`, e.target.value)}
+                          className="input-field"
+                        />
+                      )}
+                    </div>
                   )}
 
                   {uploadingKey === field.key && (

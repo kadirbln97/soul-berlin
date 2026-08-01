@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { getDict, DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
-const TOPICS = [
-  { value: "general", label: "Allgemeine Anfrage" },
-  { value: "refund", label: "Ticket-Rückerstattung" },
-  { value: "bug", label: "Fehler melden" },
-  { value: "feature", label: "Idee / Feature-Wunsch" }
-];
 
-export function ContactForm() {
+
+export function ContactForm({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
+  const t = getDict(locale);
+  const TOPICS = [
+    { value: "general", label: t.contact.topicGeneral },
+    { value: "refund", label: t.contact.topicRefund },
+    { value: "bug", label: t.contact.topicBug },
+    { value: "feature", label: t.contact.topicFeature }
+  ];
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [topic, setTopic] = useState("general");
@@ -35,14 +39,14 @@ export function ContactForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Etwas ist schiefgelaufen.");
+        setError(data.error ?? t.form.errorGeneric);
         setLoading(false);
         return;
       }
 
       setSuccess(true);
     } catch {
-      setError("Verbindung fehlgeschlagen. Bitte versuch es erneut.");
+      setError(t.form.errorConnection);
     } finally {
       setLoading(false);
     }
@@ -54,9 +58,9 @@ export function ContactForm() {
         role="status"
         className="rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center"
       >
-        <p className="text-display text-xl uppercase text-paper">Nachricht angekommen</p>
+        <p className="text-display text-xl uppercase text-paper">{t.contact.successTitle}</p>
         <p className="mt-2 text-sm text-paper/70">
-          Danke! Wir melden uns so schnell wie möglich bei dir zurück.
+          {t.contact.successText}
         </p>
       </div>
     );
@@ -66,7 +70,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <label className="label-field" htmlFor="name">
-          Name
+          {t.form.name}
         </label>
         <input
           id="name"
@@ -75,12 +79,12 @@ export function ContactForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="input-field"
-          placeholder="Dein vollständiger Name"
+          placeholder={t.form.namePlaceholder}
         />
       </div>
       <div>
         <label className="label-field" htmlFor="email">
-          E-Mail
+          {t.form.email}
         </label>
         <input
           id="email"
@@ -94,7 +98,7 @@ export function ContactForm() {
       </div>
       <div>
         <label className="label-field" htmlFor="topic">
-          Thema
+          {t.contact.topicLabel}
         </label>
         <select
           id="topic"
@@ -102,9 +106,9 @@ export function ContactForm() {
           onChange={(e) => setTopic(e.target.value)}
           className="input-field"
         >
-          {TOPICS.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
+          {TOPICS.map((topicOption) => (
+            <option key={topicOption.value} value={topicOption.value}>
+              {topicOption.label}
             </option>
           ))}
         </select>
@@ -114,12 +118,11 @@ export function ContactForm() {
       {topic === "refund" && (
         <div className="flex flex-col gap-4 rounded-2xl border border-soul-orange/30 bg-soul-orange/5 p-4">
           <p className="text-xs text-paper/60">
-            Damit wir dein Ticket schnell finden: Die Ticket-Nummer steht in deiner
-            Bestätigungs-E-Mail direkt beim QR-Code.
+            {t.contact.refundHint}
           </p>
           <div>
             <label className="label-field" htmlFor="ticketRef">
-              Ticket-Nummer
+              {t.contact.ticketNumber}
             </label>
             <input
               id="ticketRef"
@@ -131,7 +134,7 @@ export function ContactForm() {
           </div>
           <div>
             <label className="label-field" htmlFor="eventName">
-              Event
+              {t.contact.eventName}
             </label>
             <input
               id="eventName"
@@ -146,7 +149,7 @@ export function ContactForm() {
 
       <div>
         <label className="label-field" htmlFor="message">
-          Nachricht
+          {t.contact.message}
         </label>
         <textarea
           id="message"
@@ -158,8 +161,8 @@ export function ContactForm() {
           className="input-field resize-none"
           placeholder={
             topic === "refund"
-              ? "Was ist passiert? (z.B. an der Tür abgewiesen, Event verpasst, doppelt gekauft)"
-              : "Wie können wir helfen?"
+              ? t.contact.messagePlaceholderRefund
+              : t.contact.messagePlaceholder
           }
         />
       </div>
@@ -184,7 +187,7 @@ export function ContactForm() {
       )}
 
       <button type="submit" disabled={loading} className="btn-primary mt-2 w-full py-4 text-[13px]">
-        {loading ? "Wird gesendet …" : "Nachricht senden →"}
+        {loading ? t.contact.sending : t.contact.send}
       </button>
     </form>
   );

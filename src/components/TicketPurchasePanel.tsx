@@ -4,12 +4,14 @@ import { useState } from "react";
 import { SignupForm } from "./SignupForm";
 import { TicketAvailabilityGate } from "./TicketAvailabilityGate";
 import { formatPrice, formatEventTime } from "@/lib/format";
+import { fill } from "@/lib/i18n";
 import {
   calculatePriceBreakdown,
   describeDiscount,
   type DiscountRule
 } from "@/lib/discount";
 import { MAX_TICKETS_PER_ORDER } from "@/lib/validation";
+import { getDict, type Locale } from "@/lib/i18n";
 
 type GuestlistTierView = {
   id: string;
@@ -36,7 +38,8 @@ export function TicketPurchasePanel({
   isSoldOut,
   salesEndAtIso,
   salesClosed,
-  autoDiscount
+  autoDiscount,
+  locale
 }: {
   eventId: string;
   ticketMode: string;
@@ -50,7 +53,9 @@ export function TicketPurchasePanel({
   salesClosed: boolean;
   /** Rabatt, der ohne Code für alle gilt (falls eingerichtet). */
   autoDiscount?: DiscountRule | null;
+  locale: Locale;
 }) {
+  const t = getDict(locale);
   const offersBoth = ticketMode === "BOTH";
   const [quantity, setQuantity] = useState(1);
   const [codeInput, setCodeInput] = useState("");
@@ -109,7 +114,7 @@ export function TicketPurchasePanel({
                 : "text-paper/50 hover:text-paper"
             }`}
           >
-            Ticket kaufen
+            {t.event.buyTicket}
           </button>
           <button
             type="button"
@@ -120,7 +125,7 @@ export function TicketPurchasePanel({
                 : "text-paper/50 hover:text-paper"
             }`}
           >
-            Gästeliste
+            {t.event.guestlist}
           </button>
         </div>
       )}
@@ -132,23 +137,21 @@ export function TicketPurchasePanel({
         <div className="mb-6 flex flex-col gap-4">
           {/* Stückzahl */}
           <div>
-            <label className="label-field">Anzahl Tickets</label>
-            <div className="flex flex-wrap gap-1.5">
+            <label className="label-field" htmlFor="ticket-quantity">
+              {t.event.quantity}
+            </label>
+            <select
+              id="ticket-quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              className="input-field"
+            >
               {Array.from({ length: MAX_TICKETS_PER_ORDER }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setQuantity(n)}
-                  className={`h-10 w-10 rounded-lg text-sm font-semibold transition ${
-                    quantity === n
-                      ? "bg-soul-orange text-ink"
-                      : "border border-paper/15 text-paper/60 hover:text-paper"
-                  }`}
-                >
+                <option key={n} value={n}>
                   {n}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
           </div>
 
           {/* Gutscheincode */}
@@ -162,18 +165,18 @@ export function TicketPurchasePanel({
                 onClick={removeCode}
                 className="text-[11px] uppercase tracking-widest text-paper/40 hover:text-red-400"
               >
-                Entfernen
+                {t.event.remove}
               </button>
             </div>
           ) : (
             <div>
-              <label className="label-field">Gutscheincode (optional)</label>
+              <label className="label-field">{t.event.voucher}</label>
               <div className="flex gap-2">
                 <input
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
                   className="input-field flex-1"
-                  placeholder="z.B. SOUL20"
+                  placeholder={t.event.voucherPlaceholder}
                 />
                 <button
                   type="button"
@@ -181,7 +184,7 @@ export function TicketPurchasePanel({
                   disabled={codeChecking || !codeInput.trim()}
                   className="shrink-0 rounded-full border border-paper/20 px-4 text-xs font-semibold uppercase tracking-widest text-paper/70 hover:text-soul-orange disabled:opacity-30"
                 >
-                  {codeChecking ? "…" : "Einlösen"}
+                  {codeChecking ? "…" : t.event.redeem}
                 </button>
               </div>
               {codeError && <p className="mt-1 text-xs text-red-400">{codeError}</p>}
@@ -192,7 +195,7 @@ export function TicketPurchasePanel({
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-paper/50">
-                Ticket{quantity > 1 ? ` × ${quantity}` : ""}
+                {t.event.subtotal}{quantity > 1 ? ` × ${quantity}` : ""}
               </span>
               <span className="text-paper/70">
                 {formatPrice(breakdown.subtotalCents, currency)}
@@ -210,7 +213,7 @@ export function TicketPurchasePanel({
             )}
             {breakdown.feeCents > 0 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-paper/50">Servicegebühr</span>
+                <span className="text-paper/50">{t.event.serviceFee}</span>
                 <span className="text-paper/70">
                   {formatPrice(breakdown.feeCents, currency)}
                 </span>
@@ -218,7 +221,7 @@ export function TicketPurchasePanel({
             )}
             <div className="mt-1 flex items-center justify-between border-t border-paper/10 pt-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
-                Gesamt
+                {t.event.total}
               </span>
               <span className="text-display text-xl text-soul-orange">
                 {formatPrice(breakdown.totalCents, currency)}
@@ -229,10 +232,10 @@ export function TicketPurchasePanel({
       ) : (
         <div className="mb-6 flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
-            {selected === "PAID" ? "Ticket" : "Gästeliste"}
+            {selected === "PAID" ? t.events.ticket : t.event.guestlist}
           </span>
           <span className="text-display text-xl text-soul-orange">
-            {guestlistPrice ? formatPrice(guestlistPrice, currency) : "Free"}
+            {guestlistPrice ? formatPrice(guestlistPrice, currency) : t.events.free}
           </span>
         </div>
       )}
@@ -240,7 +243,7 @@ export function TicketPurchasePanel({
       {selected === "GUESTLIST" && guestlistTiers.length > 0 && (
         <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">
           <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/40">
-            Preisstaffeln (Zahlung an der Abendkasse)
+            {t.event.tierHeading}
           </p>
           {guestlistTiers.map((tier) => {
             const isActive = tier.priceCents === guestlistPrice;
@@ -253,7 +256,7 @@ export function TicketPurchasePanel({
               >
                 <span>
                   {tier.label ? `${tier.label} — ` : ""}
-                  bis {formatEventTime(tier.untilTime)} Uhr
+                  {t.event.until} {formatEventTime(tier.untilTime)}
                 </span>
                 <span className="font-semibold">{formatPrice(tier.priceCents, currency)}</span>
               </div>
@@ -265,20 +268,21 @@ export function TicketPurchasePanel({
       {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
         <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-soul-orange">
           <span className="inline-flex h-1.5 w-1.5 rounded-full bg-soul-orange" />
-          Nur noch {spotsLeft} Plätze
+          {fill(t.event.spotsLeft, { n: spotsLeft })}
         </p>
       )}
 
       {isSoldOut ? (
         <div className="rounded-xl border border-paper/15 p-6 text-center">
-          <p className="text-display text-lg uppercase text-paper/60">Sold out</p>
-          <p className="mt-2 text-sm text-paper/40">Dieses Event ist leider ausgebucht.</p>
+          <p className="text-display text-lg uppercase text-paper/60">{t.event.soldOut}</p>
+          <p className="mt-2 text-sm text-paper/40">{t.event.soldOutText}</p>
         </div>
       ) : (
         <TicketAvailabilityGate
           ticketSalesEndAt={salesEndAtIso}
           initiallyClosed={salesClosed}
           mode={selected}
+          locale={locale}
         >
           {/* key sorgt dafür, dass das Formular beim Umschalten zwischen Ticket
               und Gästeliste zurückgesetzt wird (kein stehen gebliebener
@@ -289,11 +293,11 @@ export function TicketPurchasePanel({
             ticketMode={selected}
             quantity={selected === "PAID" ? quantity : 1}
             discountCode={appliedCode}
+            locale={locale}
           />
           {selected === "PAID" && (
             <p className="mt-4 text-center text-[11px] text-paper/40">
-              Sichere Zahlung via Karte, Apple&nbsp;Pay, Google&nbsp;Pay oder PayPal
-              (abgewickelt von Stripe).
+              {t.event.payNote}
             </p>
           )}
         </TicketAvailabilityGate>

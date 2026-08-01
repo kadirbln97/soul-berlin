@@ -16,6 +16,11 @@ export type SiteContentField = {
   help?: string;
   /** Überschrift der Gruppe, in der das Feld im Admin angezeigt wird. */
   group: string;
+  /**
+   * true = es gibt zusätzlich eine englische Fassung unter "<key>_en".
+   * Bleibt sie leer, wird auf der englischen Seite der deutsche Text gezeigt.
+   */
+  translatable?: boolean;
 };
 
 export const SITE_CONTENT_FIELDS: SiteContentField[] = [
@@ -30,6 +35,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "hero_headline_1",
+    translatable: true,
     label: "Überschrift, Zeile 1",
     type: "text",
     default: "Good people.",
@@ -37,6 +43,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "hero_headline_2",
+    translatable: true,
     label: "Überschrift, Zeile 2 (orange)",
     type: "text",
     default: "Good music.",
@@ -44,6 +51,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "hero_tagline",
+    translatable: true,
     label: "Kleiner Text darunter",
     type: "text",
     default: "House Music Culture · Berlin",
@@ -51,6 +59,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "hero_cta_prefix",
+    translatable: true,
     label: "Button-Text vor dem Eventnamen",
     type: "text",
     default: "Nächstes Event:",
@@ -61,6 +70,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   // --- Event-Bereich ---
   {
     key: "events_heading",
+    translatable: true,
     label: "Überschrift",
     type: "text",
     default: "Upcoming Events",
@@ -68,6 +78,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "events_link_label",
+    translatable: true,
     label: "Link-Text oben rechts",
     type: "text",
     default: "Alle ansehen →",
@@ -75,6 +86,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "events_empty_text",
+    translatable: true,
     label: "Text, wenn keine Events online sind",
     type: "textarea",
     default: "Aktuell sind keine Events veröffentlicht — schau bald wieder vorbei.",
@@ -84,6 +96,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   // --- Galerie ---
   {
     key: "gallery_heading",
+    translatable: true,
     label: "Überschrift",
     type: "text",
     default: "SØUL in Action",
@@ -91,6 +104,7 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
   },
   {
     key: "gallery_subtext",
+    translatable: true,
     label: "Text darunter",
     type: "textarea",
     default: "Impressionen von den letzten Events — Fotos & kurze Clips.",
@@ -122,13 +136,42 @@ export function getDefaultSiteContent(): SiteContent {
  * einem Datenbankfehler bewusst auf die Standardwerte zurück, damit die
  * öffentliche Startseite niemals wegen dieser Zusatzfunktion ausfällt.
  */
-export async function getSiteContent(): Promise<SiteContent> {
+export async function getSiteContent(locale: string = "de"): Promise<SiteContent> {
   const defaults = getDefaultSiteContent();
   try {
     const rows = await prisma.siteContent.findMany();
-    const stored = Object.fromEntries(
-      rows.filter((r) => r.value.trim() !== "").map((r) => [r.key, r.value])
-    );
+    const stored: Record<string, string> = {};
+    for (const row of rows) {
+      if (row.value.trim() !== "") stored[row.key] = row.value;
+    }
+
+    const merged: SiteContent = { ...defaults, ...stored };
+
+    // Auf Englisch die gepflegte englische Fassung bevorzugen; fehlt sie,
+    // bleibt bewusst der deutsche Text stehen statt einer Lücke.
+    if (locale === "en") {
+      for (const field of SITE_CONTENT_FIELDS) {
+        if (!field.translatable) continue;
+        const english = stored[`${field.key}_en`];
+        if (english) merged[field.key] = english;
+      }
+    }
+
+    return merged;
+  } catch {
+    return defaults;
+  }
+}
+
+/**
+ * Alle gespeicherten Werte inkl. der "_en"-Varianten — für den Admin-Baukasten,
+ * der beide Sprachen nebeneinander zum Bearbeiten anzeigt.
+ */
+export async function getSiteContentRaw(): Promise<SiteContent> {
+  const defaults = getDefaultSiteContent();
+  try {
+    const rows = await prisma.siteContent.findMany();
+    const stored = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     return { ...defaults, ...stored };
   } catch {
     return defaults;

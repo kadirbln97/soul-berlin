@@ -20,6 +20,8 @@ export async function createTicketAndSendEmail(params: {
   discountCents?: number | null;
   discountCode?: string | null;
   tierLabel?: string | null;
+  /** Sprache des Gasts — bestimmt die Sprache der Ticket-E-Mail. */
+  locale?: string | null;
   stripeSessionId?: string | null;
   stripePaymentIntentId?: string | null;
 }) {
@@ -34,6 +36,7 @@ export async function createTicketAndSendEmail(params: {
       discountCents: params.discountCents ?? null,
       discountCode: params.discountCode ?? null,
       tierLabel: params.tierLabel ?? null,
+      locale: params.locale ?? undefined,
       currency: params.event.currency,
       status: "VALID",
       stripeSessionId: params.stripeSessionId ?? null,
@@ -53,7 +56,12 @@ export async function createTicketAndSendEmail(params: {
       to: ticket.email,
       name: ticket.name,
       ticketId: ticket.id,
-      eventTitle: params.event.title,
+      // Bei englischsprachigen Gästen den englischen Eventtitel verwenden,
+      // sofern gepflegt — sonst bleibt es beim deutschen Original.
+      eventTitle:
+        ticket.locale === "en" && params.event.titleEn?.trim()
+          ? params.event.titleEn
+          : params.event.title,
       eventDateStart: params.event.dateStart,
       eventVenue: params.event.venue,
       eventAddress: params.event.address,
@@ -62,7 +70,8 @@ export async function createTicketAndSendEmail(params: {
       amountCents: ticket.amountCents,
       // Bei Online-Käufen zeigt die Mail den tatsächlich gezahlten Gesamtbetrag
       // inkl. Servicegebühr — sonst stünde dort weniger, als abgebucht wurde.
-      feeCents: ticket.feeCents
+      feeCents: ticket.feeCents,
+      locale: ticket.locale
     });
     await prisma.ticket.update({
       where: { id: ticket.id },

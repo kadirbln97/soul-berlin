@@ -16,6 +16,9 @@ type EventInitial = {
   description: string;
   venue: string;
   address: string | null;
+  titleEn: string | null;
+  subtitleEn: string | null;
+  descriptionEn: string | null;
   imageUrl: string | null;
   dateStart: string;
   dateEnd: string | null;
@@ -52,6 +55,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [subtitle, setSubtitle] = useState(initial?.subtitle ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [titleEn, setTitleEn] = useState(initial?.titleEn ?? "");
+  const [subtitleEn, setSubtitleEn] = useState(initial?.subtitleEn ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(initial?.descriptionEn ?? "");
   const [venue, setVenue] = useState(initial?.venue ?? "");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
@@ -153,6 +159,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       title,
       subtitle,
       description,
+      titleEn,
+      subtitleEn,
+      descriptionEn,
       venue,
       address,
       imageUrl,
@@ -222,6 +231,46 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             placeholder="Line-up, Dresscode, Ablauf …"
           />
         </div>
+        {/* Englische Fassung — optional. Bleibt ein Feld leer, sieht der
+            englischsprachige Gast den deutschen Text. */}
+        <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-soul-orange">
+            English version (optional)
+          </p>
+          <p className="mb-4 text-xs text-paper/40">
+            Leer lassen ist okay — dann wird auf der englischen Seite der deutsche Text
+            angezeigt.
+          </p>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="label-field">Title (EN)</label>
+              <input
+                value={titleEn}
+                onChange={(e) => setTitleEn(e.target.value)}
+                className="input-field"
+                placeholder={title || "e.g. SØUL ROOFTOP EDITION"}
+              />
+            </div>
+            <div>
+              <label className="label-field">Subtitle (EN)</label>
+              <input
+                value={subtitleEn}
+                onChange={(e) => setSubtitleEn(e.target.value)}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="label-field">Description (EN)</label>
+              <textarea
+                value={descriptionEn}
+                onChange={(e) => setDescriptionEn(e.target.value)}
+                rows={5}
+                className="input-field"
+              />
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="label-field">Venue</label>
           <input

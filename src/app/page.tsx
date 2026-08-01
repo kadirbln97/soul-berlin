@@ -7,15 +7,17 @@ import { Gallery } from "@/components/Gallery";
 import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { getSiteContent } from "@/lib/siteContent";
+import { getTranslations, pickText } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   // Texte/Bilder kommen aus dem Startseiten-Baukasten (/admin/homepage);
   // ohne gespeicherte Werte greifen automatisch die Standardtexte.
+  const { locale } = getTranslations();
   const [events, content] = await Promise.all([
     getUpcomingPublishedEvents(6),
-    getSiteContent()
+    getSiteContent(locale)
   ]);
   const nextEvent = events[0];
 
@@ -76,8 +78,8 @@ export default async function HomePage() {
                 className="btn-primary mt-2"
               >
                 {content.hero_cta_prefix
-                  ? `${content.hero_cta_prefix} ${nextEvent.title} →`
-                  : `${nextEvent.title} →`}
+                  ? `${content.hero_cta_prefix} ${pickText(locale, nextEvent.title, nextEvent.titleEn)} →`
+                  : `${pickText(locale, nextEvent.title, nextEvent.titleEn)} →`}
               </Link>
             )}
           </div>
@@ -106,8 +108,8 @@ export default async function HomePage() {
                 <EventCard
                   key={event.id}
                   slug={event.slug}
-                  title={event.title}
-                  subtitle={event.subtitle}
+                  title={pickText(locale, event.title, event.titleEn)}
+                  subtitle={pickText(locale, event.subtitle ?? "", event.subtitleEn) || null}
                   venue={event.venue}
                   imageUrl={event.imageUrl}
                   dateStart={event.dateStart}

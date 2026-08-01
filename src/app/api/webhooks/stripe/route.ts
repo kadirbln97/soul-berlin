@@ -88,6 +88,7 @@ export async function POST(req: Request) {
         feeCents: perTicket(feeCents, i),
         discountCents: discountCents > 0 ? perTicket(discountCents, i) : null,
         discountCode,
+        locale: session.metadata?.locale || undefined,
         stripeSessionId: session.id,
         stripePaymentIntentId:
           typeof session.payment_intent === "string" ? session.payment_intent : null

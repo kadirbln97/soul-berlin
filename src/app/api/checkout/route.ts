@@ -6,6 +6,7 @@ import { countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { calculatePriceBreakdown, describeDiscount } from "@/lib/discount";
 import { resolveDiscount } from "@/lib/resolveDiscount";
+import { getLocale } from "@/lib/serverLocale";
 
 export async function POST(req: Request) {
   // Schutz vor Checkout-Session-Spam: max. 10 Versuche pro 10 Minuten pro IP.
@@ -162,7 +163,8 @@ export async function POST(req: Request) {
       quantity: String(quantity),
       discountCents: String(breakdown.discountCents),
       discountId: discount?.id ?? "",
-      discountCode: discount?.rule.code ?? ""
+      discountCode: discount?.rule.code ?? "",
+      locale: getLocale()
     },
     success_url: `${appUrl}/events/${event.slug}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/events/${event.slug}`

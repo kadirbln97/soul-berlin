@@ -58,6 +58,11 @@ export const eventSchema = z.object({
   title: z.string().trim().min(2).max(120),
   subtitle: z.string().trim().max(160).optional().or(z.literal("")),
   description: z.string().trim().min(1).max(5000),
+  // Optionale englische Fassung — leer lassen heißt: deutscher Text wird auch
+  // auf der englischen Seite angezeigt.
+  titleEn: z.string().trim().max(120).optional().or(z.literal("")),
+  subtitleEn: z.string().trim().max(160).optional().or(z.literal("")),
+  descriptionEn: z.string().trim().max(5000).optional().or(z.literal("")),
   venue: z.string().trim().min(1).max(160),
   address: z.string().trim().max(200).optional().or(z.literal("")),
   imageUrl: z.string().trim().max(500).optional().or(z.literal("")),

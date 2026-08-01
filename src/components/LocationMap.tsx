@@ -2,13 +2,16 @@
 // Nutzt die Google-Maps-"output=embed"-URL, die ohne API-Key funktioniert
 // (keine Maps-Embed-API-Kosten/Setup nötig) — reicht für eine einfache
 // Standort-Vorschau völlig aus.
+import { getTranslations } from "@/lib/serverLocale";
+
 export function LocationMap({ venue, address }: { venue: string; address?: string | null }) {
+  const { t } = getTranslations();
   const query = address ? `${venue}, ${address}` : venue;
   const encoded = encodeURIComponent(query);
 
   return (
     <div className="mt-8 flex flex-col gap-3">
-      <p className="text-xs font-semibold uppercase tracking-widest text-paper/50">Location</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-paper/50">{t.event.location}</p>
       <div className="overflow-hidden rounded-xl border border-paper/10">
         <iframe
           title={`Karte: ${venue}`}
@@ -27,7 +30,7 @@ export function LocationMap({ venue, address }: { venue: string; address?: strin
           rel="noreferrer noopener"
           className="btn-outline flex-1 text-center sm:flex-none"
         >
-          Route in Google Maps
+          {t.event.routeGoogle}
         </a>
         <a
           href={`https://maps.apple.com/?daddr=${encoded}`}
@@ -35,7 +38,7 @@ export function LocationMap({ venue, address }: { venue: string; address?: strin
           rel="noreferrer noopener"
           className="btn-outline flex-1 text-center sm:flex-none"
         >
-          Route in Apple Maps
+          {t.event.routeApple}
         </a>
       </div>
     </div>

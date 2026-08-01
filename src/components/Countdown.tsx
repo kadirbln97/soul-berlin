@@ -38,7 +38,8 @@ export function Countdown({
   target,
   onExpire,
   urgentBelowMinutes = 60,
-  label = "Anmeldung schließt in"
+  label = "Anmeldung schließt in",
+  urgentLabel = "Nur noch kurz"
 }: {
   target: string;
   onExpire?: () => void;
@@ -46,6 +47,7 @@ export function Countdown({
   /** Beschriftung vor der Uhr — je nachdem, ob gerade Ticketkauf oder
    * Gästelisten-Anmeldung angezeigt wird (siehe TicketAvailabilityGate). */
   label?: string;
+  urgentLabel?: string;
 }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
@@ -83,7 +85,7 @@ export function Countdown({
           isUrgent ? "text-soul-orange" : "text-paper/50"
         }`}
       >
-        {isUrgent ? "Nur noch kurz" : label}
+        {isUrgent ? urgentLabel : label}
       </span>
       <div className="flex items-baseline gap-2">
         {units.map((unit) => (

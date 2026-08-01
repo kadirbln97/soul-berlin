@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ContactForm } from "@/components/ContactForm";
+import { getTranslations } from "@/lib/serverLocale";
 
 export const metadata: Metadata = {
   title: "Kontakt",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function KontaktPage() {
+  const { locale } = getTranslations();
   return (
     <>
       <Header />
@@ -20,7 +22,7 @@ export default function KontaktPage() {
           Fragen zu einem Event, ein Problem beim Ticketkauf gefunden oder einfach eine Idee?
           Schreib uns — wir melden uns so schnell wie möglich.
         </p>
-        <ContactForm />
+        <ContactForm locale={locale} />
       </main>
       <Footer />
     </>

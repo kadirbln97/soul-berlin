@@ -9,6 +9,7 @@ import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
+import { getTranslations, pickText } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,11 @@ export default async function EventDetailPage({
 
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
+  const { locale } = getTranslations();
+
+  const title = pickText(locale, event.title, event.titleEn);
+  const subtitle = pickText(locale, event.subtitle ?? "", event.subtitleEn);
+  const description = pickText(locale, event.description, event.descriptionEn);
 
   return (
     <>
@@ -83,7 +89,7 @@ export default async function EventDetailPage({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={event.imageUrl}
-                alt={event.title}
+                alt={title}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -97,18 +103,16 @@ export default async function EventDetailPage({
             {formatEventDate(event.dateStart)}
           </p>
           <h1 className="text-display mt-2 text-4xl uppercase leading-none text-paper sm:text-5xl">
-            {event.title}
+            {title}
           </h1>
-          {event.subtitle && (
-            <p className="mt-3 text-lg text-paper/70">{event.subtitle}</p>
-          )}
+          {subtitle && <p className="mt-3 text-lg text-paper/70">{subtitle}</p>}
           <p className="mt-4 text-sm uppercase tracking-widest text-paper/50">
             {event.venue}
             {event.address ? ` · ${event.address}` : ""}
           </p>
 
           <div className="mt-8 whitespace-pre-line text-paper/80 leading-relaxed">
-            {event.description}
+            {description}
           </div>
 
           <LocationMap venue={event.venue} address={event.address} />
@@ -132,6 +136,7 @@ export default async function EventDetailPage({
             salesEndAtIso={salesEndAtIso}
             salesClosed={salesClosed}
             autoDiscount={autoDiscount?.rule ?? null}
+            locale={locale}
           />
         </div>
       </main>

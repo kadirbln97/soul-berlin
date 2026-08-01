@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { getDict, DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 export function SignupForm({
   eventId,
   ticketMode,
   quantity = 1,
-  discountCode = ""
+  discountCode = "",
+  locale = DEFAULT_LOCALE
 }: {
   eventId: string;
   ticketMode: string;
@@ -14,7 +16,9 @@ export function SignupForm({
   quantity?: number;
   /** Eingegebener Gutscheincode, wird zur Preisprüfung mitgeschickt. */
   discountCode?: string;
+  locale?: Locale;
 }) {
+  const t = getDict(locale);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -37,7 +41,7 @@ export function SignupForm({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Etwas ist schiefgelaufen.");
+        setError(data.error ?? t.form.errorGeneric);
         setLoading(false);
         return;
       }
@@ -49,7 +53,7 @@ export function SignupForm({
 
       setSuccess(true);
     } catch {
-      setError("Verbindung fehlgeschlagen. Bitte versuch es erneut.");
+      setError(t.form.errorConnection);
     } finally {
       setLoading(false);
     }
@@ -61,9 +65,9 @@ export function SignupForm({
         role="status"
         className="rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center"
       >
-        <p className="text-display text-xl uppercase text-paper">Du bist auf der Liste 🎉</p>
+        <p className="text-display text-xl uppercase text-paper">{t.form.successTitle}</p>
         <p className="mt-2 text-sm text-paper/70">
-          Check dein Postfach — dein QR-Ticket ist unterwegs an deine E-Mail-Adresse.
+          {t.form.successText}
         </p>
       </div>
     );
@@ -73,7 +77,7 @@ export function SignupForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <label className="label-field" htmlFor="name">
-          Name
+          {t.form.name}
         </label>
         <input
           id="name"
@@ -82,12 +86,12 @@ export function SignupForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="input-field"
-          placeholder="Dein vollständiger Name"
+          placeholder={t.form.namePlaceholder}
         />
       </div>
       <div>
         <label className="label-field" htmlFor="email">
-          E-Mail
+          {t.form.email}
         </label>
         <input
           id="email"
@@ -101,7 +105,7 @@ export function SignupForm({
       </div>
       <div>
         <label className="label-field" htmlFor="phone">
-          Telefon (optional)
+          {t.form.phone}
         </label>
         <input
           id="phone"
@@ -124,19 +128,19 @@ export function SignupForm({
         className="btn-primary mt-2 w-full py-4 text-[13px]"
       >
         {loading
-          ? "Einen Moment …"
+          ? t.form.loading
           : ticketMode === "PAID"
-            ? "Jetzt Ticket sichern →"
-            : "Jetzt auf die Gästeliste →"}
+            ? t.form.submitTicket
+            : t.form.submitGuestlist}
       </button>
       <p className="text-center text-[11px] text-paper/40">
-        Mit der Anmeldung akzeptierst du unsere{" "}
+        {t.form.consent}{" "}
         <a href="/legal/agb" className="underline hover:text-soul-orange">
-          AGB
+          {t.form.terms}
         </a>{" "}
         &{" "}
         <a href="/legal/datenschutz" className="underline hover:text-soul-orange">
-          Datenschutzerklärung
+          {t.form.privacy}
         </a>
         .
       </p>

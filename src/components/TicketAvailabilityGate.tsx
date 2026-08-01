@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Countdown } from "./Countdown";
+import { getDict, DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 /**
  * Umschließt das Signup-Formular auf der Event-Seite: zeigt (falls gesetzt)
@@ -17,22 +18,23 @@ export function TicketAvailabilityGate({
   ticketSalesEndAt,
   initiallyClosed,
   mode,
+  locale = DEFAULT_LOCALE,
   children
 }: {
   ticketSalesEndAt: string | null;
   initiallyClosed: boolean;
   /** Was dem Gast gerade angezeigt wird: Ticketkauf oder Gästeliste. */
   mode: "PAID" | "GUESTLIST";
+  locale?: Locale;
   children: ReactNode;
 }) {
+  const t = getDict(locale);
   const [closed, setClosed] = useState(initiallyClosed);
 
   const isPaid = mode === "PAID";
-  const countdownLabel = isPaid ? "Ticketverkauf endet in" : "Anmeldung schließt in";
-  const closedTitle = isPaid ? "Ticketverkauf beendet" : "Anmeldung geschlossen";
-  const closedText = isPaid
-    ? "Für dieses Event werden online keine Tickets mehr verkauft."
-    : "Der Anmeldezeitraum für dieses Event ist leider abgelaufen.";
+  const countdownLabel = isPaid ? t.event.salesEndsIn : t.event.signupEndsIn;
+  const closedTitle = isPaid ? t.event.salesClosed : t.event.signupClosed;
+  const closedText = isPaid ? t.event.salesClosedText : t.event.signupClosedText;
 
   if (closed) {
     return (
@@ -50,6 +52,7 @@ export function TicketAvailabilityGate({
           target={ticketSalesEndAt}
           onExpire={() => setClosed(true)}
           label={countdownLabel}
+          urgentLabel={t.event.almostOver}
         />
       )}
       {children}
