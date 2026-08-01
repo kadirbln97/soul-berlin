@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anton, Inter } from "next/font/google";
 import "./globals.css";
+import { getLocale } from "@/lib/serverLocale";
 
 const display = Anton({
   subsets: ["latin"],
@@ -45,8 +46,12 @@ export default function RootLayout({
 }: {
   children: ReactNode;
 }) {
+  // lang-Attribut folgt der gewählten Sprache — wichtig für Screenreader und
+  // für die automatische Übersetzungserkennung im Browser.
+  const locale = getLocale();
+
   return (
-    <html lang="de" className={`${display.variable} ${body.variable}`}>
+    <html lang={locale} className={`${display.variable} ${body.variable}`}>
       <body className="bg-ink text-paper font-body antialiased selection:bg-soul-orange selection:text-ink">
         {children}
       </body>
