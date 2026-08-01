@@ -18,7 +18,7 @@ export default function AgbPage() {
             <h2 className="mb-2 text-lg font-semibold text-paper">1. Geltungsbereich</h2>
             <p>
               Diese Allgemeinen Geschäftsbedingungen gelten für alle Anmeldungen zur Gästeliste und
-              alle Ticketkäufe über soul-berlin.vercel.app, Betreiber siehe Impressum. Mit der
+              alle Ticketkäufe über soulberlin.de, Betreiber siehe Impressum. Mit der
               Anmeldung bzw. dem Ticketkauf erkennst du diese AGB an.
             </p>
           </section>
@@ -42,15 +42,57 @@ export default function AgbPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-paper">4. Widerrufsrecht / Stornierung</h2>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              4. Widerrufsrecht, Stornierung & Rückerstattung
+            </h2>
+            <p className="mb-3">
+              <strong className="text-paper">4.1 Kein gesetzliches Widerrufsrecht.</strong> Bei
+              Verträgen über Freizeitveranstaltungen, die für einen bestimmten Zeitpunkt
+              vorgesehen sind, besteht gemäß § 312g Abs. 2 Nr. 9 BGB kein Widerrufsrecht. Online
+              gekaufte Tickets sind daher grundsätzlich vom Umtausch und von der Rückerstattung
+              ausgeschlossen, soweit nachfolgend nichts anderes geregelt ist.
+            </p>
+            <p className="mb-3">
+              <strong className="text-paper">4.2 Nichterscheinen.</strong> Erscheint eine Person
+              nicht oder zu spät zur Veranstaltung oder verlässt sie die Veranstaltung vorzeitig,
+              besteht kein Anspruch auf Erstattung des Ticketpreises.
+            </p>
+            <p className="mb-3">
+              <strong className="text-paper">4.3 Absage der Veranstaltung.</strong> Wird eine
+              Veranstaltung abgesagt, wird der volle Ticketpreis erstattet. Die Rückzahlung
+              erfolgt automatisch über den ursprünglich genutzten Zahlungsweg (Stripe); ein
+              gesonderter Antrag ist nicht erforderlich. Die Information erfolgt per E-Mail an
+              die bei der Buchung angegebene Adresse.
+            </p>
+            <p className="mb-3">
+              <strong className="text-paper">4.4 Verlegung der Veranstaltung.</strong> Wird eine
+              Veranstaltung auf einen anderen Tag oder eine andere Uhrzeit verlegt, behält das
+              Ticket für den Ersatztermin seine Gültigkeit. Wer den Ersatztermin nicht
+              wahrnehmen möchte, kann die Erstattung des vollen Ticketpreises verlangen; das
+              Verlangen ist innerhalb von 14 Tagen ab Bekanntgabe der Verlegung über das
+              Kontaktformular (Thema „Ticket-Rückerstattung") oder per E-Mail geltend zu machen.
+              Nach Ablauf dieser Frist gilt das Ticket für den Ersatztermin.
+            </p>
+            <p className="mb-3">
+              <strong className="text-paper">4.5 Abweisung am Einlass.</strong> Wird einer Person
+              der Einlass aus Gründen verweigert, die nicht in ihrer Person oder ihrem Verhalten
+              liegen — etwa wegen Überfüllung, Erreichen der Kapazitätsgrenze oder aus
+              organisatorischen Gründen —, wird der volle Ticketpreis erstattet. Erfolgt die
+              Verweigerung des Einlasses dagegen aufgrund des Verhaltens oder des Zustands der
+              Person (siehe Ziffer 5), besteht kein Anspruch auf Erstattung; eine Erstattung aus
+              Kulanz im Einzelfall bleibt hiervon unberührt.
+            </p>
+            <p className="mb-3">
+              <strong className="text-paper">4.6 Durchführung der Rückerstattung.</strong>{" "}
+              Erstattungen erfolgen ausschließlich auf das ursprünglich verwendete Zahlungsmittel
+              und in der Regel innerhalb von 14 Tagen. Etwaige Gebühren des
+              Zahlungsdienstleisters werden nicht gesondert in Rechnung gestellt. Mit der
+              Erstattung verliert der zugehörige QR-Code seine Gültigkeit.
+            </p>
             <p>
-              Für online gekaufte Tickets besteht grundsätzlich ein gesetzliches Widerrufsrecht
-              nach § 355 BGB, das jedoch bei Verträgen über Freizeitveranstaltungen mit einem
-              festgelegten Termin gemäß § 312g Abs. 2 Nr. 9 BGB erlischt, sobald das Ticket
-              ausgestellt wurde. Eine Stornierung durch uns (z.B. bei Ausfall des Events) wird per
-              E-Mail mitgeteilt; bereits gezahlte Beträge werden in diesem Fall über Stripe
-              zurückerstattet. Gästelisten-Anmeldungen können jederzeit formlos per E-Mail
-              storniert werden.
+              <strong className="text-paper">4.7 Gästeliste.</strong> Anmeldungen zur Gästeliste
+              sind unverbindlich und können jederzeit formlos per E-Mail storniert werden. Da
+              hierbei keine Online-Zahlung erfolgt, entfällt eine Rückerstattung.
             </p>
           </section>
           <section>
@@ -60,10 +102,9 @@ export default function AgbPage() {
               (digital oder ausgedruckt) sowie eines gültigen Lichtbildausweises. Jeder QR-Code ist
               nur einmal gültig. Der Veranstalter behält sich vor, den Einlass gemäß Hausrecht zu
               verweigern (z.B. bei Überfüllung, Vermummung, sichtbarer Alkoholisierung oder
-              Verstoß gegen die Clubregeln); ein Anspruch auf Erstattung besteht in diesem Fall
-              nicht, sofern die Verweigerung durch das Verhalten der Person begründet ist.
-              Mindestalter und Dresscode können je Event abweichen und werden auf der jeweiligen
-              Eventseite angegeben.
+              Verstoß gegen die Clubregeln). Ob in einem solchen Fall eine Erstattung erfolgt,
+              richtet sich nach Ziffer 4.5. Mindestalter und Dresscode können je Event abweichen
+              und werden auf der jeweiligen Eventseite angegeben.
             </p>
           </section>
           <section>
