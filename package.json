@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma db push --skip-generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
@@ -12,8 +12,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "hash-password": "tsx scripts/hash-password.ts",
-    "seed-gallery": "tsx prisma/seed-gallery.ts"
+    "hash-password": "tsx scripts/hash-password.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -18,6 +18,9 @@ export default function AdminProtectedLayout({
             <Link href="/admin" className="hover:text-soul-orange">
               Dashboard
             </Link>
+            <Link href="/admin/homepage" className="hover:text-soul-orange">
+              Startseite
+            </Link>
             <Link href="/admin/scanner" className="hover:text-soul-orange">
               Scanner
             </Link>

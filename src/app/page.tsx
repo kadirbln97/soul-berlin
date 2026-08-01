@@ -6,11 +6,17 @@ import { EventCard } from "@/components/EventCard";
 import { Gallery } from "@/components/Gallery";
 import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const events = await getUpcomingPublishedEvents(6);
+  // Texte/Bilder kommen aus dem Startseiten-Baukasten (/admin/homepage);
+  // ohne gespeicherte Werte greifen automatisch die Standardtexte.
+  const [events, content] = await Promise.all([
+    getUpcomingPublishedEvents(6),
+    getSiteContent()
+  ]);
   const nextEvent = events[0];
 
   return (
@@ -26,11 +32,12 @@ export default async function HomePage() {
               Kopfes genug dunkler Platz für das Logo bleibt. Das SØUL-Schild
               bleibt in beiden Fällen sichtbar. */}
           <Image
-            src="/media/photos/hero-dancefloor.webp"
+            src={content.hero_image}
             alt="Tanzfläche mit leuchtendem SØUL-Schild bei einem SØUL Berlin Event"
             fill
             priority
             sizes="100vw"
+            unoptimized={content.hero_image.startsWith("http")}
             className="object-cover object-[64%_30%] sm:object-[64%_12%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
@@ -47,20 +54,30 @@ export default async function HomePage() {
               className="relative -top-[60px] h-20 w-auto sm:top-0 sm:h-28"
             />
             <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper sm:text-6xl">
-              Good people.
-              <br />
-              <span className="text-soul-orange italic-skew">Good music.</span>
+              {content.hero_headline_1}
+              {content.hero_headline_2 && (
+                <>
+                  <br />
+                  <span className="text-soul-orange italic-skew">
+                    {content.hero_headline_2}
+                  </span>
+                </>
+              )}
             </h1>
-            <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/50">
-              House Music Culture · Berlin
-            </p>
+            {content.hero_tagline && (
+              <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/50">
+                {content.hero_tagline}
+              </p>
+            )}
 
             {nextEvent && (
               <Link
                 href={`/events/${nextEvent.slug}`}
                 className="btn-primary mt-2"
               >
-                Nächstes Event: {nextEvent.title} →
+                {content.hero_cta_prefix
+                  ? `${content.hero_cta_prefix} ${nextEvent.title} →`
+                  : `${nextEvent.title} →`}
               </Link>
             )}
           </div>
@@ -69,19 +86,19 @@ export default async function HomePage() {
         <section className="mx-auto max-w-6xl px-5 pb-24">
           <div className="mb-8 flex items-center justify-between">
             <h2 className="text-display text-2xl uppercase text-paper sm:text-3xl">
-              Upcoming Events
+              {content.events_heading}
             </h2>
             <Link
               href="/events"
               className="text-xs font-semibold uppercase tracking-widest text-paper/60 hover:text-soul-orange"
             >
-              Alle ansehen →
+              {content.events_link_label}
             </Link>
           </div>
 
           {events.length === 0 ? (
             <p className="rounded-2xl card-border p-10 text-center text-paper/50">
-              Aktuell sind keine Events veröffentlicht — schau bald wieder vorbei.
+              {content.events_empty_text}
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -107,11 +124,11 @@ export default async function HomePage() {
         <section className="mx-auto max-w-6xl px-5 pb-24">
           <div className="mb-8">
             <h2 className="text-display text-2xl uppercase text-paper sm:text-3xl">
-              SØUL in Action
+              {content.gallery_heading}
             </h2>
-            <p className="mt-1 text-sm text-paper/50">
-              Impressionen von den letzten Events — Fotos & kurze Clips.
-            </p>
+            {content.gallery_subtext && (
+              <p className="mt-1 text-sm text-paper/50">{content.gallery_subtext}</p>
+            )}
           </div>
           <Gallery />
         </section>

@@ -81,6 +81,18 @@ model GuestlistTier {
   @@index([eventId])
 }
 
+// Frei im Admin-Bereich änderbare Texte/Bilder der Startseite (Überschriften,
+// Button-Beschriftungen, Hero-Bild …). Bewusst als einfacher Schlüssel-Wert-
+// Speicher, damit später neue Felder ohne Datenbank-Änderung dazukommen
+// können — die Liste der Felder samt Standardwerten steht in
+// src/lib/siteContent.ts. Fehlt ein Schlüssel, greift automatisch der
+// Standardwert aus dem Code.
+model SiteContent {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // Foto-/Video-Kacheln für die "SØUL in Action"-Galerie auf der Startseite
 // (siehe src/components/Gallery.tsx). Reihenfolge, Hinzufügen, Löschen wird
 // komplett im Admin-Bereich verwaltet (/admin/gallery) — kein Code-Änderung
