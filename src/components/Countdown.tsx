@@ -22,7 +22,9 @@ function getTimeLeft(target: string): TimeLeft {
   };
 }
 
-const UNIT_LABEL: Record<keyof Omit<TimeLeft, "totalMs">, string> = {
+type UnitLabels = Record<keyof Omit<TimeLeft, "totalMs">, string>;
+
+const DEFAULT_UNIT_LABELS: UnitLabels = {
   days: "Tage",
   hours: "Std",
   minutes: "Min",
@@ -39,7 +41,8 @@ export function Countdown({
   onExpire,
   urgentBelowMinutes = 60,
   label = "Anmeldung schließt in",
-  urgentLabel = "Nur noch kurz"
+  urgentLabel = "Nur noch kurz",
+  unitLabels = DEFAULT_UNIT_LABELS
 }: {
   target: string;
   onExpire?: () => void;
@@ -48,6 +51,8 @@ export function Countdown({
    * Gästelisten-Anmeldung angezeigt wird (siehe TicketAvailabilityGate). */
   label?: string;
   urgentLabel?: string;
+  /** Beschriftung der Zeiteinheiten — sprachabhängig. */
+  unitLabels?: UnitLabels;
 }) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
@@ -93,7 +98,7 @@ export function Countdown({
             <span className="text-display text-lg tabular-nums text-paper">
               {String(timeLeft[unit]).padStart(2, "0")}
             </span>
-            <span className="text-[10px] uppercase text-paper/40">{UNIT_LABEL[unit]}</span>
+            <span className="text-[10px] uppercase text-paper/40">{unitLabels[unit]}</span>
           </span>
         ))}
       </div>

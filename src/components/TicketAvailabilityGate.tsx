@@ -53,6 +53,12 @@ export function TicketAvailabilityGate({
           onExpire={() => setClosed(true)}
           label={countdownLabel}
           urgentLabel={t.event.almostOver}
+          unitLabels={{
+            days: t.event.unitDays,
+            hours: t.event.unitHours,
+            minutes: t.event.unitMinutes,
+            seconds: t.event.unitSeconds
+          }}
         />
       )}
       {children}

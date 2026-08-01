@@ -62,6 +62,10 @@ type Dict = {
     routeGoogle: string;
     routeApple: string;
     payNote: string;
+    unitDays: string;
+    unitHours: string;
+    unitMinutes: string;
+    unitSeconds: string;
   };
   form: {
     name: string;
@@ -167,7 +171,11 @@ const de: Dict = {
     location: "Location",
     routeGoogle: "Route in Google Maps",
     routeApple: "Route in Apple Maps",
-    payNote: "Sichere Zahlung via Karte, Apple Pay, Google Pay oder PayPal (abgewickelt von Stripe)."
+    payNote: "Sichere Zahlung via Karte, Apple Pay, Google Pay oder PayPal (abgewickelt von Stripe).",
+    unitDays: "Tage",
+    unitHours: "Std",
+    unitMinutes: "Min",
+    unitSeconds: "Sek"
   },
   form: {
     name: "Name",
@@ -277,7 +285,11 @@ const en: Dict = {
     location: "Location",
     routeGoogle: "Directions in Google Maps",
     routeApple: "Directions in Apple Maps",
-    payNote: "Secure payment via card, Apple Pay, Google Pay or PayPal (handled by Stripe)."
+    payNote: "Secure payment via card, Apple Pay, Google Pay or PayPal (handled by Stripe).",
+    unitDays: "Days",
+    unitHours: "Hrs",
+    unitMinutes: "Min",
+    unitSeconds: "Sec"
   },
   form: {
     name: "Name",
