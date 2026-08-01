@@ -4,10 +4,16 @@ import { useState, type FormEvent } from "react";
 
 export function SignupForm({
   eventId,
-  ticketMode
+  ticketMode,
+  quantity = 1,
+  discountCode = ""
 }: {
   eventId: string;
   ticketMode: string;
+  /** Nur beim Ticketkauf: gewählte Stückzahl (kommt aus TicketPurchasePanel). */
+  quantity?: number;
+  /** Eingegebener Gutscheincode, wird zur Preisprüfung mitgeschickt. */
+  discountCode?: string;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,7 +32,7 @@ export function SignupForm({
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, name, email, phone })
+        body: JSON.stringify({ eventId, name, email, phone, quantity, discountCode })
       });
       const data = await res.json();
 

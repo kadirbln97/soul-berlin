@@ -1,11 +1,44 @@
 import { z } from "zod";
 import { TICKET_MODES, EVENT_STATUS } from "./constants";
 
+export const MAX_TICKETS_PER_ORDER = 5;
+
 export const signupSchema = z.object({
   eventId: z.string().min(1),
   name: z.string().trim().min(2, "Bitte vollständigen Namen angeben").max(100),
   email: z.string().trim().email("Bitte gültige E-Mail angeben"),
-  phone: z.string().trim().max(30).optional().or(z.literal(""))
+  phone: z.string().trim().max(30).optional().or(z.literal("")),
+  // Anzahl Tickets pro Bestellung (nur beim Ticketkauf relevant).
+  quantity: z.coerce.number().int().min(1).max(MAX_TICKETS_PER_ORDER).optional(),
+  // Optional eingegebener Gutscheincode.
+  discountCode: z.string().trim().max(40).optional().or(z.literal(""))
+});
+
+export const discountSchema = z
+  .object({
+    // Leer lassen = Rabatt gilt automatisch für alle, ohne Code.
+    code: z.string().trim().max(40).optional().or(z.literal("")),
+    type: z.enum(["PERCENT", "FIXED", "BOGO"]),
+    // Prozent (1–100) bzw. Betrag in Euro — wird im Backend in Cent umgerechnet.
+    value: z.coerce.number().min(0).max(100_000),
+    label: z.string().trim().max(60).optional().or(z.literal("")),
+    active: z.boolean().optional(),
+    maxUses: z.coerce.number().int().min(1).max(100_000).optional().nullable()
+  })
+  .refine((d) => d.type !== "PERCENT" || (d.value >= 1 && d.value <= 100), {
+    message: "Prozentwert muss zwischen 1 und 100 liegen",
+    path: ["value"]
+  })
+  .refine((d) => d.type !== "FIXED" || d.value > 0, {
+    message: "Bitte einen Rabattbetrag größer als 0 angeben",
+    path: ["value"]
+  });
+
+export const manualGuestsSchema = z.object({
+  // Ein Name pro Zeile — so lassen sich Promoter-Listen direkt einfügen.
+  names: z.string().trim().min(1, "Bitte mindestens einen Namen eingeben").max(20_000),
+  promoterName: z.string().trim().max(80).optional().or(z.literal("")),
+  tierLabel: z.string().trim().max(60).optional().or(z.literal(""))
 });
 
 export const loginSchema = z.object({

@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
+import { resolveDiscount } from "@/lib/resolveDiscount";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,9 @@ export default async function EventDetailPage({
   const spotsLeft = event.capacity ? Math.max(event.capacity - activeTickets, 0) : null;
   const salesEndAtIso = event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null;
   const salesClosed = event.ticketSalesEndAt ? new Date() > event.ticketSalesEndAt : false;
+
+  // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
+  const { discount: autoDiscount } = await resolveDiscount(event.id);
 
   return (
     <>
@@ -127,6 +131,7 @@ export default async function EventDetailPage({
             isSoldOut={isSoldOut}
             salesEndAtIso={salesEndAtIso}
             salesClosed={salesClosed}
+            autoDiscount={autoDiscount?.rule ?? null}
           />
         </div>
       </main>

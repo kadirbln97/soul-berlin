@@ -4,7 +4,8 @@ import { getStripe } from "@/lib/stripe";
 import { signupSchema } from "@/lib/validation";
 import { countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { calculateServiceFeeCents } from "@/lib/serviceFee";
+import { calculatePriceBreakdown, describeDiscount } from "@/lib/discount";
+import { resolveDiscount } from "@/lib/resolveDiscount";
 
 export async function POST(req: Request) {
   // Schutz vor Checkout-Session-Spam: max. 10 Versuche pro 10 Minuten pro IP.
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
   }
 
   const { eventId, name, email, phone } = parsed.data;
+  const quantity = parsed.data.quantity ?? 1;
 
   const event = await prisma.event.findUnique({ where: { id: eventId } });
 
@@ -51,13 +53,46 @@ export async function POST(req: Request) {
 
   if (event.capacity) {
     const active = await countActiveTickets(event.id);
-    if (active >= event.capacity) {
-      return NextResponse.json({ error: "Dieses Event ist leider ausverkauft." }, { status: 409 });
+    if (active + quantity > event.capacity) {
+      const left = Math.max(0, event.capacity - active);
+      return NextResponse.json(
+        {
+          error:
+            left === 0
+              ? "Dieses Event ist leider ausverkauft."
+              : `Es sind nur noch ${left} Tickets verfügbar.`
+        },
+        { status: 409 }
+      );
     }
   }
 
+  // Rabatt serverseitig auflösen — der vom Browser geschickte Preis wird
+  // bewusst nie übernommen, sonst könnte man sich den Preis selbst setzen.
+  const { discount, codeInvalid } = await resolveDiscount(event.id, parsed.data.discountCode);
+  if (codeInvalid) {
+    return NextResponse.json(
+      { error: "Dieser Gutscheincode ist ungültig oder nicht mehr einlösbar." },
+      { status: 400 }
+    );
+  }
+
+  const breakdown = calculatePriceBreakdown(event.priceCents, quantity, discount?.rule ?? null);
+
+  if (breakdown.totalCents <= 0) {
+    return NextResponse.json(
+      { error: "Für diese Auswahl ist kein Betrag zu zahlen. Bitte kontaktiere uns direkt." },
+      { status: 400 }
+    );
+  }
+
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
-  const feeCents = calculateServiceFeeCents(event.priceCents);
+  const feeCents = breakdown.feeCents;
+  // Preis je Ticket nach Rabatt — als eine Position mit quantity, damit der
+  // Gast im Stripe-Checkout die Stückzahl sieht. Rundungsreste aus dem
+  // Rabatt landen auf der ersten Position (siehe unten).
+  const perTicketCents = Math.floor(breakdown.discountedSubtotalCents / quantity);
+  const remainderCents = breakdown.discountedSubtotalCents - perTicketCents * quantity;
 
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
@@ -73,16 +108,32 @@ export async function POST(req: Request) {
     // vorher auf der Event-Seite.
     line_items: [
       {
-        quantity: 1,
+        quantity,
         price_data: {
           currency: event.currency,
-          unit_amount: event.priceCents,
+          unit_amount: perTicketCents,
           product_data: {
             name: event.title,
-            description: event.venue
+            description: discount
+              ? `${event.venue} · ${describeDiscount(discount.rule, event.currency)}`
+              : event.venue
           }
         }
       },
+      // Rundungsrest (entsteht z.B. bei ungeraden Prozentrabatten auf mehrere
+      // Tickets), damit die Summe exakt der angezeigten entspricht.
+      ...(remainderCents > 0
+        ? [
+            {
+              quantity: 1,
+              price_data: {
+                currency: event.currency,
+                unit_amount: remainderCents,
+                product_data: { name: "Rundungsausgleich" }
+              }
+            }
+          ]
+        : []),
       ...(feeCents > 0
         ? [
             {
@@ -92,7 +143,10 @@ export async function POST(req: Request) {
                 unit_amount: feeCents,
                 product_data: {
                   name: "Servicegebühr",
-                  description: "Vorverkaufs- und Bearbeitungsgebühr"
+                  description:
+                    quantity > 1
+                      ? `Vorverkaufs- und Bearbeitungsgebühr (${quantity} Tickets)`
+                      : "Vorverkaufs- und Bearbeitungsgebühr"
                 }
               }
             }
@@ -104,7 +158,11 @@ export async function POST(req: Request) {
       name,
       email: email.toLowerCase(),
       phone: phone ?? "",
-      feeCents: String(feeCents)
+      feeCents: String(feeCents),
+      quantity: String(quantity),
+      discountCents: String(breakdown.discountCents),
+      discountId: discount?.id ?? "",
+      discountCode: discount?.rule.code ?? ""
     },
     success_url: `${appUrl}/events/${event.slug}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/events/${event.slug}`

@@ -38,11 +38,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    // Idempotenz: Stripe kann Webhooks mehrfach zustellen.
-    const existing = await prisma.ticket.findUnique({
+    // Idempotenz: Stripe kann Webhooks mehrfach zustellen. Da zu einer
+    // Bestellung mehrere Tickets gehören können, wird auf Vorhandensein
+    // geprüft statt auf einen eindeutigen Datensatz.
+    const existing = await prisma.ticket.count({
       where: { stripeSessionId: session.id }
     });
-    if (existing) {
+    if (existing > 0) {
       return NextResponse.json({ received: true });
     }
 
@@ -58,21 +60,48 @@ export async function POST(req: Request) {
     // Session, damit auch spätere Änderungen an der Formel alte Käufe nicht
     // rückwirkend verfälschen.
     const feeCents = Number(session.metadata?.feeCents ?? 0) || 0;
-    const totalCents = session.amount_total ?? null;
-    const ticketAmountCents =
-      totalCents !== null ? Math.max(0, totalCents - feeCents) : dbEvent.priceCents;
+    const quantity = Math.max(1, Number(session.metadata?.quantity ?? 1) || 1);
+    const discountCents = Number(session.metadata?.discountCents ?? 0) || 0;
+    const discountId = session.metadata?.discountId || null;
+    const discountCode = session.metadata?.discountCode || null;
 
-    await createTicketAndSendEmail({
-      event: dbEvent,
-      name,
-      email,
-      phone: phone || null,
-      amountCents: ticketAmountCents,
-      feeCents,
-      stripeSessionId: session.id,
-      stripePaymentIntentId:
-        typeof session.payment_intent === "string" ? session.payment_intent : null
-    });
+    const totalCents = session.amount_total ?? null;
+    const ticketsTotalCents =
+      totalCents !== null
+        ? Math.max(0, totalCents - feeCents)
+        : (dbEvent.priceCents ?? 0) * quantity;
+
+    // Beträge gleichmäßig auf die einzelnen Tickets verteilen; der Rest landet
+    // auf dem ersten Ticket, damit die Summe exakt dem Gezahlten entspricht.
+    const perTicket = (total: number, index: number) => {
+      const base = Math.floor(total / quantity);
+      return index === 0 ? base + (total - base * quantity) : base;
+    };
+
+    for (let i = 0; i < quantity; i++) {
+      await createTicketAndSendEmail({
+        event: dbEvent,
+        name,
+        email,
+        phone: phone || null,
+        amountCents: perTicket(ticketsTotalCents, i),
+        feeCents: perTicket(feeCents, i),
+        discountCents: discountCents > 0 ? perTicket(discountCents, i) : null,
+        discountCode,
+        stripeSessionId: session.id,
+        stripePaymentIntentId:
+          typeof session.payment_intent === "string" ? session.payment_intent : null
+      });
+    }
+
+    if (discountId) {
+      await prisma.discount
+        .update({ where: { id: discountId }, data: { usedCount: { increment: 1 } } })
+        .catch((err: unknown) => {
+          // Zählerfehler darf den Kauf nicht scheitern lassen.
+          console.error("[stripe webhook] Rabatt-Zähler konnte nicht erhöht werden:", err);
+        });
+    }
   }
 
   return NextResponse.json({ received: true });

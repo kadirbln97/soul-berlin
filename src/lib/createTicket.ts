@@ -16,6 +16,9 @@ export async function createTicketAndSendEmail(params: {
   amountCents?: number | null;
   /** Servicegebühr beim Online-Kauf (siehe lib/serviceFee.ts). */
   feeCents?: number | null;
+  /** Gewährter Rabatt für dieses Ticket. */
+  discountCents?: number | null;
+  discountCode?: string | null;
   tierLabel?: string | null;
   stripeSessionId?: string | null;
   stripePaymentIntentId?: string | null;
@@ -28,6 +31,8 @@ export async function createTicketAndSendEmail(params: {
       phone: params.phone || null,
       amountCents: params.amountCents ?? null,
       feeCents: params.feeCents ?? null,
+      discountCents: params.discountCents ?? null,
+      discountCode: params.discountCode ?? null,
       tierLabel: params.tierLabel ?? null,
       currency: params.event.currency,
       status: "VALID",

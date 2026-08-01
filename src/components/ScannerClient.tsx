@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Scanner } from "@/components/Scanner";
+import { GuestSearch } from "@/components/GuestSearch";
 import { formatEventTime, formatPrice } from "@/lib/format";
 
 type EventOption = {
@@ -631,6 +632,12 @@ export function ScannerClient({ events }: { events: EventOption[] }) {
       </div>
 
       <Scanner active={active} onScan={handleScan} />
+
+      {/* Namenssuche für Gäste ohne QR-Code (Promoter-Liste) — braucht
+          Internet, deshalb nur online eingeblendet. */}
+      {isOnline && selectedEventId && (
+        <GuestSearch eventId={selectedEventId} onCheckedIn={refreshStats} />
+      )}
 
       {result && (
         <div

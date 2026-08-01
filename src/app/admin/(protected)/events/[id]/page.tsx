@@ -6,6 +6,8 @@ import { GuestTable } from "@/components/GuestTable";
 import { DeleteEventButton } from "@/components/DeleteEventButton";
 import { RevenueSummaryCard } from "@/components/RevenueSummaryCard";
 import { getEventRevenue } from "@/lib/revenue";
+import { DiscountManager } from "@/components/DiscountManager";
+import { ManualGuestForm } from "@/components/ManualGuestForm";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +22,16 @@ export default async function AdminEventDetailPage({
   });
   if (!event) notFound();
 
-  const [tickets, revenue] = await Promise.all([
+  const [tickets, revenue, discounts] = await Promise.all([
     prisma.ticket.findMany({
       where: { eventId: event.id },
       orderBy: { createdAt: "desc" }
     }),
-    getEventRevenue(event.id)
+    getEventRevenue(event.id),
+    prisma.discount.findMany({
+      where: { eventId: event.id },
+      orderBy: { createdAt: "asc" }
+    })
   ]);
 
   return (
@@ -73,6 +79,44 @@ export default async function AdminEventDetailPage({
 
       <div className="max-w-md">
         <RevenueSummaryCard summary={revenue} currency={event.currency} title="Umsatz dieses Events" />
+      </div>
+
+      <div>
+        <div className="mb-6">
+          <h2 className="text-display text-xl uppercase text-paper sm:text-2xl">
+            Rabatte & Aktionen
+          </h2>
+          <p className="mt-1 text-sm text-paper/50">
+            Gutscheincodes oder ein Rabatt für alle. Gilt nur für den Online-Ticketkauf.
+          </p>
+        </div>
+        <DiscountManager
+          eventId={event.id}
+          currency={event.currency}
+          initialDiscounts={discounts.map((d) => ({
+            id: d.id,
+            code: d.code,
+            type: d.type,
+            value: d.value,
+            label: d.label,
+            active: d.active,
+            maxUses: d.maxUses,
+            usedCount: d.usedCount
+          }))}
+        />
+      </div>
+
+      <div>
+        <div className="mb-6">
+          <h2 className="text-display text-xl uppercase text-paper sm:text-2xl">
+            Gäste manuell eintragen
+          </h2>
+          <p className="mt-1 text-sm text-paper/50">
+            Für Namenslisten von Promotern. Suche und Check-in laufen an der Tür über den
+            Scanner.
+          </p>
+        </div>
+        <ManualGuestForm eventId={event.id} />
       </div>
 
       <div>
