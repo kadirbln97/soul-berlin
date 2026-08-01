@@ -35,6 +35,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    // Empfängeradresse prüfen — ein Tippfehler hier würde sonst dazu führen,
+    // dass Kontaktanfragen unbemerkt nicht mehr zugestellt werden.
+    if (key === "contact_email" && value.trim() !== "") {
+      const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+      if (!looksLikeEmail) {
+        return NextResponse.json(
+          { error: "Bitte eine gültige E-Mail-Adresse für das Kontaktformular eingeben." },
+          { status: 400 }
+        );
+      }
+    }
   }
 
   await prisma.$transaction(

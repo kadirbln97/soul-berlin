@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import { ticketQrBuffer } from "./qr";
 import { formatEventDate } from "./format";
 import { escapeHtml } from "./escapeHtml";
+import { getContactRecipient } from "./siteContent";
 
 function getTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
@@ -107,16 +108,23 @@ const TOPIC_LABEL: Record<string, string> = {
   feature: "Feature-Wunsch"
 };
 
-/** Sendet eine Kontaktformular-Anfrage ans Admin-Postfach (ADMIN_EMAIL). */
+/**
+ * Sendet eine Kontaktformular-Anfrage an die im Admin-Bereich hinterlegte
+ * Empfängeradresse (/admin/homepage → Kontakt), ersatzweise an CONTACT_EMAIL
+ * bzw. die Admin-Login-Adresse.
+ */
 export async function sendContactEmail(params: {
   name: string;
   email: string;
   topic: string;
   message: string;
 }) {
-  const to = process.env.ADMIN_EMAIL;
+  const to = await getContactRecipient();
   if (!to) {
-    throw new Error("ADMIN_EMAIL fehlt in .env — Kontaktformular kann nicht zugestellt werden.");
+    throw new Error(
+      "Keine Empfängeradresse gesetzt — Kontaktformular kann nicht zugestellt werden. " +
+        "Im Admin-Bereich unter Startseite → Kontakt eintragen."
+    );
   }
 
   const transport = getTransport();

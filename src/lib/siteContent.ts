@@ -95,6 +95,18 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
     type: "textarea",
     default: "Impressionen von den letzten Events — Fotos & kurze Clips.",
     group: "Galerie"
+  },
+
+  // --- Kontakt ---
+  {
+    key: "contact_email",
+    label: "Empfänger für Kontaktformular",
+    type: "text",
+    default: "",
+    help:
+      "An diese Adresse gehen Nachrichten aus dem Kontaktformular. Leer lassen, " +
+      "um die Admin-Login-Adresse zu verwenden.",
+    group: "Kontakt"
   }
 ];
 
@@ -121,4 +133,26 @@ export async function getSiteContent(): Promise<SiteContent> {
   } catch {
     return defaults;
   }
+}
+
+/**
+ * Empfängeradresse für das Kontaktformular: bevorzugt die im Admin-Bereich
+ * eingetragene Adresse, sonst CONTACT_EMAIL, sonst als letzter Rückfall die
+ * Admin-Login-Adresse. Gibt null zurück, wenn nirgends etwas gesetzt ist.
+ */
+export async function getContactRecipient(): Promise<string | null> {
+  let fromAdminPanel = "";
+  try {
+    const row = await prisma.siteContent.findUnique({ where: { key: "contact_email" } });
+    fromAdminPanel = row?.value.trim() ?? "";
+  } catch {
+    // Datenbank nicht erreichbar — dann greifen unten die Umgebungsvariablen.
+  }
+
+  return (
+    fromAdminPanel ||
+    process.env.CONTACT_EMAIL?.trim() ||
+    process.env.ADMIN_EMAIL?.trim() ||
+    null
+  );
 }
