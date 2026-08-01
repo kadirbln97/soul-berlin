@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { EventForm } from "@/components/EventForm";
 import { GuestTable } from "@/components/GuestTable";
 import { DeleteEventButton } from "@/components/DeleteEventButton";
+import { RevenueSummaryCard } from "@/components/RevenueSummaryCard";
+import { getEventRevenue } from "@/lib/revenue";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +20,13 @@ export default async function AdminEventDetailPage({
   });
   if (!event) notFound();
 
-  const tickets = await prisma.ticket.findMany({
-    where: { eventId: event.id },
-    orderBy: { createdAt: "desc" }
-  });
+  const [tickets, revenue] = await Promise.all([
+    prisma.ticket.findMany({
+      where: { eventId: event.id },
+      orderBy: { createdAt: "desc" }
+    }),
+    getEventRevenue(event.id)
+  ]);
 
   return (
     <div className="flex flex-col gap-12">
@@ -64,6 +69,10 @@ export default async function AdminEventDetailPage({
             }}
           />
         </div>
+      </div>
+
+      <div className="max-w-md">
+        <RevenueSummaryCard summary={revenue} currency={event.currency} title="Umsatz dieses Events" />
       </div>
 
       <div>

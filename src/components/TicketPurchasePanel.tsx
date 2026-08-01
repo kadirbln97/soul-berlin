@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SignupForm } from "./SignupForm";
 import { TicketAvailabilityGate } from "./TicketAvailabilityGate";
 import { formatPrice, formatEventTime } from "@/lib/format";
+import { calculateServiceFeeCents } from "@/lib/serviceFee";
 
 type GuestlistTierView = {
   id: string;
@@ -43,6 +44,7 @@ export function TicketPurchasePanel({
   salesClosed: boolean;
 }) {
   const offersBoth = ticketMode === "BOTH";
+  const serviceFeeCents = priceCents ? calculateServiceFeeCents(priceCents) : 0;
   const [selected, setSelected] = useState<"PAID" | "GUESTLIST">(
     ticketMode === "GUESTLIST" ? "GUESTLIST" : "PAID"
   );
@@ -76,18 +78,40 @@ export function TicketPurchasePanel({
         </div>
       )}
 
-      <div className="mb-6 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
-          {selected === "PAID" ? "Ticket" : "Gästeliste"}
-        </span>
-        <span className="text-display text-xl text-soul-orange">
-          {selected === "PAID" && priceCents
-            ? formatPrice(priceCents, currency)
-            : guestlistPrice
-              ? formatPrice(guestlistPrice, currency)
-              : "Free"}
-        </span>
-      </div>
+      {/* Beim Ticketkauf wird die Servicegebühr offen aufgeschlüsselt und der
+          Gesamtpreis hervorgehoben — der Gast soll vor dem Klick sehen, was
+          tatsächlich abgebucht wird (Preisangabenverordnung). */}
+      {selected === "PAID" && priceCents ? (
+        <div className="mb-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-paper/50">Ticket</span>
+            <span className="text-paper/70">{formatPrice(priceCents, currency)}</span>
+          </div>
+          {serviceFeeCents > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-paper/50">Servicegebühr</span>
+              <span className="text-paper/70">{formatPrice(serviceFeeCents, currency)}</span>
+            </div>
+          )}
+          <div className="mt-1 flex items-center justify-between border-t border-paper/10 pt-2">
+            <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
+              Gesamt
+            </span>
+            <span className="text-display text-xl text-soul-orange">
+              {formatPrice(priceCents + serviceFeeCents, currency)}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-6 flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
+            {selected === "PAID" ? "Ticket" : "Gästeliste"}
+          </span>
+          <span className="text-display text-xl text-soul-orange">
+            {guestlistPrice ? formatPrice(guestlistPrice, currency) : "Free"}
+          </span>
+        </div>
+      )}
 
       {selected === "GUESTLIST" && guestlistTiers.length > 0 && (
         <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">

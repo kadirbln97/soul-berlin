@@ -136,7 +136,15 @@ model Ticket {
   // "VALID" | "CHECKED_IN" | "REFUNDED" | "CANCELLED"
   status      String   @default("VALID")
 
+  // Ticketpreis ohne Servicegebühr (bzw. an der Abendkasse fälliger Betrag
+  // bei Gästeliste-Staffeln).
   amountCents Int?
+
+  // Servicegebühr beim Online-Ticketkauf (1 € + 8 %, siehe lib/serviceFee.ts).
+  // Null/0 bei Gästeliste-Einträgen. Wird als Snapshot gespeichert, damit
+  // spätere Änderungen an der Gebührenformel alte Verkäufe nicht verfälschen.
+  feeCents    Int?
+
   currency    String   @default("eur")
 
   // Snapshot des Namens der Preisstaffel zum Zeitpunkt der Anmeldung/des Kaufs

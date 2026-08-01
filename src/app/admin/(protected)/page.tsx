@@ -1,18 +1,23 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatEventDate } from "@/lib/format";
+import { getTotalRevenue } from "@/lib/revenue";
+import { RevenueSummaryCard } from "@/components/RevenueSummaryCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const events = await prisma.event.findMany({
-    orderBy: { dateStart: "desc" },
-    include: {
-      _count: {
-        select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } }
+  const [events, revenue] = await Promise.all([
+    prisma.event.findMany({
+      orderBy: { dateStart: "desc" },
+      include: {
+        _count: {
+          select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } }
+        }
       }
-    }
-  });
+    }),
+    getTotalRevenue()
+  ]);
 
   return (
     <div>
@@ -21,6 +26,10 @@ export default async function AdminDashboardPage() {
         <Link href="/admin/events/new" className="btn-primary">
           + Neues Event
         </Link>
+      </div>
+
+      <div className="mb-8">
+        <RevenueSummaryCard summary={revenue} title="Umsatz gesamt (alle Events)" />
       </div>
 
       {events.length === 0 ? (

@@ -14,6 +14,8 @@ export async function createTicketAndSendEmail(params: {
   email: string;
   phone?: string | null;
   amountCents?: number | null;
+  /** Servicegebühr beim Online-Kauf (siehe lib/serviceFee.ts). */
+  feeCents?: number | null;
   tierLabel?: string | null;
   stripeSessionId?: string | null;
   stripePaymentIntentId?: string | null;
@@ -25,6 +27,7 @@ export async function createTicketAndSendEmail(params: {
       email: params.email,
       phone: params.phone || null,
       amountCents: params.amountCents ?? null,
+      feeCents: params.feeCents ?? null,
       tierLabel: params.tierLabel ?? null,
       currency: params.event.currency,
       status: "VALID",
@@ -51,7 +54,10 @@ export async function createTicketAndSendEmail(params: {
       eventAddress: params.event.address,
       isPaid,
       isDoorPrice,
-      amountCents: ticket.amountCents
+      amountCents: ticket.amountCents,
+      // Bei Online-Käufen zeigt die Mail den tatsächlich gezahlten Gesamtbetrag
+      // inkl. Servicegebühr — sonst stünde dort weniger, als abgebucht wurde.
+      feeCents: ticket.feeCents
     });
     await prisma.ticket.update({
       where: { id: ticket.id },

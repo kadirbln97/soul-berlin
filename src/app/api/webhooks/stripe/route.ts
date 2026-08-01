@@ -52,12 +52,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
+    // Der von Stripe kassierte Gesamtbetrag enthält die Servicegebühr. Für die
+    // Auswertung wird beides getrennt gespeichert: amountCents = reiner
+    // Ticketpreis, feeCents = Gebühr. Die Gebühr kommt aus den Metadaten der
+    // Session, damit auch spätere Änderungen an der Formel alte Käufe nicht
+    // rückwirkend verfälschen.
+    const feeCents = Number(session.metadata?.feeCents ?? 0) || 0;
+    const totalCents = session.amount_total ?? null;
+    const ticketAmountCents =
+      totalCents !== null ? Math.max(0, totalCents - feeCents) : dbEvent.priceCents;
+
     await createTicketAndSendEmail({
       event: dbEvent,
       name,
       email,
       phone: phone || null,
-      amountCents: session.amount_total ?? dbEvent.priceCents,
+      amountCents: ticketAmountCents,
+      feeCents,
       stripeSessionId: session.id,
       stripePaymentIntentId:
         typeof session.payment_intent === "string" ? session.payment_intent : null

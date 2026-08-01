@@ -42,6 +42,15 @@ export default function AgbPage() {
               Kleinunternehmer im Sinne von § 19 Abs. 1 UStG wird keine Umsatzsteuer berechnet und
               daher auch nicht ausgewiesen.
             </p>
+            <p className="mt-3">
+              Beim Online-Ticketkauf wird zusätzlich zum Ticketpreis eine Servicegebühr für
+              Vorverkauf und Bearbeitung erhoben. Sie beträgt 1,00 € je Ticket zuzüglich 8 % des
+              Ticketpreises (Beispiel: bei einem Ticket für 20,00 € sind das 2,60 €, insgesamt
+              also 22,60 €). Die Gebühr wird vor Abschluss des Kaufs gesondert ausgewiesen; der
+              Gesamtbetrag ist jederzeit vor der Zahlung einsehbar. Für Gästelisten-Anmeldungen
+              fällt keine Servicegebühr an. Im Fall einer Erstattung nach Ziffer 4 wird die
+              Servicegebühr zusammen mit dem Ticketpreis zurückerstattet.
+            </p>
           </section>
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">

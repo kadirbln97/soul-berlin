@@ -32,6 +32,8 @@ export async function sendTicketEmail(params: {
   // Zahlung erfolgt an der Abendkasse (kein Online-Payment).
   isDoorPrice?: boolean;
   amountCents?: number | null;
+  /** Servicegebühr bei Online-Käufen — wird in der Mail aufgeschlüsselt. */
+  feeCents?: number | null;
 }) {
   const qr = await ticketQrBuffer(params.ticketId);
   const transport = getTransport();
@@ -44,10 +46,19 @@ export async function sendTicketEmail(params: {
   const safeVenue = escapeHtml(params.eventVenue);
   const safeAddress = params.eventAddress ? escapeHtml(params.eventAddress) : null;
 
+  const feeCents = params.feeCents ?? 0;
   const priceLine = params.isPaid
-    ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Bezahlt: ${(
+    ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Ticket: ${(
         (params.amountCents ?? 0) / 100
-      ).toFixed(2)} €</p>`
+      ).toFixed(2)} €</p>${
+        feeCents > 0
+          ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Servicegebühr: ${(
+              feeCents / 100
+            ).toFixed(2)} €</p>`
+          : ""
+      }<p style="margin:0 0 4px;color:#f5f3ee;font-size:14px;"><strong>Bezahlt: ${(
+        ((params.amountCents ?? 0) + feeCents) / 100
+      ).toFixed(2)} €</strong></p>`
     : params.isDoorPrice && params.amountCents
       ? `<p style="margin:0 0 4px;color:#f5f3ee;opacity:.7;font-size:14px;">Preis an der Abendkasse: ${(
           params.amountCents / 100

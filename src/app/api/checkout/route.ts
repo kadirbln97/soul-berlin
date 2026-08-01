@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/stripe";
 import { signupSchema } from "@/lib/validation";
 import { countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { calculateServiceFeeCents } from "@/lib/serviceFee";
 
 export async function POST(req: Request) {
   // Schutz vor Checkout-Session-Spam: max. 10 Versuche pro 10 Minuten pro IP.
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
   }
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const feeCents = calculateServiceFeeCents(event.priceCents);
 
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",
@@ -66,6 +68,9 @@ export async function POST(req: Request) {
     // sie unterstützen. PayPal muss einmalig im Stripe-Dashboard aktiviert
     // werden, danach erscheint es hier automatisch mit.
     customer_email: email,
+    // Servicegebühr bewusst als eigene Position statt im Ticketpreis versteckt —
+    // der Gast sieht im Stripe-Checkout genau dieselbe Aufschlüsselung wie
+    // vorher auf der Event-Seite.
     line_items: [
       {
         quantity: 1,
@@ -77,13 +82,29 @@ export async function POST(req: Request) {
             description: event.venue
           }
         }
-      }
+      },
+      ...(feeCents > 0
+        ? [
+            {
+              quantity: 1,
+              price_data: {
+                currency: event.currency,
+                unit_amount: feeCents,
+                product_data: {
+                  name: "Servicegebühr",
+                  description: "Vorverkaufs- und Bearbeitungsgebühr"
+                }
+              }
+            }
+          ]
+        : [])
     ],
     metadata: {
       eventId: event.id,
       name,
       email: email.toLowerCase(),
-      phone: phone ?? ""
+      phone: phone ?? "",
+      feeCents: String(feeCents)
     },
     success_url: `${appUrl}/events/${event.slug}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/events/${event.slug}`
