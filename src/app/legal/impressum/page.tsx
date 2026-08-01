@@ -40,6 +40,11 @@ export default function ImpressumPage() {
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">Umsatzsteuer</h2>
             <p>
+              Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG:
+              <br />
+              DE369224920
+            </p>
+            <p className="mt-2">
               Als Kleinunternehmer im Sinne von § 19 Abs. 1 UStG wird keine Umsatzsteuer
               berechnet und daher auch nicht ausgewiesen.
             </p>
