@@ -26,36 +26,42 @@ async function uploadFile(file: File): Promise<{ url?: string; error?: string }>
   }
 }
 
-export function GalleryManager({
-  initialItems,
-  defaultTiles
-}: {
-  initialItems: GalleryItem[];
-  /** Die fest eingebauten Standard-Medien — werden öffentlich angezeigt,
-   * solange hier noch nichts Eigenes angelegt wurde. */
-  defaultTiles: GalleryItem[];
-}) {
+export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }) {
   const [items, setItems] = useState(initialItems);
-  const [adopting, setAdopting] = useState(false);
   const [type, setType] = useState<"PHOTO" | "VIDEO">("PHOTO");
   const [label, setLabel] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [orderNote, setOrderNote] = useState<string | null>(null);
+
+  // Drag & Drop (Maus/Trackpad). Auf dem Handy funktionieren stattdessen die
+  // Pfeil-Buttons — deshalb gibt es bewusst beide Wege.
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const posterInputRef = useRef<HTMLInputElement>(null);
 
   async function persistOrder(next: GalleryItem[]) {
+    const previous = items;
     setItems(next);
-    await fetch("/api/admin/gallery/reorder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: next.map((i) => i.id) })
-    }).catch(() => {
-      // Bei Netzwerkfehler bleibt die alte Reihenfolge serverseitig bestehen —
-      // beim nächsten Laden der Seite wird der tatsächliche Stand wieder sichtbar.
-    });
+    setOrderNote("Reihenfolge wird gespeichert …");
+    try {
+      const res = await fetch("/api/admin/gallery/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: next.map((i) => i.id) })
+      });
+      if (!res.ok) throw new Error();
+      setOrderNote("Reihenfolge gespeichert ✓");
+      setTimeout(() => setOrderNote(null), 2000);
+    } catch {
+      // Zurückrollen, damit die Anzeige nicht etwas zeigt, das nicht gespeichert ist.
+      setItems(previous);
+      setOrderNote(null);
+      setError("Reihenfolge konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    }
   }
 
   function moveItem(index: number, direction: -1 | 1) {
@@ -63,6 +69,21 @@ export function GalleryManager({
     if (targetIndex < 0 || targetIndex >= items.length) return;
     const next = [...items];
     [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    persistOrder(next);
+  }
+
+  /** Verschiebt die gezogene Kachel an die Position, auf der losgelassen wurde. */
+  function dropOn(targetIndex: number) {
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      setOverIndex(null);
+      return;
+    }
+    const next = [...items];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    setDragIndex(null);
+    setOverIndex(null);
     persistOrder(next);
   }
 
@@ -74,25 +95,6 @@ export function GalleryManager({
       setItems((prev) => prev.filter((i) => i.id !== id));
     } finally {
       setBusyId(null);
-    }
-  }
-
-  async function adoptDefaults() {
-    setAdopting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/gallery/adopt-defaults", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Übernehmen fehlgeschlagen.");
-        return;
-      }
-      // Seite neu laden, damit die Einträge mit ihren echten Datenbank-IDs
-      // (nötig fürs Sortieren/Löschen) erscheinen.
-      window.location.reload();
-    } catch {
-      setError("Verbindung fehlgeschlagen.");
-      setAdopting(false);
     }
   }
 
@@ -147,7 +149,13 @@ export function GalleryManager({
       }
       setItems((prev) => [
         ...prev,
-        { id: data.item.id, type, url: uploaded.url!, posterUrl: posterUrl ?? null, label: label || null }
+        {
+          id: data.item.id,
+          type,
+          url: uploaded.url!,
+          posterUrl: posterUrl ?? null,
+          label: label || null
+        }
       ]);
       setLabel("");
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -160,7 +168,7 @@ export function GalleryManager({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <form
         onSubmit={handleAdd}
         className="flex flex-col gap-4 rounded-2xl card-border p-5 sm:flex-row sm:flex-wrap sm:items-end"
@@ -181,7 +189,11 @@ export function GalleryManager({
           <input
             ref={fileInputRef}
             type="file"
-            accept={type === "PHOTO" ? "image/jpeg,image/png,image/webp,image/gif" : "video/mp4,video/webm,video/quicktime"}
+            accept={
+              type === "PHOTO"
+                ? "image/jpeg,image/png,image/webp,image/gif"
+                : "video/mp4,video/webm,video/quicktime"
+            }
             className="text-sm text-paper/70 file:mr-3 file:rounded-full file:border-0 file:bg-soul-orange file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
           />
         </div>
@@ -216,116 +228,112 @@ export function GalleryManager({
       </form>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl card-border p-5">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-paper">
-                Aktuell laufen die Standard-Medien auf der Startseite
-              </p>
-              <p className="mt-1 text-xs text-paper/50">
-                Diese {defaultTiles.length} Fotos & Videos sind fest hinterlegt und werden
-                angezeigt, solange du hier nichts Eigenes anlegst. Zum Sortieren oder Löschen
-                musst du sie einmalig übernehmen — danach sind sie ganz normal bearbeitbar.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={adoptDefaults}
-              disabled={adopting}
-              className="btn-primary shrink-0"
-            >
-              {adopting ? "Übernehme …" : "Medien übernehmen"}
-            </button>
+        <p className="rounded-2xl card-border p-10 text-center text-paper/50">
+          Noch keine Galerie-Einträge. Oben das erste Foto oder Video hinzufügen.
+        </p>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-paper/40">
+              {items.length} Kacheln · Reihenfolge = Anzeige auf der Startseite
+            </p>
+            {orderNote && (
+              <p className="text-xs uppercase tracking-widest text-soul-orange">{orderNote}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2 opacity-60 sm:grid-cols-6 md:grid-cols-8">
-            {defaultTiles.map((tile) => (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            {items.map((item, index) => (
               <div
-                key={tile.id}
-                className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-neutral-900"
+                key={item.id}
+                draggable
+                onDragStart={() => setDragIndex(index)}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setOverIndex(null);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (overIndex !== index) setOverIndex(index);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  dropOn(index);
+                }}
+                className={`flex cursor-move flex-col gap-2 rounded-2xl card-border p-2 transition ${
+                  dragIndex === index ? "opacity-40" : ""
+                } ${
+                  overIndex === index && dragIndex !== null && dragIndex !== index
+                    ? "ring-2 ring-soul-orange"
+                    : ""
+                }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tile.type === "PHOTO" ? tile.url : (tile.posterUrl ?? tile.url)}
-                  alt={tile.label ?? ""}
-                  className="h-full w-full object-cover"
-                />
-                {tile.type === "VIDEO" && (
-                  <span className="absolute left-1 top-1 rounded-full bg-ink/70 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest text-paper/80">
-                    Video
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-neutral-900">
+                  {item.type === "PHOTO" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.url}
+                      alt={item.label ?? ""}
+                      draggable={false}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : item.posterUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.posterUrl}
+                      alt={item.label ?? ""}
+                      draggable={false}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <video src={item.url} muted className="h-full w-full object-cover" />
+                  )}
+                  <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-paper/80">
+                    {item.type === "PHOTO" ? "Foto" : "Video"}
                   </span>
+                  <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-[11px] font-bold text-paper/80">
+                    {index + 1}
+                  </span>
+                </div>
+
+                {item.label && (
+                  <p className="truncate px-1 text-[11px] text-paper/50">{item.label}</p>
                 )}
+
+                <div className="flex items-center justify-between gap-1 px-1">
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, -1)}
+                      disabled={index === 0}
+                      className="rounded-full border border-paper/15 px-2 py-1 text-xs text-paper/70 hover:text-soul-orange disabled:opacity-20"
+                      aria-label="Eine Position nach vorne"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveItem(index, 1)}
+                      disabled={index === items.length - 1}
+                      className="rounded-full border border-paper/15 px-2 py-1 text-xs text-paper/70 hover:text-soul-orange disabled:opacity-20"
+                      aria-label="Eine Position nach hinten"
+                    >
+                      →
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteItem(item.id)}
+                    disabled={busyId === item.id}
+                    className="text-[11px] font-semibold uppercase tracking-widest text-paper/40 hover:text-red-400"
+                  >
+                    Löschen
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-
-          <p className="mt-4 text-xs text-paper/40">
-            Alternativ kannst du oben direkt eigene Medien hochladen — sobald der erste
-            eigene Eintrag existiert, ersetzt er die Standard-Medien komplett.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {items.map((item, index) => (
-            <div key={item.id} className="flex flex-col gap-2 rounded-2xl card-border p-2">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-neutral-900">
-                {item.type === "PHOTO" ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.url}
-                    alt={item.label ?? ""}
-                    className="h-full w-full object-cover"
-                  />
-                ) : item.posterUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.posterUrl}
-                    alt={item.label ?? ""}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <video src={item.url} muted className="h-full w-full object-cover" />
-                )}
-                <span className="absolute left-2 top-2 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-paper/80">
-                  {item.type === "PHOTO" ? "Foto" : "Video"}
-                </span>
-              </div>
-              {item.label && (
-                <p className="truncate px-1 text-[11px] text-paper/50">{item.label}</p>
-              )}
-              <div className="flex items-center justify-between gap-1 px-1">
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveItem(index, -1)}
-                    disabled={index === 0}
-                    className="rounded-full border border-paper/15 px-2 py-1 text-xs text-paper/70 hover:text-soul-orange disabled:opacity-20"
-                    aria-label="Nach vorne verschieben"
-                  >
-                    ←
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveItem(index, 1)}
-                    disabled={index === items.length - 1}
-                    className="rounded-full border border-paper/15 px-2 py-1 text-xs text-paper/70 hover:text-soul-orange disabled:opacity-20"
-                    aria-label="Nach hinten verschieben"
-                  >
-                    →
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => deleteItem(item.id)}
-                  disabled={busyId === item.id}
-                  className="text-[11px] font-semibold uppercase tracking-widest text-paper/40 hover:text-red-400"
-                >
-                  Löschen
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        </>
       )}
     </div>
   );
