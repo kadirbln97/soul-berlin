@@ -11,10 +11,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "session_id fehlt" }, { status: 400 });
   }
 
-  const ticket = await prisma.ticket.findUnique({
-    where: { stripeSessionId: sessionId },
-    include: { event: true }
-  });
+  // Zu einer Bestellung können mehrere Tickets gehören (Mehrfachkauf), daher
+  // findFirst statt findUnique. Die Anzahl wird mitgegeben, damit die
+  // Success-Seite bei mehreren Tickets darauf hinweisen kann.
+  const [ticket, ticketCount] = await Promise.all([
+    prisma.ticket.findFirst({
+      where: { stripeSessionId: sessionId },
+      orderBy: { createdAt: "asc" },
+      include: { event: true }
+    }),
+    prisma.ticket.count({ where: { stripeSessionId: sessionId } })
+  ]);
 
   if (!ticket) {
     return NextResponse.json({ ready: false });
@@ -22,6 +29,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     ready: true,
+    ticketCount,
     ticket: {
       id: ticket.id,
       name: ticket.name,
