@@ -26,14 +26,17 @@ export default async function HomePage() {
     <>
       <Header />
       <main id="main-content">
-        <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[640px]">
+        {/* Der Kopfbereich wird auf großen Bildschirmen deutlich höher. Grund:
+            das Hero-Foto ist ein Hochformat (1600×2400). In einem flachen,
+            breiten Rahmen schneidet object-cover fast das ganze Bild weg — es
+            blieb nur ein dunkler Streifen Decke übrig. Mit mehr Höhe bekommt
+            das Motiv wieder Platz. */}
+        <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[720px] lg:min-h-[840px]">
           {/* Priority + kleine Auflösung (1600px/WebP, ~260KB) hält den größten
               Seiteninhalt (LCP) trotz echtem Eventfoto schnell.
-              object-position ist responsiv: mobil zeigt der Ausschnitt mehr vom
-              Foto (inkl. Tänzerin), ab sm-Breakpoint (breiterer/flacherer Crop)
-              rutscht der Ausschnitt höher Richtung Decke, damit oberhalb des
-              Kopfes genug dunkler Platz für das Logo bleibt. Das SØUL-Schild
-              bleibt in beiden Fällen sichtbar. */}
+              object-position ist responsiv: mobil (schmaler, hoher Rahmen)
+              reicht ein leichter Versatz, ab sm rutscht der Ausschnitt so,
+              dass Gesicht und SØUL-Leuchtschild gemeinsam im Bild bleiben. */}
           <Image
             src={content.hero_image}
             alt="Tanzfläche mit leuchtendem SØUL-Schild bei einem SØUL Berlin Event"
@@ -41,9 +44,30 @@ export default async function HomePage() {
             priority
             sizes="100vw"
             unoptimized={content.hero_image.startsWith("http")}
-            className="object-cover object-[64%_30%] sm:object-[64%_12%]"
+            className="object-cover object-[64%_30%] sm:object-[68%_22%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
+
+          {/* Drei getrennte Schichten statt einer flächigen Abdunklung — vorher
+              lag ein Verlauf mit 40–100 % Schwarz über dem gesamten Bild, das
+              Foto war dadurch kaum noch zu erkennen.
+              1) senkrecht: dunkelt unten (Übergang zur Seite) und ganz oben ab,
+                 lässt die Bildmitte aber weitgehend frei */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,#0a0a0a_0%,rgba(10,10,10,0.92)_12%,rgba(10,10,10,0.55)_38%,rgba(10,10,10,0.18)_62%,rgba(10,10,10,0.55)_100%)]"
+          />
+          {/* 2) schmaler Streifen oben: hält Logo und Navigation im Header lesbar */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-ink/85 to-transparent"
+          />
+          {/* 3) weicher Kreis hinter dem Text: sorgt für Kontrast genau dort, wo
+                 Überschrift und Claim stehen — auf dem Handy breiter, weil der
+                 Text dort fast die volle Breite einnimmt */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_46%_at_50%_60%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_50%,transparent_80%)] sm:bg-[radial-gradient(58%_46%_at_50%_62%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_45%,transparent_78%)]"
+          />
           {content.hero_image_ai === "1" && (
             <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="bottom-3 right-3" />
           )}
@@ -59,7 +83,9 @@ export default async function HomePage() {
               priority
               className="relative -top-[60px] h-20 w-auto sm:top-0 sm:h-28"
             />
-            <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper sm:text-6xl">
+            {/* Weicher Schatten als zweite Absicherung: das Foto ist an dieser
+                Stelle jetzt heller, der Text muss trotzdem überall stehen. */}
+            <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper [text-shadow:0_2px_24px_rgba(0,0,0,0.75)] sm:text-6xl">
               {content.hero_headline_1}
               {content.hero_headline_2 && (
                 <>
@@ -71,7 +97,7 @@ export default async function HomePage() {
               )}
             </h1>
             {content.hero_tagline && (
-              <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/50">
+              <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/70 [text-shadow:0_1px_12px_rgba(0,0,0,0.8)]">
                 {content.hero_tagline}
               </p>
             )}
