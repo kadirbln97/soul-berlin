@@ -1,12 +1,30 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { LogoutButton } from "./LogoutButton";
+import { getAdminSession } from "@/lib/authGuard";
 
-export default function AdminProtectedLayout({
+export const dynamic = "force-dynamic";
+
+/**
+ * Zweite, unabhängige Zugangsprüfung für den gesamten Admin-Bereich.
+ *
+ * Die Middleware (src/middleware.ts) prüft dasselbe bereits vorher. Diese
+ * Prüfung hier ist bewusst redundant: Middleware-Prüfungen sind in der
+ * Vergangenheit durch Framework-Lücken umgehbar gewesen (z.B. Next.js
+ * CVE-2025-29927). Fällt die eine Schicht aus, greift die andere — die
+ * Gästedaten sind dann trotzdem nicht öffentlich einsehbar.
+ */
+export default async function AdminProtectedLayout({
   children
 }: {
   children: ReactNode;
 }) {
+  const session = await getAdminSession();
+  if (!session) {
+    redirect("/admin/login");
+  }
+
   return (
     <div className="min-h-screen bg-ink">
       <header className="border-b border-paper/10">

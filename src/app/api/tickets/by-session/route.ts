@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 // Wird von der Success-Seite nach Stripe-Checkout gepollt, bis der Webhook
 // das Ticket angelegt hat (meist < 2 Sekunden).
 export async function GET(req: Request) {
+  // Diese Route ist öffentlich (die Success-Seite fragt sie direkt nach dem
+  // Kauf ab) und gibt Name + E-Mail zur Bestellung zurück. Die Session-ID von
+  // Stripe ist zwar praktisch nicht erratbar, ein Limit verhindert aber
+  // systematisches Durchprobieren. Großzügig genug für das Polling (alle 1,5s
+  // über maximal ~25 Sekunden).
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`ticket-by-session:${ip}`, 60, 10 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ ready: false }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("session_id");
 
