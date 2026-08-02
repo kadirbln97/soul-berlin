@@ -14,6 +14,19 @@ export function formatEventDate(date: Date | string): string {
   }).format(d);
 }
 
+/**
+ * Kurzes Datum mit Jahr ("01.08.26") — für Auswahllisten, in denen Events aus
+ * mehreren Jahren nebeneinanderstehen und Tag/Monat allein nicht reichen.
+ */
+export function formatCompactDate(date: Date | string): string {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    timeZone: "Europe/Berlin"
+  }).format(new Date(date));
+}
+
 export function formatShortDate(date: Date | string): string {
   const d = new Date(date);
   return new Intl.DateTimeFormat("de-DE", {

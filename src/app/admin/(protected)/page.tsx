@@ -1,23 +1,34 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatEventDate } from "@/lib/format";
-import { getTotalRevenue } from "@/lib/revenue";
+import { formatCompactDate, formatEventDate } from "@/lib/format";
+import { getEventRevenue, getTotalRevenue } from "@/lib/revenue";
 import { RevenueSummaryCard } from "@/components/RevenueSummaryCard";
+import { EventScopePicker } from "@/components/EventScopePicker";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
-  const [events, revenue] = await Promise.all([
-    prisma.event.findMany({
-      orderBy: { dateStart: "desc" },
-      include: {
-        _count: {
-          select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } }
-        }
+export default async function AdminDashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ event?: string }>;
+}) {
+  const { event: selectedId } = await searchParams;
+
+  const events = await prisma.event.findMany({
+    orderBy: { dateStart: "desc" },
+    include: {
+      _count: {
+        select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } }
       }
-    }),
-    getTotalRevenue()
-  ]);
+    }
+  });
+
+  // Unbekannte oder gelöschte Event-IDs in der Adresse fallen still auf die
+  // Gesamtansicht zurück, statt eine leere Karte zu zeigen.
+  const selectedEvent = selectedId ? events.find((e) => e.id === selectedId) : undefined;
+  const revenue = selectedEvent
+    ? await getEventRevenue(selectedEvent.id)
+    : await getTotalRevenue();
 
   return (
     <div>
@@ -29,7 +40,19 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mb-8">
-        <RevenueSummaryCard summary={revenue} title="Umsatz gesamt (alle Events)" />
+        <RevenueSummaryCard
+          summary={revenue}
+          title={selectedEvent ? "Umsatz & Anmeldungen" : "Umsatz & Anmeldungen (alle Events)"}
+          action={
+            <EventScopePicker
+              value={selectedEvent?.id ?? ""}
+              options={events.map((e) => ({
+                id: e.id,
+                label: `${e.title} · ${formatCompactDate(e.dateStart)}`
+              }))}
+            />
+          }
+        />
       </div>
 
       {events.length === 0 ? (
@@ -52,7 +75,14 @@ export default async function AdminDashboardPage() {
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr key={event.id} className="border-t border-paper/10">
+                <tr
+                  key={event.id}
+                  // Das oben ausgewählte Event wird hier hervorgehoben, damit
+                  // klar ist, worauf sich die Zahlen in der Karte beziehen.
+                  className={`border-t border-paper/10 ${
+                    event.id === selectedEvent?.id ? "bg-soul-orange/10" : ""
+                  }`}
+                >
                   <td className="px-5 py-4 font-medium text-paper">{event.title}</td>
                   <td className="px-5 py-4 text-paper/60">{formatEventDate(event.dateStart)}</td>
                   <td className="px-5 py-4 text-paper/60">

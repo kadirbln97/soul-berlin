@@ -1,12 +1,16 @@
 import { prisma } from "./prisma";
 
 /**
- * Umsatzzahlen aus online bezahlten Tickets (Stripe). Gästeliste-Einträge
- * zählen nicht mit, da dort nichts online kassiert wird — die Abendkasse
- * läuft außerhalb des Systems.
+ * Kennzahlen für den Admin-Bereich: Umsatz aus online bezahlten Tickets
+ * (Stripe) plus die Anzahl der Anmeldungen insgesamt.
  *
- * Erstattete/stornierte Tickets werden separat ausgewiesen und vom Netto
- * abgezogen, damit die Zahl dem entspricht, was tatsächlich beim
+ * Umsatz entsteht nur bei Ticketkäufen — bei der Gästeliste wird an der
+ * Abendkasse kassiert, das läuft bewusst außerhalb des Systems. Die
+ * Anmeldezahlen umfassen dagegen alle Gäste, egal auf welchem Weg sie
+ * dazugekommen sind.
+ *
+ * Erstattete/stornierte Tickets werden separat ausgewiesen und nicht zum
+ * Umsatz gezählt, damit die Zahl dem entspricht, was tatsächlich beim
  * Zahlungsdienstleister hängen geblieben ist.
  */
 export type RevenueSummary = {
@@ -22,6 +26,13 @@ export type RevenueSummary = {
   refundedCount: number;
   /** Summe der zurückerstatteten Beträge (Ticket + Gebühr). */
   refundedCents: number;
+
+  /** Alle gültigen Anmeldungen: Ticketkäufe + Gästeliste. */
+  signupCount: number;
+  /** Davon Gästeliste (nicht online bezahlt, Zahlung an der Abendkasse). */
+  guestlistCount: number;
+  /** Davon von Hand eingetragen (Promoter-Listen) — Teilmenge der Gästeliste. */
+  manualCount: number;
 };
 
 const EMPTY: RevenueSummary = {
@@ -30,54 +41,79 @@ const EMPTY: RevenueSummary = {
   feeCents: 0,
   grossCents: 0,
   refundedCount: 0,
-  refundedCents: 0
+  refundedCents: 0,
+  signupCount: 0,
+  guestlistCount: 0,
+  manualCount: 0
 };
 
 type TicketRow = {
   amountCents: number | null;
   feeCents: number | null;
   status: string;
+  stripeSessionId: string | null;
+  isManual: boolean;
 };
+
+const TICKET_FIELDS = {
+  amountCents: true,
+  feeCents: true,
+  status: true,
+  stripeSessionId: true,
+  isManual: true
+} as const;
 
 function summarize(tickets: TicketRow[]): RevenueSummary {
   return tickets.reduce<RevenueSummary>((acc, t) => {
     const amount = t.amountCents ?? 0;
     const fee = t.feeCents ?? 0;
-    const isRefunded = t.status === "REFUNDED" || t.status === "CANCELLED";
+    // Online bezahlt ist genau das, was eine Stripe-Session hat.
+    const isPaid = t.stripeSessionId !== null;
+    const isCancelled = t.status === "REFUNDED" || t.status === "CANCELLED";
 
-    if (isRefunded) {
+    if (isCancelled) {
+      // Stornierte Gästeliste-Einträge zählen nirgends mit; nur bei bezahlten
+      // Tickets ist tatsächlich Geld zurückgeflossen.
+      return isPaid
+        ? {
+            ...acc,
+            refundedCount: acc.refundedCount + 1,
+            refundedCents: acc.refundedCents + amount + fee
+          }
+        : acc;
+    }
+
+    const withSignup = { ...acc, signupCount: acc.signupCount + 1 };
+
+    if (isPaid) {
       return {
-        ...acc,
-        refundedCount: acc.refundedCount + 1,
-        refundedCents: acc.refundedCents + amount + fee
+        ...withSignup,
+        paidCount: withSignup.paidCount + 1,
+        ticketCents: withSignup.ticketCents + amount,
+        feeCents: withSignup.feeCents + fee,
+        grossCents: withSignup.grossCents + amount + fee
       };
     }
 
     return {
-      ...acc,
-      paidCount: acc.paidCount + 1,
-      ticketCents: acc.ticketCents + amount,
-      feeCents: acc.feeCents + fee,
-      grossCents: acc.grossCents + amount + fee
+      ...withSignup,
+      guestlistCount: withSignup.guestlistCount + 1,
+      manualCount: withSignup.manualCount + (t.isManual ? 1 : 0)
     };
   }, EMPTY);
 }
 
-/** Umsatz eines einzelnen Events. */
+/** Umsatz und Anmeldungen eines einzelnen Events. */
 export async function getEventRevenue(eventId: string): Promise<RevenueSummary> {
   const tickets = await prisma.ticket.findMany({
-    // Nur online bezahlte Tickets: erkennbar an der Stripe-Session.
-    where: { eventId, stripeSessionId: { not: null } },
-    select: { amountCents: true, feeCents: true, status: true }
+    where: { eventId },
+    select: TICKET_FIELDS
   });
   return summarize(tickets);
 }
 
-/** Umsatz über alle Events hinweg. */
+/** Umsatz und Anmeldungen über alle Events hinweg. */
 export async function getTotalRevenue(): Promise<RevenueSummary> {
-  const tickets = await prisma.ticket.findMany({
-    where: { stripeSessionId: { not: null } },
-    select: { amountCents: true, feeCents: true, status: true }
-  });
+  const tickets = await prisma.ticket.findMany({ select: TICKET_FIELDS });
   return summarize(tickets);
 }

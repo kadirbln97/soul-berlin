@@ -83,7 +83,11 @@ export default async function AdminEventDetailPage({
       </div>
 
       <div className="max-w-md">
-        <RevenueSummaryCard summary={revenue} currency={event.currency} title="Umsatz dieses Events" />
+        <RevenueSummaryCard
+          summary={revenue}
+          currency={event.currency}
+          title="Umsatz & Anmeldungen (dieses Event)"
+        />
       </div>
 
       <div>
