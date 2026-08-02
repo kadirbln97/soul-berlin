@@ -9,18 +9,19 @@ import { getAdminSession } from "@/lib/authGuard";
  * erhalten, wird aber entwertet), entfernt dies die personenbezogenen Daten
  * komplett — z.B. auf Anfrage eines Gasts nach dem Event.
  */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const ticket = await prisma.ticket.findUnique({ where: { id: params.id } });
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket nicht gefunden" }, { status: 404 });
   }
 
-  await prisma.ticket.delete({ where: { id: params.id } });
+  await prisma.ticket.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });
 }

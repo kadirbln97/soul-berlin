@@ -7,13 +7,14 @@ import { getAdminSession } from "@/lib/authGuard";
  * eingecheckt sind, aufgeschlüsselt nach Preisstaffel-Kategorie (Early Bird,
  * Regular, ...). Wird vom Scanner für die Live-Statusanzeige gepollt.
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({ where: { id: params.id } });
+  const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }

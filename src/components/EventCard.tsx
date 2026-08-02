@@ -2,7 +2,7 @@ import Link from "next/link";
 import { formatShortDate, formatPrice } from "@/lib/format";
 import { getTranslations } from "@/lib/serverLocale";
 
-export function EventCard({
+export async function EventCard({
   slug,
   title,
   subtitle,
@@ -26,7 +26,7 @@ export function EventCard({
   guestlistPriceCents?: number | null;
   isSoldOut: boolean;
 }) {
-  const { t } = getTranslations();
+  const { t } = await getTranslations();
 
   const badge = isSoldOut
     ? t.events.soldOut

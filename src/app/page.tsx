@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // Texte/Bilder kommen aus dem Startseiten-Baukasten (/admin/homepage);
   // ohne gespeicherte Werte greifen automatisch die Standardtexte.
-  const { locale } = getTranslations();
+  const { locale } = await getTranslations();
   const [events, content] = await Promise.all([
     getUpcomingPublishedEvents(6),
     getSiteContent(locale)

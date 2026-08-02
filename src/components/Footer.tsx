@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/serverLocale";
 
-export function Footer() {
-  const { t } = getTranslations();
+export async function Footer() {
+  const { t } = await getTranslations();
 
   return (
     <footer className="border-t border-paper/10 py-10">

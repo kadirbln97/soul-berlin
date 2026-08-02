@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 
 /** Rabatt aktivieren/deaktivieren. */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
@@ -15,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const discount = await prisma.discount.update({
-    where: { id: params.id },
+    where: { id },
     data: { active: body.active }
   });
 
@@ -23,12 +24,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 /** Rabatt löschen. Bereits gekaufte Tickets behalten ihren Rabatt-Snapshot. */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  await prisma.discount.delete({ where: { id: params.id } }).catch(() => null);
+  await prisma.discount.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });
 }

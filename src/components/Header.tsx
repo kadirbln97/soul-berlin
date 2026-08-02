@@ -3,8 +3,8 @@ import Image from "next/image";
 import { getTranslations } from "@/lib/serverLocale";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
-export function Header() {
-  const { locale, t } = getTranslations();
+export async function Header() {
+  const { locale, t } = await getTranslations();
 
   return (
     <header className="sticky top-0 z-40 border-b border-paper/10 bg-ink/80 backdrop-blur">

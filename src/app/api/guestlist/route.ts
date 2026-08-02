@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     phone,
     amountCents: currentTier ? currentTier.priceCents : null,
     tierLabel: currentTier ? currentTier.resolvedLabel : null,
-    locale: getLocale()
+    locale: await getLocale()
   });
 
   return NextResponse.json({ ok: true, ticketId: ticket.id });

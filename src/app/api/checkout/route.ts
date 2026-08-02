@@ -164,7 +164,7 @@ export async function POST(req: Request) {
       discountCents: String(breakdown.discountCents),
       discountId: discount?.id ?? "",
       discountCode: discount?.rule.code ?? "",
-      locale: getLocale()
+      locale: await getLocale()
     },
     success_url: `${appUrl}/events/${event.slug}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/events/${event.slug}`

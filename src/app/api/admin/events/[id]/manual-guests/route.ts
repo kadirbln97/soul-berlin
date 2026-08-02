@@ -12,7 +12,8 @@ const MAX_NAMES_PER_REQUEST = 500;
  * Diese Gäste bekommen bewusst keine E-Mail und keinen QR-Code: sie werden an
  * der Tür über die Namenssuche im Scanner eingecheckt.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
@@ -27,7 +28,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     );
   }
 
-  const event = await prisma.event.findUnique({ where: { id: params.id } });
+  const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }

@@ -5,8 +5,8 @@ import { getTranslations } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
 
-export default function SuccessPage() {
-  const { locale } = getTranslations();
+export default async function SuccessPage() {
+  const { locale } = await getTranslations();
 
   return (
     <>

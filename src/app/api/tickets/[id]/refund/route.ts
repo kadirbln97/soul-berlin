@@ -8,13 +8,14 @@ import { getStripe } from "@/lib/stripe";
  * Stripe-Rückerstattung ausgelöst. Der QR-Code des Tickets wird danach am
  * Einlass automatisch als "REFUNDED" abgelehnt.
  */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const ticket = await prisma.ticket.findUnique({ where: { id: params.id } });
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
   if (!ticket) {
     return NextResponse.json({ error: "Ticket nicht gefunden" }, { status: 404 });
   }

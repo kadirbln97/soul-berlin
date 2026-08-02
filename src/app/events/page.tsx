@@ -8,7 +8,7 @@ import { getTranslations, pickText } from "@/lib/serverLocale";
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  const { locale, t } = getTranslations();
+  const { locale, t } = await getTranslations();
   const [upcoming, past] = await Promise.all([
     getUpcomingPublishedEvents(),
     getPastPublishedEvents(6)

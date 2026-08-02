@@ -41,14 +41,14 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: ReactNode;
 }) {
   // lang-Attribut folgt der gewählten Sprache — wichtig für Screenreader und
   // für die automatische Übersetzungserkennung im Browser.
-  const locale = getLocale();
+  const locale = await getLocale();
 
   return (
     <html lang={locale} className={`${display.variable} ${body.variable}`}>

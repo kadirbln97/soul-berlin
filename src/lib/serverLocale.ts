@@ -4,12 +4,17 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, getDict, type Locale } from ".
 /**
  * Ermittelt die Sprache für Server-Komponenten: zuerst die bewusste Auswahl
  * aus dem Cookie, sonst die Browsersprache, sonst die Standardsprache.
+ *
+ * Seit Next.js 15 liefern cookies() und headers() ein Promise — deshalb ist
+ * diese Funktion asynchron und muss immer mit await aufgerufen werden.
  */
-export function getLocale(): Locale {
-  const fromCookie = cookies().get(LOCALE_COOKIE)?.value;
+export async function getLocale(): Promise<Locale> {
+  const cookieStore = await cookies();
+  const fromCookie = cookieStore.get(LOCALE_COOKIE)?.value;
   if (isLocale(fromCookie)) return fromCookie;
 
-  const accept = headers().get("accept-language") ?? "";
+  const headerList = await headers();
+  const accept = headerList.get("accept-language") ?? "";
   // Nur die erste, höchstpriorisierte Sprache betrachten.
   if (/^de\b/i.test(accept.split(",")[0]?.trim() ?? "")) return "de";
 
@@ -17,8 +22,8 @@ export function getLocale(): Locale {
 }
 
 /** Kurzform: Sprache + passendes Wörterbuch in einem Aufruf. */
-export function getTranslations() {
-  const locale = getLocale();
+export async function getTranslations() {
+  const locale = await getLocale();
   return { locale, t: getDict(locale) };
 }
 

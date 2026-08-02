@@ -14,13 +14,14 @@ import { offlineSyncSchema } from "@/lib/validation";
  * "ALREADY_USED" zurückgemeldet, damit die Tür-Crew das im Zweifel manuell
  * prüfen kann.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({ where: { id: params.id } });
+  const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }

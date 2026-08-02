@@ -16,9 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  const { slug } = await params;
+  const event = await prisma.event.findUnique({ where: { slug } });
 
   if (!event || event.status !== "PUBLISHED") {
     return { title: "Event nicht gefunden" };
@@ -50,10 +51,11 @@ export async function generateMetadata({
 export default async function EventDetailPage({
   params
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const event = await prisma.event.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
   });
 
@@ -71,7 +73,7 @@ export default async function EventDetailPage({
 
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
-  const { locale } = getTranslations();
+  const { locale } = await getTranslations();
 
   const title = pickText(locale, event.title, event.titleEn);
   const subtitle = pickText(locale, event.subtitle ?? "", event.subtitleEn);

@@ -4,7 +4,8 @@ import { getAdminSession } from "@/lib/authGuard";
 import { discountSchema } from "@/lib/validation";
 
 /** Legt einen Rabatt/eine Aktion für ein Event an. */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
@@ -19,7 +20,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     );
   }
 
-  const event = await prisma.event.findUnique({ where: { id: params.id } });
+  const event = await prisma.event.findUnique({ where: { id } });
   if (!event) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }

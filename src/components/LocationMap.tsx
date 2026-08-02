@@ -4,8 +4,8 @@
 // Standort-Vorschau völlig aus.
 import { getTranslations } from "@/lib/serverLocale";
 
-export function LocationMap({ venue, address }: { venue: string; address?: string | null }) {
-  const { t } = getTranslations();
+export async function LocationMap({ venue, address }: { venue: string; address?: string | null }) {
+  const { t } = await getTranslations();
   const query = address ? `${venue}, ${address}` : venue;
   const encoded = encodeURIComponent(query);
 

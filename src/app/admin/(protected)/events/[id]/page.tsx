@@ -14,10 +14,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminEventDetailPage({
   params
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const event = await prisma.event.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
   });
   if (!event) notFound();

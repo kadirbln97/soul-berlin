@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { eventSchema } from "@/lib/validation";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     );
   }
 
-  const existing = await prisma.event.findUnique({ where: { id: params.id } });
+  const existing = await prisma.event.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
@@ -43,7 +44,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   // Staffeln komplett neu anlegen ist einfacher & sicherer als einzeln
   // abzugleichen — es sind maximal 3 pro Event, kein Performance-Thema.
   const event = await prisma.event.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       title: data.title,
       subtitle: data.subtitle || null,
@@ -77,18 +78,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json({ ok: true, event });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const existing = await prisma.event.findUnique({ where: { id: params.id } });
+  const existing = await prisma.event.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
 
-  await prisma.event.delete({ where: { id: params.id } });
+  await prisma.event.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });
 }

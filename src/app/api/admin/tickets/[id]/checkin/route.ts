@@ -7,13 +7,14 @@ import { formatEventDate } from "@/lib/format";
  * Manueller Check-in über die Namenssuche an der Tür — für Gäste ohne
  * QR-Code (Promoter-Liste) oder wenn die Bestätigungsmail fehlt.
  */
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const ticket = await prisma.ticket.findUnique({ where: { id: params.id } });
+  const ticket = await prisma.ticket.findUnique({ where: { id } });
   if (!ticket) {
     return NextResponse.json({ error: "Gast nicht gefunden" }, { status: 404 });
   }

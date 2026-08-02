@@ -7,7 +7,8 @@ import { getAdminSession } from "@/lib/authGuard";
  * E-Mail. Gedacht für Gäste ohne QR-Code (manuell eingetragene Promoter-Gäste)
  * oder wenn jemand seine Bestätigungsmail nicht findet.
  */
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
@@ -20,7 +21,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   const guests = await prisma.ticket.findMany({
     where: {
-      eventId: params.id,
+      eventId: id,
       OR: [
         { name: { contains: q, mode: "insensitive" } },
         { email: { contains: q, mode: "insensitive" } }

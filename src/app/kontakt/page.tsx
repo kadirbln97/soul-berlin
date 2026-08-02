@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/kontakt" }
 };
 
-export default function KontaktPage() {
-  const { locale } = getTranslations();
+export default async function KontaktPage() {
+  const { locale } = await getTranslations();
   return (
     <>
       <Header />
