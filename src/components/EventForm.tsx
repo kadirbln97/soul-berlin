@@ -20,6 +20,7 @@ type EventInitial = {
   subtitleEn: string | null;
   descriptionEn: string | null;
   imageUrl: string | null;
+  imageIsAi?: boolean;
   dateStart: string;
   dateEnd: string | null;
   ticketMode: string;
@@ -61,6 +62,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   const [venue, setVenue] = useState(initial?.venue ?? "");
   const [address, setAddress] = useState(initial?.address ?? "");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
+  const [imageIsAi, setImageIsAi] = useState(initial?.imageIsAi ?? false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dateStart, setDateStart] = useState(toLocalInputValue(initial?.dateStart));
@@ -165,6 +167,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       venue,
       address,
       imageUrl,
+      // Ohne Bild ergibt die KI-Kennzeichnung keinen Sinn — sonst bliebe ein
+      // gesetztes Häkchen nach dem Entfernen des Bildes stillschweigend stehen.
+      imageIsAi: imageUrl ? imageIsAi : false,
       dateStart: dateStart ? new Date(dateStart).toISOString() : "",
       dateEnd: dateEnd ? new Date(dateEnd).toISOString() : "",
       ticketMode,
@@ -333,6 +338,26 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               )}
             </div>
           </div>
+
+          {imageUrl && (
+            <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-paper/15 bg-white/[0.02] p-3">
+              <input
+                type="checkbox"
+                checked={imageIsAi}
+                onChange={(e) => setImageIsAi(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-soul-orange"
+              />
+              <span>
+                <span className="block text-sm text-paper">
+                  Dieses Bild wurde mit KI erstellt oder bearbeitet
+                </span>
+                <span className="mt-0.5 block text-[11px] text-paper/40">
+                  Blendet auf der Event-Seite den Hinweis „KI-generiert“ ein. Pflicht nach
+                  Art. 50 KI-VO, sobald das Bild echt wirkt — im Zweifel lieber ankreuzen.
+                </span>
+              </span>
+            </label>
+          )}
         </div>
         <div>
           <label className="label-field">Start (Datum & Uhrzeit)</label>

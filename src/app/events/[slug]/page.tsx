@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TicketPurchasePanel } from "@/components/TicketPurchasePanel";
 import { LocationMap } from "@/components/LocationMap";
+import { AiBadge } from "@/components/AiBadge";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
@@ -73,7 +74,7 @@ export default async function EventDetailPage({
 
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
-  const { locale } = await getTranslations();
+  const { locale, t } = await getTranslations();
 
   const title = pickText(locale, event.title, event.titleEn);
   const subtitle = pickText(locale, event.subtitle ?? "", event.subtitleEn);
@@ -98,6 +99,9 @@ export default async function EventDetailPage({
               <div className="flex h-full w-full items-center justify-center text-display text-6xl italic-skew text-paper/20">
                 SØUL
               </div>
+            )}
+            {event.imageUrl && event.imageIsAi && (
+              <AiBadge label={t.ai.badge} title={t.ai.imageNotice} />
             )}
           </div>
 

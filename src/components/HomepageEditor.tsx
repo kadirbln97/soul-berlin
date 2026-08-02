@@ -24,7 +24,9 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
         (f) =>
           (values[f.key] ?? "") !== (savedValues[f.key] ?? "") ||
           (f.translatable &&
-            (values[`${f.key}_en`] ?? "") !== (savedValues[`${f.key}_en`] ?? ""))
+            (values[`${f.key}_en`] ?? "") !== (savedValues[`${f.key}_en`] ?? "")) ||
+          (f.type === "image" &&
+            (values[`${f.key}_ai`] ?? "") !== (savedValues[`${f.key}_ai`] ?? ""))
       ),
     [values, savedValues]
   );
@@ -153,6 +155,19 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
                         }}
                         className="text-xs text-paper/70 file:mr-2 file:rounded-full file:border-0 file:bg-soul-orange file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
                       />
+                      <label className="flex cursor-pointer items-start gap-1.5 pt-1">
+                        <input
+                          type="checkbox"
+                          checked={values[`${field.key}_ai`] === "1"}
+                          onChange={(e) => setValue(`${field.key}_ai`, e.target.checked ? "1" : "")}
+                          className="mt-0.5 h-3.5 w-3.5 accent-soul-orange"
+                        />
+                        <span className="text-[11px] leading-tight text-paper/50">
+                          Mit KI erstellt
+                          <br />
+                          <span className="text-paper/30">zeigt Hinweis auf der Seite</span>
+                        </span>
+                      </label>
                     </div>
                   ) : field.type === "textarea" ? (
                     <textarea

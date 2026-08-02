@@ -23,6 +23,8 @@ type Dict = {
   nav: { home: string; events: string; instagram: string; skipToContent: string };
   footer: { contact: string; imprint: string; terms: string; privacy: string; whatsapp: string };
   home: { allEvents: string };
+  /** Hinweis auf KI-generierte Bilder (Art. 50 KI-VO). */
+  ai: { badge: string; imageNotice: string };
   events: {
     title: string;
     empty: string;
@@ -133,6 +135,10 @@ const de: Dict = {
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "Alle ansehen →" },
+  ai: {
+    badge: "KI-generiert",
+    imageNotice: "Dieses Bild wurde mit Künstlicher Intelligenz erstellt oder bearbeitet."
+  },
   events: {
     title: "Events",
     empty: "Aktuell sind keine Events veröffentlicht — schau bald wieder vorbei.",
@@ -247,6 +253,10 @@ const en: Dict = {
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "See all →" },
+  ai: {
+    badge: "AI-generated",
+    imageNotice: "This image was created or edited using artificial intelligence."
+  },
   events: {
     title: "Events",
     empty: "No events published right now — check back soon.",

@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { SITE_CONTENT_FIELDS } from "@/lib/siteContent";
 
-// Neben den Grundfeldern auch die englischen Varianten ("<key>_en") zulassen.
+// Neben den Grundfeldern auch die englischen Varianten ("<key>_en") und bei
+// Bildern die KI-Kennzeichnung ("<key>_ai", Art. 50 KI-VO) zulassen.
 const ALLOWED_KEYS = new Set([
   ...SITE_CONTENT_FIELDS.map((f) => f.key),
-  ...SITE_CONTENT_FIELDS.filter((f) => f.translatable).map((f) => `${f.key}_en`)
+  ...SITE_CONTENT_FIELDS.filter((f) => f.translatable).map((f) => `${f.key}_en`),
+  ...SITE_CONTENT_FIELDS.filter((f) => f.type === "image").map((f) => `${f.key}_ai`)
 ]);
 const MAX_VALUE_LENGTH = 2000;
 

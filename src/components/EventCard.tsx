@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatShortDate, formatPrice } from "@/lib/format";
 import { getTranslations } from "@/lib/serverLocale";
+import { AiBadge } from "./AiBadge";
 
 export async function EventCard({
   slug,
@@ -8,6 +9,7 @@ export async function EventCard({
   subtitle,
   venue,
   imageUrl,
+  imageIsAi = false,
   dateStart,
   ticketMode,
   priceCents,
@@ -19,6 +21,8 @@ export async function EventCard({
   subtitle?: string | null;
   venue: string;
   imageUrl?: string | null;
+  /** true = Bild mit KI erzeugt/bearbeitet → sichtbarer Hinweis (Art. 50 KI-VO). */
+  imageIsAi?: boolean;
   dateStart: Date | string;
   ticketMode: string;
   priceCents?: number | null;
@@ -57,6 +61,9 @@ export async function EventCard({
           <div className="flex h-full w-full items-center justify-center text-display text-4xl italic-skew text-paper/20">
             SØUL
           </div>
+        )}
+        {imageUrl && imageIsAi && (
+          <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="left-2 top-2" />
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
           <span className="rounded-full bg-soul-orange px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-ink">

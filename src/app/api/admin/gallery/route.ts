@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       url: data.url,
       posterUrl: data.posterUrl || null,
       label: data.label || null,
+      isAi: data.isAi ?? false,
       order: nextOrder
     }
   });

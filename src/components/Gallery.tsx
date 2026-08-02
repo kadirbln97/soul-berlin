@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getDefaultGalleryTiles, type GalleryTile } from "@/lib/galleryDefaults";
+import { getTranslations } from "@/lib/serverLocale";
 import { LazyVideo } from "./LazyVideo";
+import { AiBadge } from "./AiBadge";
 
 /**
  * "SØUL in Action" — Foto-/Video-Galerie. Inhalt + Reihenfolge werden unter
@@ -10,6 +12,7 @@ import { LazyVideo } from "./LazyVideo";
  * (siehe LazyVideo) — hält die Startseite trotz vieler Medien schnell.
  */
 export async function Gallery() {
+  const { t } = await getTranslations();
   let tiles: GalleryTile[];
 
   try {
@@ -21,7 +24,8 @@ export async function Gallery() {
             type: r.type as "PHOTO" | "VIDEO",
             url: r.url,
             posterUrl: r.posterUrl,
-            label: r.label
+            label: r.label,
+            isAi: r.isAi
           }))
         : getDefaultGalleryTiles();
   } catch {
@@ -48,14 +52,17 @@ export async function Gallery() {
               decoding="async"
               className="h-full w-full object-cover"
             />
+            {tile.isAi && <AiBadge label={t.ai.badge} title={t.ai.imageNotice} />}
           </div>
         ) : (
-          <LazyVideo
-            key={tile.id}
-            src={tile.url}
-            poster={tile.posterUrl}
-            label={tile.label || "SØUL Berlin Video"}
-          />
+          <div key={tile.id} className="relative">
+            <LazyVideo
+              src={tile.url}
+              poster={tile.posterUrl}
+              label={tile.label || "SØUL Berlin Video"}
+            />
+            {tile.isAi && <AiBadge label={t.ai.badge} title={t.ai.imageNotice} />}
+          </div>
         )
       )}
     </div>

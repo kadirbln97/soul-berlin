@@ -31,6 +31,12 @@ model Event {
   venue       String
   address     String?
   imageUrl    String?
+
+  // true = das Event-Bild wurde mit KI erzeugt oder KI-bearbeitet. Wird auf
+  // der Seite als sichtbarer Hinweis eingeblendet (Transparenzpflicht nach
+  // Art. 50 KI-VO, gilt seit dem 02.08.2026).
+  imageIsAi   Boolean  @default(false)
+
   dateStart   DateTime
   dateEnd     DateTime?
 
@@ -154,6 +160,10 @@ model GalleryItem {
 
   // Optionaler Alt-Text/Videobeschreibung (Barrierefreiheit).
   label     String?
+
+  // true = mit KI erzeugt/bearbeitet — blendet auf der Startseite einen
+  // sichtbaren Hinweis über der Kachel ein (Art. 50 KI-VO).
+  isAi      Boolean  @default(false)
 
   // Reihenfolge in der Galerie (0 = zuerst). Wird im Admin-Bereich per
   // Hoch/Runter-Buttons verändert.

@@ -13,6 +13,8 @@ export type GalleryTile = {
   url: string;
   posterUrl: string | null;
   label: string | null;
+  /** true = mit KI erzeugt/bearbeitet → sichtbarer Hinweis (Art. 50 KI-VO). */
+  isAi: boolean;
 };
 
 const PHOTO_SLUGS = [
@@ -52,18 +54,19 @@ export function getDefaultGalleryTiles(): GalleryTile[] {
       type: "PHOTO",
       url: `/media/photos/${slug}.webp`,
       posterUrl: null,
-      label: "Impression von einem SØUL Berlin Event"
+      label: "Impression von einem SØUL Berlin Event",
+      isAi: false
     });
     if (i > 0 && i % 5 === 0 && videoIdx < VIDEOS.length) {
       const v = VIDEOS[videoIdx];
-      tiles.push({ id: `default-video-${videoIdx}`, type: "VIDEO", ...v });
+      tiles.push({ id: `default-video-${videoIdx}`, type: "VIDEO", ...v, isAi: false });
       videoIdx += 1;
     }
   });
 
   while (videoIdx < VIDEOS.length) {
     const v = VIDEOS[videoIdx];
-    tiles.push({ id: `default-video-${videoIdx}`, type: "VIDEO", ...v });
+    tiles.push({ id: `default-video-${videoIdx}`, type: "VIDEO", ...v, isAi: false });
     videoIdx += 1;
   }
 

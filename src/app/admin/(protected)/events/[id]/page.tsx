@@ -64,6 +64,7 @@ export default async function AdminEventDetailPage({
               venue: event.venue,
               address: event.address,
               imageUrl: event.imageUrl,
+              imageIsAi: event.imageIsAi,
               dateStart: event.dateStart.toISOString(),
               dateEnd: event.dateEnd ? event.dateEnd.toISOString() : null,
               ticketMode: event.ticketMode,

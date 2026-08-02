@@ -34,6 +34,7 @@ export default async function EventsPage() {
                 subtitle={pickText(locale, event.subtitle ?? "", event.subtitleEn) || null}
                 venue={event.venue}
                 imageUrl={event.imageUrl}
+                imageIsAi={event.imageIsAi}
                 dateStart={event.dateStart}
                 ticketMode={event.ticketMode}
                 priceCents={event.priceCents}
@@ -56,6 +57,7 @@ export default async function EventsPage() {
                   subtitle={pickText(locale, event.subtitle ?? "", event.subtitleEn) || null}
                   venue={event.venue}
                   imageUrl={event.imageUrl}
+                  imageIsAi={event.imageIsAi}
                   dateStart={event.dateStart}
                   ticketMode={event.ticketMode}
                   priceCents={event.priceCents}

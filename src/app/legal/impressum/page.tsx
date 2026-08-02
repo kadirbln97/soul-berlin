@@ -79,6 +79,44 @@ export default function ImpressumPage() {
           </section>
 
           <section>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              Einsatz Künstlicher Intelligenz (Art. 50 KI-VO)
+            </h2>
+            <p>
+              Wir setzen bei der Erstellung dieser Website KI-gestützte Werkzeuge ein und
+              legen das hier offen — auch dort, wo keine gesetzliche Kennzeichnungspflicht
+              besteht:
+            </p>
+            <ul className="mt-3 list-disc space-y-2 pl-5">
+              <li>
+                <strong className="text-paper/90">Texte:</strong> Inhalte dieser Website wurden
+                teilweise mit Unterstützung von KI erstellt oder überarbeitet. Alle
+                veröffentlichten Texte werden vor der Veröffentlichung von uns geprüft; die
+                redaktionelle Verantwortung liegt beim oben genannten Anbieter.
+              </li>
+              <li>
+                <strong className="text-paper/90">Fotos und Videos:</strong> Die Aufnahmen in
+                der Galerie sind echte Fotos und Videos unserer Veranstaltungen. Einzelne
+                Grafiken — etwa Event-Flyer — werden mit KI erstellt oder bearbeitet. Solche
+                Inhalte sind unmittelbar am Bild mit dem Hinweis „KI-generiert“ gekennzeichnet.
+              </li>
+              <li>
+                <strong className="text-paper/90">Keine KI-Interaktion:</strong> Auf dieser
+                Website kommunizierst du zu keinem Zeitpunkt mit einem KI-System. Es gibt
+                keinen Chatbot und keinen Sprachassistenten. Anfragen über das Kontaktformular
+                werden von Menschen gelesen und beantwortet.
+              </li>
+              <li>
+                <strong className="text-paper/90">
+                  Keine Emotionserkennung, keine biometrische Kategorisierung:
+                </strong>{" "}
+                Der Einlass-Scanner liest ausschließlich den QR-Code auf dem Ticket. Es findet
+                keine Gesichtserkennung und keine biometrische Auswertung statt.
+              </li>
+            </ul>
+          </section>
+
+          <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">Urheberrecht</h2>
             <p>
               Die auf dieser Website veröffentlichten Inhalte, Fotos und Videos unterliegen dem

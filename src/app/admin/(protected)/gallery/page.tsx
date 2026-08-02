@@ -41,6 +41,11 @@ export default async function AdminGalleryPage() {
           der Maus an die neue Stelle ziehen oder die Pfeile benutzen — die Reihenfolge wird
           sofort gespeichert.
         </p>
+        <p className="mt-2 text-xs text-paper/40">
+          Mit KI erstellte oder bearbeitete Medien bitte ankreuzen — auf der Startseite
+          erscheint dann automatisch der Hinweis „KI-generiert“ (Transparenzpflicht nach
+          Art. 50 KI-VO).
+        </p>
       </div>
 
       <GalleryManager
@@ -49,7 +54,8 @@ export default async function AdminGalleryPage() {
           type: i.type as "PHOTO" | "VIDEO",
           url: i.url,
           posterUrl: i.posterUrl,
-          label: i.label
+          label: i.label,
+          isAi: i.isAi
         }))}
       />
     </div>

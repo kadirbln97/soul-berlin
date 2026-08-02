@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -187,6 +188,27 @@ export default function DatenschutzPage() {
             <p>
               Eine automatisierte Entscheidungsfindung oder ein Profiling im Sinne von Art. 22
               DSGVO findet nicht statt.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              13. Künstliche Intelligenz
+            </h2>
+            <p>
+              Deine personenbezogenen Daten — Name, E-Mail-Adresse, Telefonnummer, Ticket- und
+              Check-in-Daten — werden nicht an KI-Systeme übermittelt und nicht zum Training
+              von KI-Modellen verwendet. Auf dieser Website ist kein Chatbot und kein
+              KI-Assistent im Einsatz; der Einlass-Scanner liest ausschließlich den QR-Code auf
+              dem Ticket und wertet keine biometrischen Merkmale aus.
+            </p>
+            <p className="mt-2">
+              Wo wir KI bei der Erstellung von Inhalten dieser Website einsetzen und wie
+              KI-generierte Bilder gekennzeichnet sind, erklären wir im{" "}
+              <Link href="/legal/impressum" className="text-soul-orange hover:underline">
+                Impressum
+              </Link>
+              .
             </p>
           </section>
 

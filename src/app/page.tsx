@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EventCard } from "@/components/EventCard";
 import { Gallery } from "@/components/Gallery";
+import { AiBadge } from "@/components/AiBadge";
 import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { getSiteContent } from "@/lib/siteContent";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // Texte/Bilder kommen aus dem Startseiten-Baukasten (/admin/homepage);
   // ohne gespeicherte Werte greifen automatisch die Standardtexte.
-  const { locale } = await getTranslations();
+  const { locale, t } = await getTranslations();
   const [events, content] = await Promise.all([
     getUpcomingPublishedEvents(6),
     getSiteContent(locale)
@@ -43,6 +44,9 @@ export default async function HomePage() {
             className="object-cover object-[64%_30%] sm:object-[64%_12%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
+          {content.hero_image_ai === "1" && (
+            <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="bottom-3 right-3" />
+          )}
 
           <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-8">
             {/* Nach oben versetzt (relative -top), damit das Wordmark im dunklen
@@ -112,6 +116,7 @@ export default async function HomePage() {
                   subtitle={pickText(locale, event.subtitle ?? "", event.subtitleEn) || null}
                   venue={event.venue}
                   imageUrl={event.imageUrl}
+                  imageIsAi={event.imageIsAi}
                   dateStart={event.dateStart}
                   ticketMode={event.ticketMode}
                   priceCents={event.priceCents}

@@ -55,6 +55,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       venue: data.venue,
       address: data.address || null,
       imageUrl: data.imageUrl || null,
+      imageIsAi: data.imageIsAi ?? false,
       dateStart: new Date(data.dateStart),
       dateEnd: data.dateEnd ? new Date(data.dateEnd) : null,
       ticketMode: data.ticketMode,

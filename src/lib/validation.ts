@@ -66,6 +66,8 @@ export const eventSchema = z.object({
   venue: z.string().trim().min(1).max(160),
   address: z.string().trim().max(200).optional().or(z.literal("")),
   imageUrl: z.string().trim().max(500).optional().or(z.literal("")),
+  // Kennzeichnung KI-generierter Bilder (Art. 50 KI-VO, seit 02.08.2026).
+  imageIsAi: z.boolean().optional(),
   dateStart: z.string().min(1),
   dateEnd: z.string().optional().or(z.literal("")),
   ticketMode: z.enum(TICKET_MODES),
@@ -86,7 +88,14 @@ export const galleryItemSchema = z.object({
   type: z.enum(["PHOTO", "VIDEO"]),
   url: z.string().trim().min(1),
   posterUrl: z.string().trim().optional().or(z.literal("")),
-  label: z.string().trim().max(120).optional().or(z.literal(""))
+  label: z.string().trim().max(120).optional().or(z.literal("")),
+  // Kennzeichnung KI-generierter Medien (Art. 50 KI-VO).
+  isAi: z.boolean().optional()
+});
+
+/** Nachträgliches Umschalten der KI-Kennzeichnung einer Galerie-Kachel. */
+export const galleryUpdateSchema = z.object({
+  isAi: z.boolean()
 });
 
 export const galleryReorderSchema = z.object({

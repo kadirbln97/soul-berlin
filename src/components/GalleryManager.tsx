@@ -8,6 +8,8 @@ type GalleryItem = {
   url: string;
   posterUrl: string | null;
   label: string | null;
+  /** Mit KI erzeugt/bearbeitet → Hinweis auf der Startseite (Art. 50 KI-VO). */
+  isAi: boolean;
 };
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
@@ -30,6 +32,7 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
   const [items, setItems] = useState(initialItems);
   const [type, setType] = useState<"PHOTO" | "VIDEO">("PHOTO");
   const [label, setLabel] = useState("");
+  const [isAi, setIsAi] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -87,6 +90,27 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
     persistOrder(next);
   }
 
+  /**
+   * KI-Kennzeichnung einer bestehenden Kachel umschalten. Optimistisch, damit
+   * das Häkchen sofort reagiert — bei einem Fehler wird zurückgerollt, sonst
+   * würde die Anzeige eine Kennzeichnung vortäuschen, die nicht gespeichert ist.
+   */
+  async function toggleAi(id: string, next: boolean) {
+    const previous = items;
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, isAi: next } : i)));
+    try {
+      const res = await fetch(`/api/admin/gallery/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isAi: next })
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setItems(previous);
+      setError("KI-Kennzeichnung konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    }
+  }
+
   async function deleteItem(id: string) {
     if (!confirm("Diese Kachel wirklich aus der Galerie löschen?")) return;
     setBusyId(id);
@@ -139,7 +163,7 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
       const res = await fetch("/api/admin/gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, url: uploaded.url, posterUrl, label })
+        body: JSON.stringify({ type, url: uploaded.url, posterUrl, label, isAi })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -154,10 +178,12 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
           type,
           url: uploaded.url!,
           posterUrl: posterUrl ?? null,
-          label: label || null
+          label: label || null,
+          isAi
         }
       ]);
       setLabel("");
+      setIsAi(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (posterInputRef.current) posterInputRef.current.value = "";
     } catch {
@@ -217,6 +243,15 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
             placeholder="z.B. SØUL Rooftop Session"
           />
         </div>
+        <label className="flex cursor-pointer items-center gap-2 self-end pb-2">
+          <input
+            type="checkbox"
+            checked={isAi}
+            onChange={(e) => setIsAi(e.target.checked)}
+            className="h-4 w-4 accent-soul-orange"
+          />
+          <span className="text-sm text-paper/80">Mit KI erstellt</span>
+        </label>
         <button type="submit" disabled={uploading} className="btn-primary">
           {uploading ? "Lädt hoch …" : "+ Hinzufügen"}
         </button>
@@ -294,11 +329,26 @@ export function GalleryManager({ initialItems }: { initialItems: GalleryItem[] }
                   <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-[11px] font-bold text-paper/80">
                     {index + 1}
                   </span>
+                  {item.isAi && (
+                    <span className="absolute bottom-2 left-2 rounded-full bg-ink/85 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-paper ring-1 ring-paper/30">
+                      KI-generiert
+                    </span>
+                  )}
                 </div>
 
                 {item.label && (
                   <p className="truncate px-1 text-[11px] text-paper/50">{item.label}</p>
                 )}
+
+                <label className="flex cursor-pointer items-center gap-1.5 px-1">
+                  <input
+                    type="checkbox"
+                    checked={item.isAi}
+                    onChange={(e) => toggleAi(item.id, e.target.checked)}
+                    className="h-3.5 w-3.5 accent-soul-orange"
+                  />
+                  <span className="text-[11px] text-paper/50">Mit KI erstellt</span>
+                </label>
 
                 <div className="flex items-center justify-between gap-1 px-1">
                   <div className="flex gap-1">
