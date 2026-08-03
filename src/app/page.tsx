@@ -31,7 +31,7 @@ export default async function HomePage() {
             breiten Rahmen schneidet object-cover fast das ganze Bild weg — es
             blieb nur ein dunkler Streifen Decke übrig. Mit mehr Höhe bekommt
             das Motiv wieder Platz. */}
-        <section className="relative flex min-h-[560px] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-24 text-center sm:min-h-[720px] lg:min-h-[840px]">
+        <section className="relative flex min-h-[420px] flex-col items-center justify-center gap-6 overflow-hidden px-5 py-14 text-center sm:min-h-[720px] sm:gap-8 sm:py-24 lg:min-h-[840px]">
           {/* Priority + kleine Auflösung (1600px/WebP, ~260KB) hält den größten
               Seiteninhalt (LCP) trotz echtem Eventfoto schnell.
               object-position ist responsiv: mobil (schmaler, hoher Rahmen)
@@ -75,7 +75,7 @@ export default async function HomePage() {
           {/* Bewusst ohne Wortmarke: die steht bereits oben links im Header.
               Zweimal dasselbe Logo übereinander bringt keine Information und
               drückt den Claim nur nach unten. */}
-          <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-8">
+          <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6 sm:gap-8">
             {/* Weicher Schatten als zweite Absicherung: das Foto ist an dieser
                 Stelle jetzt heller, der Text muss trotzdem überall stehen. */}
             <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper [text-shadow:0_2px_24px_rgba(0,0,0,0.75)] sm:text-6xl">

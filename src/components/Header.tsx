@@ -16,14 +16,16 @@ export async function Header() {
       >
         {t.nav.skipToContent}
       </a>
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
+      {/* Auf dem Handy schmaler: Logo und Menü-Knopf brauchen dort keine
+          112 px Leiste — das schluckte oben unnötig Bildschirmhöhe. */}
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-2.5 sm:py-4">
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/logo.png"
             alt="SØUL Berlin"
             width={160}
             height={160}
-            className="h-20 w-auto invert-0 sm:h-24"
+            className="h-14 w-auto invert-0 sm:h-24"
             priority
           />
         </Link>
