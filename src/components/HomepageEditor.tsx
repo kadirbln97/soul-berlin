@@ -128,46 +128,60 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
                   </div>
 
                   {field.type === "image" ? (
-                    <div className="flex items-start gap-3">
-                      <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-paper/15 bg-neutral-900">
-                        {values[field.key] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={values[field.key]}
-                            alt="Vorschau"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[9px] uppercase text-paper/30">
-                            Kein Bild
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        id={field.key}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        disabled={uploadingKey === field.key}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleImageUpload(field.key, file);
-                          e.target.value = "";
-                        }}
-                        className="text-xs text-paper/70 file:mr-2 file:rounded-full file:border-0 file:bg-soul-orange file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
-                      />
-                      <label className="flex cursor-pointer items-start gap-1.5 pt-1">
+                    // Vorschau + Upload in einer Zeile, die KI-Kennzeichnung
+                    // darunter über die volle Breite. Nebeneinander wurde der
+                    // Hinweistext in unlesbare Schnipsel umgebrochen.
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-paper/15 bg-neutral-900">
+                          {values[field.key] ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={values[field.key]}
+                              alt="Vorschau"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[9px] uppercase text-paper/50">
+                              Kein Bild
+                            </div>
+                          )}
+                        </div>
                         <input
-                          type="checkbox"
-                          checked={values[`${field.key}_ai`] === "1"}
-                          onChange={(e) => setValue(`${field.key}_ai`, e.target.checked ? "1" : "")}
-                          className="mt-0.5 h-3.5 w-3.5 accent-soul-orange"
+                          id={field.key}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={uploadingKey === field.key}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(field.key, file);
+                            e.target.value = "";
+                          }}
+                          className="min-w-0 flex-1 text-xs text-paper/70 file:mr-2 file:rounded-full file:border-0 file:bg-soul-orange file:px-3 file:py-1.5 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
                         />
-                        <span className="text-[11px] leading-tight text-paper/50">
-                          Mit KI erstellt
-                          <br />
-                          <span className="text-paper/30">zeigt Hinweis auf der Seite</span>
-                        </span>
-                      </label>
+                      </div>
+
+                      {values[field.key] && (
+                        <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-paper/15 bg-white/[0.02] p-3">
+                          <input
+                            type="checkbox"
+                            checked={values[`${field.key}_ai`] === "1"}
+                            onChange={(e) =>
+                              setValue(`${field.key}_ai`, e.target.checked ? "1" : "")
+                            }
+                            className="mt-0.5 h-4 w-4 shrink-0 accent-soul-orange"
+                          />
+                          <span>
+                            <span className="block text-sm text-paper">
+                              Dieses Bild wurde mit KI erstellt oder bearbeitet
+                            </span>
+                            <span className="mt-0.5 block text-[11px] leading-snug text-paper/60">
+                              Blendet auf der Startseite den Hinweis „KI-generiert“ ein
+                              (Art. 50 KI-VO). Im Zweifel lieber ankreuzen.
+                            </span>
+                          </span>
+                        </label>
+                      )}
                     </div>
                   ) : field.type === "textarea" ? (
                     <textarea
