@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Eigene Kurven statt der eingebauten CSS-Easings — die sind für bewusste
+   Bewegung zu schwach und lassen Übergänge beliebig wirken. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -37,6 +44,114 @@ body {
 
 .btn-outline {
   @apply inline-flex items-center justify-center gap-2 rounded-full border border-paper/30 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-paper transition hover:border-soul-orange hover:text-soul-orange disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
+}
+
+/* Druckrückmeldung. Auf dem Handy gibt es kein :hover — ohne :active passiert
+   nach dem Antippen sichtbar nichts, bis der Server antwortet. Genau deshalb
+   tippen Leute ein zweites Mal. */
+.btn-primary,
+.btn-outline {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    opacity 160ms var(--ease-out);
+}
+
+.btn-primary:active:not(:disabled),
+.btn-outline:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Einblenden beim Erscheinen — ohne JavaScript, über @starting-style.
+   Für Zustandswechsel, die sonst hart umspringen (Erfolgsmeldungen). */
+.enter-pop {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition:
+    opacity 250ms var(--ease-out),
+    transform 250ms var(--ease-out);
+}
+
+@starting-style {
+  .enter-pop {
+    opacity: 0;
+    /* Nie von scale(0) — nichts erscheint aus dem Nichts. */
+    transform: scale(0.97) translateY(4px);
+  }
+}
+
+/* Handy-Menü: fährt aus der Kopfzeile heraus und wieder hinein. display in der
+   transition + allow-discrete hält das Panel während des Ausblendens sichtbar. */
+.mobile-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out),
+    display 200ms allow-discrete;
+}
+
+.mobile-panel[data-open="true"] {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@starting-style {
+  .mobile-panel[data-open="true"] {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.mobile-scrim {
+  display: none;
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease-out),
+    display 200ms allow-discrete;
+}
+
+.mobile-scrim[data-open="true"] {
+  display: block;
+  opacity: 1;
+}
+
+@starting-style {
+  .mobile-scrim[data-open="true"] {
+    opacity: 0;
+  }
+}
+
+/* Das Einblenden der Galerie hängt an JavaScript (onLoad). Ist es abgeschaltet,
+   bliebe die Kachel dauerhaft unsichtbar — hier zurück auf volle Deckkraft. */
+@media (scripting: none) {
+  .gallery-fade {
+    opacity: 1 !important;
+  }
+}
+
+/* Weniger Bewegung heißt sanfter, nicht aus: Deckkraft- und Farbwechsel
+   bleiben (sie helfen beim Verstehen), Verschiebungen entfallen. Über die
+   transition-property statt über transform: none, damit auch die
+   @starting-style-Startwerte nicht mehr animiert werden. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:active:not(:disabled),
+  .btn-outline:active:not(:disabled) {
+    transform: none;
+  }
+
+  .enter-pop {
+    transition-property: opacity;
+  }
+
+  .mobile-panel {
+    transform: none;
+    transition-property: opacity, display;
+  }
 }
 
 .input-field {

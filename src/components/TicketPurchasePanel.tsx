@@ -104,14 +104,24 @@ export function TicketPurchasePanel({
   return (
     <div className="rounded-2xl card-border bg-white/[0.02] p-6">
       {offersBoth && (
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-paper/10 p-1">
+        <div className="relative mb-6 grid grid-cols-2 gap-1 rounded-xl border border-paper/10 p-1">
+          {/* Der orange Hintergrund ist ein eigenes Element und wandert zwischen
+              den Knöpfen, statt schlagartig zu wechseln — so ist sichtbar, dass
+              es dieselbe Auswahl ist, die sich bewegt. */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-lg bg-soul-orange transition-transform duration-200"
+            style={{
+              transitionTimingFunction: "var(--ease-out)",
+              transform:
+                selected === "GUESTLIST" ? "translateX(calc(100% + 0.25rem))" : "translateX(0)"
+            }}
+          />
           <button
             type="button"
             onClick={() => setSelected("PAID")}
-            className={`rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition ${
-              selected === "PAID"
-                ? "bg-soul-orange text-ink"
-                : "text-paper/70 hover:text-paper"
+            className={`relative z-10 rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors duration-200 ${
+              selected === "PAID" ? "text-ink" : "text-paper/70 hover:text-paper"
             }`}
           >
             {t.event.buyTicket}
@@ -119,10 +129,8 @@ export function TicketPurchasePanel({
           <button
             type="button"
             onClick={() => setSelected("GUESTLIST")}
-            className={`rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition ${
-              selected === "GUESTLIST"
-                ? "bg-soul-orange text-ink"
-                : "text-paper/70 hover:text-paper"
+            className={`relative z-10 rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors duration-200 ${
+              selected === "GUESTLIST" ? "text-ink" : "text-paper/70 hover:text-paper"
             }`}
           >
             {t.event.guestlist}

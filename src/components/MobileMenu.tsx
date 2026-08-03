@@ -78,44 +78,43 @@ export function MobileMenu({
         </span>
       </button>
 
-      {open && (
-        <>
-          {/* Abdunkelung unterhalb der Kopfzeile: Tippen daneben schließt das
-              Menü. Bewusst am Header ausgerichtet (top-full) statt an einem
-              festen Pixelwert — die Kopfzeile ist je nach Gerät verschieden hoch. */}
-          <button
-            type="button"
-            aria-hidden="true"
-            tabIndex={-1}
-            onClick={() => setOpen(false)}
-            className="absolute inset-x-0 top-full z-30 h-screen cursor-default bg-ink/60 backdrop-blur-sm"
-          />
-          <div
-            id="mobile-menu"
-            className="absolute inset-x-0 top-full z-40 border-b border-paper/10 bg-ink px-4 pb-5 pt-3 shadow-2xl shadow-black/60"
+      {/* Panel und Abdunkelung bleiben immer im DOM und werden über data-open
+          umgeschaltet. Nur so lässt sich auch das Schließen animieren — ein
+          entferntes Element kann nicht mehr ausblenden. Ohne Unterstützung für
+          `display … allow-discrete` erscheint/verschwindet es einfach hart. */}
+      <button
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
+        data-open={open}
+        onClick={() => setOpen(false)}
+        className="mobile-scrim absolute inset-x-0 top-full z-30 h-screen cursor-default bg-ink/60 backdrop-blur-sm"
+      />
+      <div
+        id="mobile-menu"
+        data-open={open}
+        className="mobile-panel absolute inset-x-0 top-full z-40 border-b border-paper/10 bg-ink px-4 pb-5 pt-3 shadow-2xl shadow-black/60"
+      >
+        <nav className="flex flex-col gap-1">
+          <Link href="/" className={linkClass}>
+            {labels.home}
+          </Link>
+          <Link href="/events" className={linkClass}>
+            {labels.events}
+          </Link>
+          <a
+            href="https://www.instagram.com/soulberliin/"
+            target="_blank"
+            rel="noreferrer noopener"
+            className={linkClass}
           >
-            <nav className="flex flex-col gap-1">
-              <Link href="/" className={linkClass}>
-                {labels.home}
-              </Link>
-              <Link href="/events" className={linkClass}>
-                {labels.events}
-              </Link>
-              <a
-                href="https://www.instagram.com/soulberliin/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className={linkClass}
-              >
-                {labels.instagram}
-              </a>
-            </nav>
-            <div className="mt-4 border-t border-paper/10 pt-4">
-              <LanguageSwitcher current={locale} />
-            </div>
-          </div>
-        </>
-      )}
+            {labels.instagram}
+          </a>
+        </nav>
+        <div className="mt-4 border-t border-paper/10 pt-4">
+          <LanguageSwitcher current={locale} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getDefaultGalleryTiles, type GalleryTile } from "@/lib/galleryDefaults";
 import { getTranslations } from "@/lib/serverLocale";
 import { LazyVideo } from "./LazyVideo";
+import { GalleryImage } from "./GalleryImage";
 import { AiBadge } from "./AiBadge";
 
 /**
@@ -49,12 +49,10 @@ export async function Gallery() {
                 190 px breit, die Originaldateien aber 900 px. Ohne sizes/srcset
                 wurden pro Aufruf ~1,5 MB Bilddaten geladen, die kaum jemand in
                 dieser Auflösung sieht — das hat den Seitenaufbau ausgebremst. */}
-            <Image
+            <GalleryImage
               src={tile.url}
               alt={tile.label || "Impression von einem SØUL Berlin Event"}
-              fill
               sizes="(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
-              className="object-cover"
             />
             {tile.isAi && <AiBadge label={t.ai.badge} title={t.ai.imageNotice} />}
           </div>

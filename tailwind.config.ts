@@ -2,6 +2,12 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  future: {
+    // hover: nur dort anwenden, wo es ein echtes Zeigegerät gibt. Ohne das
+    // löst ein Fingertipp auf dem Handy den Hover-Zustand aus — die Event-Karte
+    // blieb dann angehoben stehen, bis man woanders hintippt.
+    hoverOnlyWhenSupported: true
+  },
   theme: {
     extend: {
       colors: {

@@ -63,7 +63,7 @@ export function SignupForm({
     return (
       <div
         role="status"
-        className="rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center"
+        className="enter-pop rounded-2xl border border-soul-orange/40 bg-soul-orange/10 p-6 text-center"
       >
         <p className="text-display text-xl uppercase text-paper">{t.form.successTitle}</p>
         <p className="mt-2 text-sm text-paper/70">
