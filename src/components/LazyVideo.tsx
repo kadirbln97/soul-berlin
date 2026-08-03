@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -57,12 +58,12 @@ export function LazyVideo({
           className="h-full w-full object-cover"
         />
       ) : poster ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={poster}
           alt={label}
-          loading="lazy"
-          className="h-full w-full object-cover"
+          fill
+          sizes="(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+          className="object-cover"
         />
       ) : (
         // Kein Poster hinterlegt: einfaches Platzhalter-Tile mit Play-Symbol,

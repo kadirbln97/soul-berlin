@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getDefaultGalleryTiles, type GalleryTile } from "@/lib/galleryDefaults";
 import { getTranslations } from "@/lib/serverLocale";
@@ -44,13 +45,16 @@ export async function Gallery() {
             key={tile.id}
             className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-900"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            {/* next/image statt <img>: die Kacheln sind auf dem Handy nur rund
+                190 px breit, die Originaldateien aber 900 px. Ohne sizes/srcset
+                wurden pro Aufruf ~1,5 MB Bilddaten geladen, die kaum jemand in
+                dieser Auflösung sieht — das hat den Seitenaufbau ausgebremst. */}
+            <Image
               src={tile.url}
               alt={tile.label || "Impression von einem SØUL Berlin Event"}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw"
+              className="object-cover"
             />
             {tile.isAi && <AiBadge label={t.ai.badge} title={t.ai.imageNotice} />}
           </div>

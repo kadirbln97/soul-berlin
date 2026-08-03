@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -89,11 +90,15 @@ export default async function EventDetailPage({
               damit ein hochgeladenes Bild überall im selben Ausschnitt gut aussieht. */}
           <div className="relative mb-8 aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-900">
             {event.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              // priority: der Flyer ist auf dieser Seite das größte Element im
+              // ersten Bildschirm — er bestimmt, wann die Seite „fertig“ wirkt.
+              <Image
                 src={event.imageUrl}
                 alt={title}
-                className="h-full w-full object-cover"
+                fill
+                priority
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="object-cover"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-display text-6xl italic-skew text-paper/40">

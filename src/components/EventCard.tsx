@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { formatShortDate, formatPrice } from "@/lib/format";
 import { calculateTotalWithFeeCents } from "@/lib/serviceFee";
 import { getTranslations } from "@/lib/serverLocale";
@@ -58,11 +59,12 @@ export async function EventCard({
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-900">
         {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={imageUrl}
             alt={title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-display text-4xl italic-skew text-paper/40">
