@@ -72,17 +72,10 @@ export default async function HomePage() {
             <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="bottom-3 right-3" />
           )}
 
+          {/* Bewusst ohne Wortmarke: die steht bereits oben links im Header.
+              Zweimal dasselbe Logo übereinander bringt keine Information und
+              drückt den Claim nur nach unten. */}
           <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-8">
-            {/* Nach oben versetzt (relative -top), damit das Wordmark im dunklen
-                Deckenbereich des Fotos sitzt statt über dem Kopf der Tänzerin. */}
-            <Image
-              src="/logo.png"
-              alt="SØUL Berlin"
-              width={280}
-              height={280}
-              priority
-              className="relative -top-[60px] h-20 w-auto sm:top-0 sm:h-28"
-            />
             {/* Weicher Schatten als zweite Absicherung: das Foto ist an dieser
                 Stelle jetzt heller, der Text muss trotzdem überall stehen. */}
             <h1 className="text-display text-4xl uppercase leading-[0.95] text-paper [text-shadow:0_2px_24px_rgba(0,0,0,0.75)] sm:text-6xl">
