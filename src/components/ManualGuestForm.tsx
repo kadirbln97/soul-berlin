@@ -53,7 +53,7 @@ export function ManualGuestForm({ eventId }: { eventId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-2xl card-border p-5">
-      <div className="grid gap-4 sm:grid-cols-[1fr_240px]">
+      <div className="grid gap-4 [&>*]:min-w-0 sm:grid-cols-[1fr_240px]">
         <div>
           <label className="label-field" htmlFor="manual-names">
             Namen (ein Name pro Zeile)

@@ -114,7 +114,7 @@ export function DiscountManager({
   return (
     <div className="flex flex-col gap-5">
       <form onSubmit={handleCreate} className="rounded-2xl card-border p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 [&>*]:min-w-0 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="label-field">Art</label>
             <select

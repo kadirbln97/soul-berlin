@@ -7,15 +7,22 @@ import type { RevenueSummary } from "@/lib/revenue";
  * Zeigt nur online über Stripe kassierte Beträge — Abendkassen-Einnahmen der
  * Gästeliste laufen bewusst nicht durchs System.
  */
-/** Eine Kennzahl in der Zeile unter dem Umsatz. */
+/**
+ * Eine Kennzahl in der Zeile unter dem Umsatz.
+ *
+ * grid-rows-subgrid übernimmt die Zeilen des Elterngitters: Beschriftung,
+ * Zahl und Zusatz liegen dadurch bei allen drei Kennzahlen auf einer Linie —
+ * auch wenn eine Beschriftung wie "Tickets verkauft" auf dem Handy zweizeilig
+ * umbricht. Vorher schob dieser Umbruch die Zahl darunter nach unten.
+ */
 function Stat({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
-    <div>
-      <dt className="text-[10px] font-semibold uppercase tracking-widest text-paper/40">
+    <div className="row-span-3 grid grid-rows-subgrid gap-0">
+      <dt className="text-[10px] font-semibold uppercase leading-tight tracking-widest text-paper/60">
         {label}
       </dt>
-      <dd className="text-display mt-1 text-2xl text-paper">{value}</dd>
-      {note && <p className="mt-0.5 text-[10px] text-paper/30">{note}</p>}
+      <dd className="text-display self-end text-2xl leading-none text-paper">{value}</dd>
+      <p className="text-[10px] leading-tight text-paper/50">{note ?? ""}</p>
     </div>
   );
 }
@@ -53,7 +60,7 @@ export function RevenueSummaryCard({
       {/* Anmeldezahlen: die Summe ist das, was an der Tür ankommt — Tickets und
           Gästeliste zusammen. Die Aufteilung darunter zeigt, wie sie zustande
           kommt, weil nur der Ticket-Anteil Umsatz erzeugt. */}
-      <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-paper/10 pt-4">
+      <dl className="mt-5 grid grid-cols-3 grid-rows-[auto_auto_auto] gap-x-3 gap-y-1 border-t border-paper/10 pt-4">
         <Stat label="Anmeldungen" value={summary.signupCount} note="Gäste gesamt" />
         <Stat label="Tickets verkauft" value={summary.paidCount} note="online bezahlt" />
         <Stat

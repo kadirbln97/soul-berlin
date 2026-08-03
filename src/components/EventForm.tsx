@@ -205,7 +205,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 [&>*]:min-w-0 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="label-field">Titel</label>
           <input
@@ -463,7 +463,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               {tiers.map((tier, i) => (
                 <div
                   key={i}
-                  className="grid grid-cols-1 gap-3 rounded-lg border border-paper/5 p-3 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-end sm:border-0 sm:p-0"
+                  className="grid grid-cols-1 gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-end sm:border-0 sm:p-0"
                 >
                   <div>
                     <label className="label-field">Name (optional)</label>
