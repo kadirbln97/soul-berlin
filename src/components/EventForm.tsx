@@ -205,7 +205,12 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div className="grid gap-5 [&>*]:min-w-0 sm:grid-cols-2">
+      {/* minmax(0,1fr) statt der Standard-Spalte: eine auto-Spalte darf auf die
+          Mindestbreite ihres Inhalts wachsen und sprengt dann die Karte. Genau
+          das passiert auf dem iPhone bei datetime-local-Feldern, die von Safari
+          eine feste Mindestbreite bekommen. Mit minmax(0,1fr) ist die Spalte
+          nach oben durch den Container begrenzt — das Feld muss sich fügen. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 [&>*]:min-w-0 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="label-field">Titel</label>
           <input
@@ -297,7 +302,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         </div>
         <div className="sm:col-span-2">
           <label className="label-field">Event-Bild (optional)</label>
-          <div className="flex items-start gap-4">
+          <div className="flex min-w-0 items-start gap-4">
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-paper/15 bg-neutral-900">
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -308,20 +313,32 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              {/* Das native Dateifeld bleibt unsichtbar, wird aber weiterhin
+                  benutzt — es bringt eine feste Eigenbreite mit (Knopf plus
+                  „Keine Datei ausgewählt“), die sich nicht kürzen lässt und auf
+                  dem Handy aus der Karte herausragt. Der eigene Knopf löst es
+                  über die Referenz aus und darf schrumpfen. */}
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 onChange={handleFileChange}
                 disabled={uploading}
-                className="text-sm text-paper/70 file:mr-3 file:rounded-full file:border-0 file:bg-soul-orange file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-widest file:text-ink hover:file:opacity-90"
+                className="sr-only"
               />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full max-w-[200px] rounded-full bg-soul-orange px-4 py-2 text-xs font-bold uppercase tracking-widest text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {uploading ? "Lädt hoch …" : imageUrl ? "Bild ersetzen" : "Datei auswählen"}
+              </button>
               <p className="text-[11px] text-paper/40">
                 Empfohlen: mind. 1200 × 1500 Px (Hochformat, Verhältnis ca. 4:5) — wird auf
                 der Seite automatisch zugeschnitten. JPEG, PNG, WebP oder GIF, max. 10 MB.
               </p>
-              {uploading && <p className="text-xs text-paper/50">Lädt hoch …</p>}
               {uploadError && (
                 <p role="alert" className="text-xs text-red-400">
                   {uploadError}
@@ -463,7 +480,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               {tiers.map((tier, i) => (
                 <div
                   key={i}
-                  className="grid grid-cols-1 gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[1fr_1fr_100px_auto] sm:items-end sm:border-0 sm:p-0"
+                  className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_100px_auto] sm:items-end sm:border-0 sm:p-0"
                 >
                   <div>
                     <label className="label-field">Name (optional)</label>

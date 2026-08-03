@@ -17,12 +17,16 @@ import type { RevenueSummary } from "@/lib/revenue";
  */
 function Stat({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
-    <div className="row-span-3 grid grid-rows-subgrid gap-0">
-      <dt className="text-[10px] font-semibold uppercase leading-tight tracking-widest text-paper/60">
+    <div className="row-span-3 grid grid-rows-subgrid gap-y-2">
+      {/* 10px mit tracking-wider statt widest: bei 375–402 px Bildschirmbreite
+          ist eine Spalte rund 94 px breit, „Anmeldungen“ misst so 85 px. Mit
+          dem weiteren Zeichenabstand wären es 90 px — zu knapp, ein Umbruch
+          würde die ganze Reihe wieder schief aussehen lassen. */}
+      <dt className="text-[10px] font-semibold uppercase leading-tight tracking-wider text-paper/60">
         {label}
       </dt>
-      <dd className="text-display self-end text-2xl leading-none text-paper">{value}</dd>
-      <p className="text-[10px] leading-tight text-paper/50">{note ?? ""}</p>
+      <dd className="text-display self-end text-3xl leading-none text-paper">{value}</dd>
+      <p className="text-[10px] leading-snug text-paper/50">{note ?? ""}</p>
     </div>
   );
 }
@@ -60,9 +64,11 @@ export function RevenueSummaryCard({
       {/* Anmeldezahlen: die Summe ist das, was an der Tür ankommt — Tickets und
           Gästeliste zusammen. Die Aufteilung darunter zeigt, wie sie zustande
           kommt, weil nur der Ticket-Anteil Umsatz erzeugt. */}
-      <dl className="mt-5 grid grid-cols-3 grid-rows-[auto_auto_auto] gap-x-3 gap-y-1 border-t border-paper/10 pt-4">
+      <dl className="mt-6 grid grid-cols-3 grid-rows-[auto_auto_auto] gap-x-4 gap-y-2 border-t border-paper/10 pt-5">
         <Stat label="Anmeldungen" value={summary.signupCount} note="Gäste gesamt" />
-        <Stat label="Tickets verkauft" value={summary.paidCount} note="online bezahlt" />
+        {/* Kurzes Label mit Absicht: "Tickets verkauft" bricht auf dem Handy um
+            und lässt die Spalte gedrängt wirken. Der Zusatz darunter erklärt es. */}
+        <Stat label="Tickets" value={summary.paidCount} note="online bezahlt" />
         <Stat
           label="Gästeliste"
           value={summary.guestlistCount}
