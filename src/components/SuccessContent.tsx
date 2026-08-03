@@ -52,7 +52,7 @@ function Inner({ locale }: { locale: Locale }) {
   }, [sessionId, attempts, ticket]);
 
   if (!sessionId) {
-    return <p className="text-paper/60">{t.noSession}</p>;
+    return <p className="text-paper/75">{t.noSession}</p>;
   }
 
   if (ticket) {
@@ -71,7 +71,7 @@ function Inner({ locale }: { locale: Locale }) {
   return (
     <>
       <p className="text-display text-2xl uppercase text-paper">{t.confirming}</p>
-      <p className="text-paper/50">{t.confirmingText}</p>
+      <p className="text-paper/70">{t.confirmingText}</p>
       <div className="h-1 w-40 overflow-hidden rounded-full bg-paper/10">
         <div className="h-full w-1/3 animate-pulse bg-soul-orange" />
       </div>

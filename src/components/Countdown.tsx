@@ -87,7 +87,7 @@ export function Countdown({
     >
       <span
         className={`text-xs font-semibold uppercase tracking-widest ${
-          isUrgent ? "text-soul-orange" : "text-paper/50"
+          isUrgent ? "text-soul-orange" : "text-paper/70"
         }`}
       >
         {isUrgent ? urgentLabel : label}
@@ -98,7 +98,7 @@ export function Countdown({
             <span className="text-display text-lg tabular-nums text-paper">
               {String(timeLeft[unit]).padStart(2, "0")}
             </span>
-            <span className="text-[10px] uppercase text-paper/40">{unitLabels[unit]}</span>
+            <span className="text-[10px] uppercase text-paper/60">{unitLabels[unit]}</span>
           </span>
         ))}
       </div>

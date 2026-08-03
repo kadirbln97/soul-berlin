@@ -18,7 +18,7 @@ export default async function KontaktPage() {
       <Header />
       <main id="main-content" className="mx-auto max-w-xl px-5 py-16">
         <h1 className="text-display mb-2 text-3xl uppercase text-paper">Kontakt</h1>
-        <p className="mb-8 text-sm text-paper/60">
+        <p className="mb-8 text-sm text-paper/75">
           Fragen zu einem Event, ein Problem beim Ticketkauf gefunden oder einfach eine Idee?
           Schreib uns — wir melden uns so schnell wie möglich.
         </p>

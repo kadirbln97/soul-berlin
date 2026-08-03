@@ -21,7 +21,7 @@ export default async function EventsPage() {
         <h1 className="text-display mb-10 text-4xl uppercase text-paper">{t.events.title}</h1>
 
         {upcoming.length === 0 ? (
-          <p className="rounded-2xl card-border p-10 text-center text-paper/50">
+          <p className="rounded-2xl card-border p-10 text-center text-paper/70">
             {t.events.empty}
           </p>
         ) : (
@@ -47,7 +47,7 @@ export default async function EventsPage() {
 
         {past.length > 0 && (
           <div className="mt-20">
-            <h2 className="text-display mb-8 text-2xl uppercase text-paper/60">{t.events.past}</h2>
+            <h2 className="text-display mb-8 text-2xl uppercase text-paper/75">{t.events.past}</h2>
             <div className="grid grid-cols-1 gap-6 opacity-50 sm:grid-cols-2 lg:grid-cols-3">
               {past.map((event) => (
                 <EventCard

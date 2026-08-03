@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatShortDate, formatPrice } from "@/lib/format";
+import { calculateTotalWithFeeCents } from "@/lib/serviceFee";
 import { getTranslations } from "@/lib/serverLocale";
 import { AiBadge } from "./AiBadge";
 
@@ -32,17 +33,23 @@ export async function EventCard({
 }) {
   const { t } = await getTranslations();
 
+  // Preisangabenverordnung: gegenüber Verbrauchern muss der Endpreis stehen —
+  // also inklusive der verpflichtenden Servicegebühr, nicht der reine
+  // Ticketpreis. Bei der Gästeliste wird an der Abendkasse kassiert, dort
+  // fällt keine Gebühr an; der Staffelpreis ist bereits der Endpreis.
   const badge = isSoldOut
     ? t.events.soldOut
     : ticketMode === "PAID"
       ? priceCents
-        ? formatPrice(priceCents)
+        ? formatPrice(calculateTotalWithFeeCents(priceCents))
         : t.events.ticket
       : ticketMode === "BOTH"
         ? t.events.ticketAndGuestlist
         : guestlistPriceCents
           ? `${t.events.from} ${formatPrice(guestlistPriceCents)}`
           : t.events.guestlist;
+
+  const showsFeeNote = !isSoldOut && ticketMode === "PAID" && Boolean(priceCents);
 
   return (
     <Link
@@ -58,7 +65,7 @@ export async function EventCard({
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-display text-4xl italic-skew text-paper/20">
+          <div className="flex h-full w-full items-center justify-center text-display text-4xl italic-skew text-paper/40">
             SØUL
           </div>
         )}
@@ -73,17 +80,22 @@ export async function EventCard({
       </div>
       <div className="flex flex-1 flex-col gap-1 p-5">
         <h3 className="text-display text-xl uppercase leading-tight text-paper">{title}</h3>
-        {subtitle && <p className="text-sm text-paper/60">{subtitle}</p>}
-        <p className="mt-1 text-xs uppercase tracking-widest text-paper/40">{venue}</p>
+        {subtitle && <p className="text-sm text-paper/75">{subtitle}</p>}
+        <p className="mt-1 text-xs uppercase tracking-widest text-paper/60">{venue}</p>
         <div className="mt-4 flex items-center justify-between">
           <span
             className={`text-xs font-semibold uppercase tracking-widest ${
-              isSoldOut ? "text-paper/40" : "text-soul-orange"
+              isSoldOut ? "text-paper/60" : "text-soul-orange"
             }`}
           >
             {badge}
+            {showsFeeNote && (
+              <span className="ml-1.5 font-normal normal-case tracking-normal text-paper/60">
+                {t.price.feeIncluded}
+              </span>
+            )}
           </span>
-          <span className="text-xs uppercase tracking-widest text-paper/50 transition group-hover:text-soul-orange">
+          <span className="text-xs uppercase tracking-widest text-paper/70 transition group-hover:text-soul-orange">
             {t.events.details}
           </span>
         </div>

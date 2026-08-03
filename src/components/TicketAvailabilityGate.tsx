@@ -39,8 +39,8 @@ export function TicketAvailabilityGate({
   if (closed) {
     return (
       <div className="rounded-xl border border-paper/15 p-6 text-center">
-        <p className="text-display text-lg uppercase text-paper/60">{closedTitle}</p>
-        <p className="mt-2 text-sm text-paper/40">{closedText}</p>
+        <p className="text-display text-lg uppercase text-paper/75">{closedTitle}</p>
+        <p className="mt-2 text-sm text-paper/60">{closedText}</p>
       </div>
     );
   }

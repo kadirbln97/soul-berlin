@@ -11,7 +11,7 @@ export async function LocationMap({ venue, address }: { venue: string; address?:
 
   return (
     <div className="mt-8 flex flex-col gap-3">
-      <p className="text-xs font-semibold uppercase tracking-widest text-paper/50">{t.event.location}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-paper/70">{t.event.location}</p>
       <div className="overflow-hidden rounded-xl border border-paper/10">
         <iframe
           title={`Karte: ${venue}`}

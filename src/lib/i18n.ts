@@ -20,11 +20,26 @@ export function isLocale(value: unknown): value is Locale {
 }
 
 type Dict = {
-  nav: { home: string; events: string; instagram: string; skipToContent: string };
+  nav: { home: string; events: string; instagram: string; skipToContent: string; menu: string; close: string };
   footer: { contact: string; imprint: string; terms: string; privacy: string; whatsapp: string };
   home: { allEvents: string };
   /** Hinweis auf KI-generierte Bilder (Art. 50 KI-VO). */
   ai: { badge: string; imageNotice: string };
+  /** Dauerhafte Ticket-Seite, auf die die Bestätigungsmail verlinkt. */
+  ticket: {
+    heading: string;
+    intro: string;
+    guest: string;
+    statusValid: string;
+    statusCheckedIn: string;
+    statusInvalid: string;
+    saveTip: string;
+    notFound: string;
+    emailIntro: string;
+    emailLink: string;
+  };
+  /** Preisangaben (Kleinunternehmer, § 19 UStG). */
+  price: { total: string; noVat: string; feeIncluded: string };
   events: {
     title: string;
     empty: string;
@@ -126,7 +141,14 @@ type Dict = {
 };
 
 const de: Dict = {
-  nav: { home: "Home", events: "Events", instagram: "Instagram", skipToContent: "Zum Inhalt springen" },
+  nav: {
+    home: "Home",
+    events: "Events",
+    instagram: "Instagram",
+    skipToContent: "Zum Inhalt springen",
+    menu: "Menü öffnen",
+    close: "Menü schließen"
+  },
   footer: {
     contact: "Kontakt",
     imprint: "Impressum",
@@ -138,6 +160,24 @@ const de: Dict = {
   ai: {
     badge: "KI-generiert",
     imageNotice: "Dieses Bild wurde mit Künstlicher Intelligenz erstellt oder bearbeitet."
+  },
+  ticket: {
+    heading: "Dein Ticket",
+    intro: "Zeig diesen Code am Einlass — er wird gescannt und ist nur einmal gültig.",
+    guest: "Gast",
+    statusValid: "Gültig",
+    statusCheckedIn: "Bereits eingecheckt",
+    statusInvalid: "Nicht mehr gültig",
+    saveTip:
+      "Tipp: Leg diese Seite auf deinen Startbildschirm — dann hast du den Code an der Tür sofort parat, auch ohne die E-Mail zu suchen.",
+    notFound: "Dieses Ticket gibt es nicht (mehr).",
+    emailIntro: "Kein Netz an der Tür oder E-Mail nicht zur Hand?",
+    emailLink: "Ticket im Browser öffnen"
+  },
+  price: {
+    total: "Gesamt",
+    noVat: "Kein Ausweis der Umsatzsteuer gemäß § 19 UStG (Kleinunternehmer).",
+    feeIncluded: "inkl. Servicegebühr"
   },
   events: {
     title: "Events",
@@ -244,7 +284,14 @@ const de: Dict = {
 };
 
 const en: Dict = {
-  nav: { home: "Home", events: "Events", instagram: "Instagram", skipToContent: "Skip to content" },
+  nav: {
+    home: "Home",
+    events: "Events",
+    instagram: "Instagram",
+    skipToContent: "Skip to content",
+    menu: "Open menu",
+    close: "Close menu"
+  },
   footer: {
     contact: "Contact",
     imprint: "Imprint",
@@ -256,6 +303,24 @@ const en: Dict = {
   ai: {
     badge: "AI-generated",
     imageNotice: "This image was created or edited using artificial intelligence."
+  },
+  ticket: {
+    heading: "Your ticket",
+    intro: "Show this code at the door — it gets scanned and is valid only once.",
+    guest: "Guest",
+    statusValid: "Valid",
+    statusCheckedIn: "Already checked in",
+    statusInvalid: "No longer valid",
+    saveTip:
+      "Tip: add this page to your home screen — then your code is one tap away at the door, no need to dig through your inbox.",
+    notFound: "This ticket doesn't exist (anymore).",
+    emailIntro: "No signal at the door, or email not at hand?",
+    emailLink: "Open ticket in browser"
+  },
+  price: {
+    total: "Total",
+    noVat: "No VAT is shown under § 19 German VAT Act (small business rule).",
+    feeIncluded: "incl. service fee"
   },
   events: {
     title: "Events",

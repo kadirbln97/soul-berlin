@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { ticketQrBuffer } from "./qr";
+import { signTicketToken } from "./ticketToken";
 import { formatEventDate } from "./format";
 import { escapeHtml } from "./escapeHtml";
 import { getContactRecipient } from "./siteContent";
@@ -39,8 +40,15 @@ export async function sendTicketEmail(params: {
   locale?: string | null;
 }) {
   const locale: Locale = isLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
-  const t = getDict(locale).email;
+  const dict = getDict(locale);
+  const t = dict.email;
   const qr = await ticketQrBuffer(params.ticketId);
+
+  // Dauerhafte Ticket-Seite: manche Gäste finden die Mail an der Tür nicht
+  // wieder oder der Mail-Client lädt das eingebettete Bild nicht. Der Link
+  // trägt dasselbe signierte Token wie der QR-Code.
+  const appUrl = (process.env.APP_URL ?? "https://soulberlin.de").replace(/\/$/, "");
+  const ticketUrl = `${appUrl}/ticket/${encodeURIComponent(signTicketToken(params.ticketId))}`;
   const transport = getTransport();
   const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
 
@@ -95,7 +103,15 @@ export async function sendTicketEmail(params: {
           ${t.ticketIntro}
         </p>
         ${priceLine}
-        <p style="color:#f5f3ee;opacity:.5;font-size:12px;margin:16px 0 0;">
+        <div style="margin:20px 0 0;padding:16px;border:1px solid #262626;border-radius:12px;text-align:center;">
+          <p style="color:#f5f3ee;opacity:.75;font-size:13px;margin:0 0 10px;">
+            ${dict.ticket.emailIntro}
+          </p>
+          <a href="${ticketUrl}" style="display:inline-block;background:#ff6a1a;color:#0a0a0a;text-decoration:none;font-weight:bold;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:11px 20px;border-radius:999px;">
+            ${dict.ticket.emailLink}
+          </a>
+        </div>
+        <p style="color:#f5f3ee;opacity:.6;font-size:12px;margin:16px 0 0;">
           ${t.signOff}
         </p>
       </div>

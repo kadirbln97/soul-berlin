@@ -122,14 +122,14 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/events"
-              className="text-xs font-semibold uppercase tracking-widest text-paper/60 hover:text-soul-orange"
+              className="text-xs font-semibold uppercase tracking-widest text-paper/75 hover:text-soul-orange"
             >
               {content.events_link_label}
             </Link>
           </div>
 
           {events.length === 0 ? (
-            <p className="rounded-2xl card-border p-10 text-center text-paper/50">
+            <p className="rounded-2xl card-border p-10 text-center text-paper/70">
               {content.events_empty_text}
             </p>
           ) : (
@@ -160,7 +160,7 @@ export default async function HomePage() {
               {content.gallery_heading}
             </h2>
             {content.gallery_subtext && (
-              <p className="mt-1 text-sm text-paper/50">{content.gallery_subtext}</p>
+              <p className="mt-1 text-sm text-paper/70">{content.gallery_subtext}</p>
             )}
           </div>
           <Gallery />

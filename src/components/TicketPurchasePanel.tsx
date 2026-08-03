@@ -111,7 +111,7 @@ export function TicketPurchasePanel({
             className={`rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition ${
               selected === "PAID"
                 ? "bg-soul-orange text-ink"
-                : "text-paper/50 hover:text-paper"
+                : "text-paper/70 hover:text-paper"
             }`}
           >
             {t.event.buyTicket}
@@ -122,7 +122,7 @@ export function TicketPurchasePanel({
             className={`rounded-lg py-2.5 text-xs font-semibold uppercase tracking-widest transition ${
               selected === "GUESTLIST"
                 ? "bg-soul-orange text-ink"
-                : "text-paper/50 hover:text-paper"
+                : "text-paper/70 hover:text-paper"
             }`}
           >
             {t.event.guestlist}
@@ -163,7 +163,7 @@ export function TicketPurchasePanel({
               <button
                 type="button"
                 onClick={removeCode}
-                className="text-[11px] uppercase tracking-widest text-paper/40 hover:text-red-400"
+                className="text-[11px] uppercase tracking-widest text-paper/60 hover:text-red-400"
               >
                 {t.event.remove}
               </button>
@@ -194,7 +194,7 @@ export function TicketPurchasePanel({
           {/* Preisaufstellung */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-paper/50">
+              <span className="text-paper/70">
                 {t.event.subtotal}{quantity > 1 ? ` × ${quantity}` : ""}
               </span>
               <span className="text-paper/70">
@@ -213,25 +213,29 @@ export function TicketPurchasePanel({
             )}
             {breakdown.feeCents > 0 && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-paper/50">{t.event.serviceFee}</span>
+                <span className="text-paper/70">{t.event.serviceFee}</span>
                 <span className="text-paper/70">
                   {formatPrice(breakdown.feeCents, currency)}
                 </span>
               </div>
             )}
             <div className="mt-1 flex items-center justify-between border-t border-paper/10 pt-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
+              <span className="text-xs font-semibold uppercase tracking-widest text-paper/70">
                 {t.event.total}
               </span>
               <span className="text-display text-xl text-soul-orange">
                 {formatPrice(breakdown.totalCents, currency)}
               </span>
             </div>
+            {/* Pflichtangabe: Als Kleinunternehmer nach § 19 UStG wird keine
+                Umsatzsteuer erhoben. "inkl. MwSt." wäre hier falsch und
+                irreführend — deshalb bewusst dieser Hinweis. */}
+            <p className="text-[11px] leading-snug text-paper/60">{t.price.noVat}</p>
           </div>
         </div>
       ) : (
         <div className="mb-6 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-paper/50">
+          <span className="text-xs font-semibold uppercase tracking-widest text-paper/70">
             {selected === "PAID" ? t.events.ticket : t.event.guestlist}
           </span>
           <span className="text-display text-xl text-soul-orange">
@@ -242,7 +246,7 @@ export function TicketPurchasePanel({
 
       {selected === "GUESTLIST" && guestlistTiers.length > 0 && (
         <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">
-          <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/40">
+          <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/60">
             {t.event.tierHeading}
           </p>
           {guestlistTiers.map((tier) => {
@@ -251,7 +255,7 @@ export function TicketPurchasePanel({
               <div
                 key={tier.id}
                 className={`flex items-center justify-between text-sm ${
-                  isActive ? "text-soul-orange" : "text-paper/60"
+                  isActive ? "text-soul-orange" : "text-paper/75"
                 }`}
               >
                 <span>
@@ -274,8 +278,8 @@ export function TicketPurchasePanel({
 
       {isSoldOut ? (
         <div className="rounded-xl border border-paper/15 p-6 text-center">
-          <p className="text-display text-lg uppercase text-paper/60">{t.event.soldOut}</p>
-          <p className="mt-2 text-sm text-paper/40">{t.event.soldOutText}</p>
+          <p className="text-display text-lg uppercase text-paper/75">{t.event.soldOut}</p>
+          <p className="mt-2 text-sm text-paper/60">{t.event.soldOutText}</p>
         </div>
       ) : (
         <TicketAvailabilityGate
@@ -296,7 +300,7 @@ export function TicketPurchasePanel({
             locale={locale}
           />
           {selected === "PAID" && (
-            <p className="mt-4 text-center text-[11px] text-paper/40">
+            <p className="mt-4 text-center text-[11px] text-paper/60">
               {t.event.payNote}
             </p>
           )}

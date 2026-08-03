@@ -155,7 +155,7 @@ export default function AgbPage() {
             </p>
           </section>
 
-          <p className="pt-2 text-xs text-paper/40">Stand: August 2026</p>
+          <p className="pt-2 text-xs text-paper/60">Stand: August 2026</p>
         </div>
       </main>
       <Footer />

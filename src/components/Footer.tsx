@@ -8,10 +8,10 @@ export async function Footer() {
     <footer className="border-t border-paper/10 py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 text-center">
         <p className="text-display text-2xl italic-skew text-paper">SØUL BERLIN</p>
-        <p className="text-xs uppercase tracking-widest text-paper/50">
+        <p className="text-xs uppercase tracking-widest text-paper/70">
           Good people. Good music.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-paper/50">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-paper/70">
           <Link href="/kontakt" className="hover:text-soul-orange">
             {t.footer.contact}
           </Link>
@@ -41,7 +41,7 @@ export async function Footer() {
             {t.footer.whatsapp}
           </a>
         </div>
-        <p className="text-[11px] text-paper/30">
+        <p className="text-[11px] text-paper/50">
           © {new Intl.DateTimeFormat("de-DE", { year: "numeric", timeZone: "Europe/Berlin" }).format(new Date())} SØUL Berlin
         </p>
       </div>

@@ -40,11 +40,11 @@ body {
 }
 
 .input-field {
-  @apply w-full rounded-lg border border-paper/15 bg-paper/5 px-4 py-3 text-paper placeholder:text-paper/40 outline-none transition focus:border-soul-orange focus:ring-1 focus:ring-soul-orange;
+  @apply w-full rounded-lg border border-paper/15 bg-paper/5 px-4 py-3 text-paper placeholder:text-paper/60 outline-none transition focus:border-soul-orange focus:ring-1 focus:ring-soul-orange;
 }
 
 .label-field {
-  @apply mb-2 block text-xs font-semibold uppercase tracking-widest text-paper/60;
+  @apply mb-2 block text-xs font-semibold uppercase tracking-widest text-paper/75;
 }
 
 ::-webkit-scrollbar {

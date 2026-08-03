@@ -117,7 +117,7 @@ export function ContactForm({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
           Angaben enthält, die zum Auffinden des Tickets nötig sind. */}
       {topic === "refund" && (
         <div className="flex flex-col gap-4 rounded-2xl border border-soul-orange/30 bg-soul-orange/5 p-4">
-          <p className="text-xs text-paper/60">
+          <p className="text-xs text-paper/75">
             {t.contact.refundHint}
           </p>
           <div>

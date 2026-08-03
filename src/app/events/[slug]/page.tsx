@@ -96,7 +96,7 @@ export default async function EventDetailPage({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-display text-6xl italic-skew text-paper/20">
+              <div className="flex h-full w-full items-center justify-center text-display text-6xl italic-skew text-paper/40">
                 SØUL
               </div>
             )}
@@ -112,7 +112,7 @@ export default async function EventDetailPage({
             {title}
           </h1>
           {subtitle && <p className="mt-3 text-lg text-paper/70">{subtitle}</p>}
-          <p className="mt-4 text-sm uppercase tracking-widest text-paper/50">
+          <p className="mt-4 text-sm uppercase tracking-widest text-paper/70">
             {event.venue}
             {event.address ? ` · ${event.address}` : ""}
           </p>

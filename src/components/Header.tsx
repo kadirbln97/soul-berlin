@@ -2,12 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "@/lib/serverLocale";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { MobileMenu } from "./MobileMenu";
 
 export async function Header() {
   const { locale, t } = await getTranslations();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-paper/10 bg-ink/80 backdrop-blur">
+    // relative, damit sich das aufgeklappte Handy-Menü darunter aufhängen kann.
+    <header className="sticky top-0 z-40 border-b border-paper/10 bg-ink/80 backdrop-blur relative">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-soul-orange focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
@@ -25,7 +27,8 @@ export async function Header() {
             priority
           />
         </Link>
-        <nav className="flex items-center gap-4 text-xs font-semibold uppercase tracking-widest text-paper/80 sm:gap-6">
+        {/* Ab sm die gewohnte Leiste, darunter das Burger-Menü. */}
+        <nav className="hidden items-center gap-6 text-xs font-semibold uppercase tracking-widest text-paper/80 sm:flex">
           <Link href="/" className="transition hover:text-soul-orange">
             {t.nav.home}
           </Link>
@@ -36,12 +39,23 @@ export async function Header() {
             href="https://www.instagram.com/soulberliin/"
             target="_blank"
             rel="noreferrer noopener"
-            className="hidden transition hover:text-soul-orange sm:inline"
+            className="transition hover:text-soul-orange"
           >
             {t.nav.instagram}
           </a>
           <LanguageSwitcher current={locale} />
         </nav>
+
+        <MobileMenu
+          locale={locale}
+          labels={{
+            home: t.nav.home,
+            events: t.nav.events,
+            instagram: t.nav.instagram,
+            menu: t.nav.menu,
+            close: t.nav.close
+          }}
+        />
       </div>
     </header>
   );

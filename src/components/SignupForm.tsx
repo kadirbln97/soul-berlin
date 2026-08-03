@@ -133,7 +133,7 @@ export function SignupForm({
             ? t.form.submitTicket
             : t.form.submitGuestlist}
       </button>
-      <p className="text-center text-[11px] text-paper/40">
+      <p className="text-center text-[11px] text-paper/60">
         {t.form.consent}{" "}
         <a href="/legal/agb" className="underline hover:text-soul-orange">
           {t.form.terms}
