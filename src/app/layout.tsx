@@ -38,6 +38,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SØUL BERLIN",
     description: "Good people. Good music."
+  },
+  // Bestätigt den Seitenbesitz gegenüber der Google Search Console — nötig,
+  // um die Sitemap einzureichen und die Indexierung aktiv anzustoßen, statt
+  // passiv auf den nächsten Crawl zu warten. Der Wert ist ein öffentlicher
+  // Verifizierungscode, kein Geheimnis.
+  verification: {
+    google: "zxJMKy9TTzLQE39r3DHkF8xyWF_Y6WQZBouQN41vz_4"
   }
 };
 
