@@ -1,7 +1,6 @@
-// Server-Komponente: Karte + Routenplaner-Buttons für die Event-Location.
-// Nutzt die Google-Maps-"output=embed"-URL, die ohne API-Key funktioniert
-// (keine Maps-Embed-API-Kosten/Setup nötig) — reicht für eine einfache
-// Standort-Vorschau völlig aus.
+// Server-Komponente: Routenplaner-Buttons für die Event-Location.
+// Ohne eingebettete Karte — nur die Links zu Google Maps und Apple Maps,
+// die direkt in der jeweiligen App die Route öffnen.
 import { getTranslations } from "@/lib/serverLocale";
 
 export async function LocationMap({ venue, address }: { venue: string; address?: string | null }) {
@@ -12,17 +11,6 @@ export async function LocationMap({ venue, address }: { venue: string; address?:
   return (
     <div className="mt-8 flex flex-col gap-3">
       <p className="text-xs font-semibold uppercase tracking-widest text-paper/70">{t.event.location}</p>
-      <div className="overflow-hidden rounded-xl border border-paper/10">
-        <iframe
-          title={`Karte: ${venue}`}
-          src={`https://www.google.com/maps?q=${encoded}&output=embed`}
-          width="100%"
-          height="220"
-          style={{ border: 0 }}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </div>
       <div className="flex flex-wrap gap-3">
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${encoded}`}
