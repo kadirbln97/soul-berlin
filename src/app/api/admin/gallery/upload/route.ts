@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { getAdminSession } from "@/lib/authGuard";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { safeOptimizeImage, shouldOptimize } from "@/lib/optimizeImage";
 
 // Eigene Upload-Route für die Galerie (statt die Event-Cover-Route
 // mitzubenutzen), weil hier zusätzlich Videos + größere Dateien erlaubt sein
@@ -60,12 +61,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const ext = file.type.split("/")[1] ?? "bin";
+  // Wie bei der Event-Cover-Route: statische Fotos (auch das Hero-Bild aus
+  // dem Startseiten-Baukasten läuft über diese Route) werden vor dem
+  // Speichern verkleinert/re-encodet. Videos und animierte GIFs unverändert.
+  const optimized = isImage && shouldOptimize(file.type) ? await safeOptimizeImage(file) : null;
+  const body = optimized?.buffer ?? file;
+  const contentType = optimized?.contentType ?? file.type;
+  const ext = optimized?.ext ?? file.type.split("/")[1] ?? "bin";
   const filename = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-  const blob = await put(filename, file, {
+  const blob = await put(filename, body, {
     access: "public",
-    contentType: file.type
+    contentType
   });
 
   return NextResponse.json({ ok: true, url: blob.url });

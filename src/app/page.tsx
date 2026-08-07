@@ -43,6 +43,10 @@ export default async function HomePage() {
             fill
             priority
             sizes="100vw"
+            // 70 statt der Standard-75: der dreifache Verlauf oben verdeckt
+            // ohnehin einen Großteil der Details, der Unterschied ist im
+            // fertigen Bild nicht zu sehen, spart aber zusätzlich Bytes.
+            quality={70}
             unoptimized={content.hero_image.startsWith("http")}
             className="object-cover object-[64%_30%] sm:object-[68%_22%]"
           />
