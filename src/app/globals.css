@@ -158,6 +158,25 @@ body {
     transform: none;
     transition-property: opacity, display;
   }
+
+  /* Fünf Balken, die im Takt hoch- und runterspringen, sind genau die Art
+     Bewegung, die bei Vestibularstörungen unangenehm auffällt. Statt sie
+     ganz abzuschalten (dann wirkt die Seite wieder eingefroren) wird daraus
+     ein sanftes, synchrones Auf- und Abblenden ganz ohne Skalierung. */
+  .loading-bar {
+    animation-name: soul-fade;
+    transform: scaleY(0.7);
+  }
+}
+
+@keyframes soul-fade {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* min-w-0 ist hier kein Detail, sondern der Kern: Datums- und Zahlenfelder
@@ -170,6 +189,27 @@ body {
 
 .label-field {
   @apply mb-2 block text-xs font-semibold uppercase tracking-widest text-paper/75;
+}
+
+/* Equalizer-Balken für die Ladeanzeige (loading.tsx auf Start-, Events- und
+   Eventdetailseite). Fünf Balken, per animation-delay inline versetzt —
+   wirkt wie eine Musik-Pegelanzeige statt eines generischen Spinners und
+   verhindert, dass der Bildschirm während des Serverrenderns eingefroren
+   wirkt. scaleY statt height, damit nur transform animiert wird (GPU,
+   kein Layout-Reflow bei fünf gleichzeitig laufenden Animationen). */
+@keyframes eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.loading-bar {
+  transform-origin: bottom;
+  animation: eq-bounce 0.9s ease-in-out infinite;
 }
 
 ::-webkit-scrollbar {
