@@ -85,12 +85,21 @@ export async function createTicketAndSendEmail(params: {
   return ticket;
 }
 
-/** Wie viele gültige (nicht stornierte/erstattete) Tickets ein Event schon hat. */
+/**
+ * Wie viele Personen ein Event schon auf der Liste hat (nicht stornierte/
+ * erstattete Einträge). Bewusst die Summe der partySize statt der Zeilenzahl:
+ * ein manueller Eintrag "Max Mustermann +2" belegt drei Plätze, nicht einen —
+ * sonst wäre die Kapazitätsgrenze faktisch wirkungslos, sobald Promoter mit
+ * Begleitungen arbeiten.
+ */
 export async function countActiveTickets(eventId: string) {
-  return prisma.ticket.count({
+  const result = await prisma.ticket.aggregate({
     where: {
       eventId,
       status: { in: ["VALID", "CHECKED_IN"] }
-    }
+    },
+    _sum: { partySize: true }
   });
+
+  return result._sum.partySize ?? 0;
 }

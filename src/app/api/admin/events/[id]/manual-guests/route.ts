@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { manualGuestsSchema } from "@/lib/validation";
+import { parseGuestLines, countPeople } from "@/lib/parseGuestLine";
 
 const MAX_NAMES_PER_REQUEST = 500;
 
 /**
  * Trägt Gäste manuell auf die Gästeliste ein — gedacht für Namenslisten, die
  * Promoter per Nachricht schicken. Ein Name pro Zeile.
+ *
+ * Begleitpersonen dürfen wie gewohnt hinter den Namen geschrieben werden
+ * ("Max Mustermann +2"): daraus wird ein Eintrag, der an der Tür mit einem
+ * Klick für die ganze Gruppe eingecheckt wird und in allen Zählungen mit
+ * drei Personen statt mit einer zu Buche schlägt.
  *
  * Diese Gäste bekommen bewusst keine E-Mail und keinen QR-Code: sie werden an
  * der Tür über die Namenssuche im Scanner eingecheckt.
@@ -33,20 +39,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Event nicht gefunden" }, { status: 404 });
   }
 
-  const names = parsed.data.names
-    .split(/\r?\n/)
-    // Häufige Listenzeichen aus kopierten Notizen entfernen ("- Max", "1. Max").
-    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim())
-    .filter((line) => line.length >= 2);
+  const guests = parseGuestLines(parsed.data.names);
 
-  if (names.length === 0) {
+  if (guests.length === 0) {
     return NextResponse.json(
       { error: "Keine verwertbaren Namen gefunden (mindestens 2 Zeichen pro Zeile)." },
       { status: 400 }
     );
   }
 
-  if (names.length > MAX_NAMES_PER_REQUEST) {
+  if (guests.length > MAX_NAMES_PER_REQUEST) {
     return NextResponse.json(
       { error: `Bitte höchstens ${MAX_NAMES_PER_REQUEST} Namen auf einmal einfügen.` },
       { status: 400 }
@@ -57,9 +59,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const tierLabel = parsed.data.tierLabel?.trim() || null;
 
   await prisma.ticket.createMany({
-    data: names.map((name) => ({
+    data: guests.map((guest) => ({
       eventId: event.id,
-      name: name.slice(0, 100),
+      name: guest.name.slice(0, 100),
+      partySize: guest.partySize,
       email: "",
       isManual: true,
       promoterName,
@@ -69,5 +72,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }))
   });
 
-  return NextResponse.json({ ok: true, added: names.length });
+  // added = Zeilen, people = tatsächliche Personenzahl inklusive Begleitung.
+  // Beides zurückgeben, damit die Rückmeldung im Admin ehrlich zeigt, was
+  // gerade auf der Liste gelandet ist ("4 Einträge · 9 Gäste").
+  return NextResponse.json({
+    ok: true,
+    added: guests.length,
+    people: countPeople(guests)
+  });
 }

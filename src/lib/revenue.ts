@@ -14,7 +14,7 @@ import { prisma } from "./prisma";
  * Zahlungsdienstleister hängen geblieben ist.
  */
 export type RevenueSummary = {
-  /** Anzahl bezahlter, gültiger Tickets. */
+  /** Anzahl Personen mit bezahltem, gültigem Ticket. */
   paidCount: number;
   /** Summe der Ticketpreise ohne Servicegebühr (nur gültige Tickets). */
   ticketCents: number;
@@ -27,7 +27,10 @@ export type RevenueSummary = {
   /** Summe der zurückerstatteten Beträge (Ticket + Gebühr). */
   refundedCents: number;
 
-  /** Alle gültigen Anmeldungen: Ticketkäufe + Gästeliste. */
+  /**
+   * Alle gültigen Anmeldungen als Personenzahl: Ticketkäufe + Gästeliste,
+   * inklusive der Begleitung manueller Einträge ("Max +2" zählt als 3).
+   */
   signupCount: number;
   /** Davon Gästeliste (nicht online bezahlt, Zahlung an der Abendkasse). */
   guestlistCount: number;
@@ -53,6 +56,7 @@ type TicketRow = {
   status: string;
   stripeSessionId: string | null;
   isManual: boolean;
+  partySize: number;
 };
 
 const TICKET_FIELDS = {
@@ -60,7 +64,8 @@ const TICKET_FIELDS = {
   feeCents: true,
   status: true,
   stripeSessionId: true,
-  isManual: true
+  isManual: true,
+  partySize: true
 } as const;
 
 function summarize(tickets: TicketRow[]): RevenueSummary {
@@ -83,12 +88,16 @@ function summarize(tickets: TicketRow[]): RevenueSummary {
         : acc;
     }
 
-    const withSignup = { ...acc, signupCount: acc.signupCount + 1 };
+    // Personen statt Zeilen: hinter einem manuellen Eintrag "Max +2" stehen
+    // drei Gäste, die auch zu dritt an der Tür stehen. Online-Käufe legen pro
+    // Ticket eine eigene Zeile mit partySize 1 an — dort ändert sich nichts.
+    const people = t.partySize;
+    const withSignup = { ...acc, signupCount: acc.signupCount + people };
 
     if (isPaid) {
       return {
         ...withSignup,
-        paidCount: withSignup.paidCount + 1,
+        paidCount: withSignup.paidCount + people,
         ticketCents: withSignup.ticketCents + amount,
         feeCents: withSignup.feeCents + fee,
         grossCents: withSignup.grossCents + amount + fee
@@ -97,8 +106,8 @@ function summarize(tickets: TicketRow[]): RevenueSummary {
 
     return {
       ...withSignup,
-      guestlistCount: withSignup.guestlistCount + 1,
-      manualCount: withSignup.manualCount + (t.isManual ? 1 : 0)
+      guestlistCount: withSignup.guestlistCount + people,
+      manualCount: withSignup.manualCount + (t.isManual ? people : 0)
     };
   }, EMPTY);
 }

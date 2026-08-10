@@ -38,6 +38,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       amountCents: true,
       currency: true,
       isManual: true,
+      // Die Tür muss sehen, für wie viele Personen der Eintrag gilt —
+      // sonst wird bei "Max Mustermann +2" nur einer durchgelassen.
+      partySize: true,
       promoterName: true,
       checkedInAt: true,
       stripeSessionId: true

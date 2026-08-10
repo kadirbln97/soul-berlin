@@ -12,6 +12,8 @@ type Guest = {
   amountCents: number | null;
   currency: string;
   isManual: boolean;
+  /** Gast plus Begleitung — bei "Max Mustermann +2" also 3. */
+  partySize: number;
   promoterName: string | null;
   checkedInAt: string | null;
   ticketType: "PAID_ONLINE" | "GUESTLIST";
@@ -129,9 +131,19 @@ export function GuestSearch({
             return (
               <li key={g.id} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm text-paper">{g.name}</p>
+                  <p className="flex items-center gap-2 text-sm text-paper">
+                    <span className="truncate">{g.name}</span>
+                    {/* Deutlich sichtbar statt nur als Randnotiz: an der Tür
+                        entscheidet diese Zahl, wie viele Leute reindürfen. */}
+                    {g.partySize > 1 && (
+                      <span className="shrink-0 rounded-full bg-soul-orange/20 px-2 py-0.5 text-[11px] font-bold text-soul-orange">
+                        {g.partySize} Pers.
+                      </span>
+                    )}
+                  </p>
                   <p className="text-[11px] text-paper/40">
                     {g.ticketType === "PAID_ONLINE" ? "Ticket · bezahlt" : "Gästeliste"}
+                    {g.partySize > 1 ? ` · inkl. ${g.partySize - 1} Begleitung` : ""}
                     {g.tierLabel ? ` · ${g.tierLabel}` : ""}
                     {g.promoterName ? ` · via ${g.promoterName}` : ""}
                     {g.ticketType === "GUESTLIST" && g.amountCents
@@ -146,7 +158,7 @@ export function GuestSearch({
                   </span>
                 ) : isCheckedIn ? (
                   <span className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-green-400">
-                    Eingecheckt ✓
+                    {g.partySize > 1 ? `${g.partySize} eingecheckt ✓` : "Eingecheckt ✓"}
                   </span>
                 ) : (
                   <button
@@ -155,7 +167,11 @@ export function GuestSearch({
                     disabled={busyId === g.id}
                     className="shrink-0 rounded-full bg-soul-orange px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ink hover:opacity-90 disabled:opacity-40"
                   >
-                    {busyId === g.id ? "…" : "Einchecken"}
+                    {busyId === g.id
+                      ? "…"
+                      : g.partySize > 1
+                        ? `${g.partySize} einchecken`
+                        : "Einchecken"}
                   </button>
                 )}
               </li>

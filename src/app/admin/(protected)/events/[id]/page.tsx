@@ -151,6 +151,7 @@ export default async function AdminEventDetailPage({
             tierLabel: t.tierLabel,
             currency: t.currency,
             isPaidOnline: Boolean(t.stripePaymentIntentId),
+            partySize: t.partySize,
             checkedInAt: t.checkedInAt ? t.checkedInAt.toISOString() : null,
             createdAt: t.createdAt.toISOString()
           }))}

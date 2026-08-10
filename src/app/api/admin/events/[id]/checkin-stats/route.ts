@@ -6,6 +6,9 @@ import { getAdminSession } from "@/lib/authGuard";
  * Liefert Check-in-Statistiken für ein Event: Gesamtzahl + wie viele bereits
  * eingecheckt sind, aufgeschlüsselt nach Preisstaffel-Kategorie (Early Bird,
  * Regular, ...). Wird vom Scanner für die Live-Statusanzeige gepollt.
+ *
+ * Gezählt werden Personen, nicht Listeneinträge: hinter "Max Mustermann +2"
+ * stehen drei Gäste, die auch zu dritt durch die Tür gehen.
  */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,11 +25,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   // Nur gültige/eingecheckte Tickets zählen — stornierte/erstattete raus.
   const tickets = await prisma.ticket.findMany({
     where: { eventId: event.id, status: { in: ["VALID", "CHECKED_IN"] } },
-    select: { status: true, tierLabel: true }
+    select: { status: true, tierLabel: true, partySize: true }
   });
 
-  const total = tickets.length;
-  const checkedIn = tickets.filter((t) => t.status === "CHECKED_IN").length;
+  const total = tickets.reduce((sum, t) => sum + t.partySize, 0);
+  const checkedIn = tickets
+    .filter((t) => t.status === "CHECKED_IN")
+    .reduce((sum, t) => sum + t.partySize, 0);
 
   const byTierMap = new Map<string, { label: string; total: number; checkedIn: number }>();
   for (const t of tickets) {
@@ -36,8 +41,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       byTierMap.set(key, { label, total: 0, checkedIn: 0 });
     }
     const entry = byTierMap.get(key)!;
-    entry.total += 1;
-    if (t.status === "CHECKED_IN") entry.checkedIn += 1;
+    entry.total += t.partySize;
+    if (t.status === "CHECKED_IN") entry.checkedIn += t.partySize;
   }
 
   return NextResponse.json({

@@ -16,6 +16,8 @@ type Ticket = {
   // War es eine echte Online-Zahlung über Stripe? (im Unterschied zu einem
   // informativen Abendkassen-Preis bei gestaffelten Gästelisten)
   isPaidOnline: boolean;
+  /** Gast plus Begleitung — bei "Max Mustermann +2" also 3. */
+  partySize: number;
   checkedInAt: string | null;
   createdAt: string;
 };
@@ -116,7 +118,16 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
           <tbody>
             {tickets.map((ticket) => (
               <tr key={ticket.id} className="border-t border-paper/10">
-                <td className="px-5 py-4 font-medium text-paper">{ticket.name}</td>
+                <td className="px-5 py-4 font-medium text-paper">
+                  <span className="flex items-center gap-2">
+                    {ticket.name}
+                    {ticket.partySize > 1 && (
+                      <span className="shrink-0 rounded-full bg-soul-orange/20 px-2 py-0.5 text-[11px] font-bold text-soul-orange">
+                        {ticket.partySize} Pers.
+                      </span>
+                    )}
+                  </span>
+                </td>
                 <td className="px-5 py-4 text-paper/60">
                   {ticket.email}
                   {ticket.phone ? ` · ${ticket.phone}` : ""}

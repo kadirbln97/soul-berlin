@@ -44,6 +44,9 @@ export async function GET(
 
   sheet.columns = [
     { header: "Name", key: "name", width: 26 },
+    // Direkt hinter dem Namen: die Tür-Crew liest die Liste von links nach
+    // rechts und muss sofort sehen, für wie viele Personen der Eintrag gilt.
+    { header: "Personen", key: "partySize", width: 10 },
     { header: "E-Mail", key: "email", width: 30 },
     { header: "Telefon", key: "phone", width: 18 },
     { header: "Kategorie", key: "tierLabel", width: 18 },
@@ -71,6 +74,7 @@ export async function GET(
   for (const t of tickets) {
     sheet.addRow({
       name: t.name,
+      partySize: t.partySize,
       email: t.email,
       phone: t.phone ?? "",
       tierLabel: t.tierLabel ?? "",

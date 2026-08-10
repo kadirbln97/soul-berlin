@@ -190,6 +190,15 @@ model Ticket {
   // Namenssuche eingecheckt.
   isManual    Boolean  @default(false)
 
+  // Wie viele Personen hinter diesem Eintrag stehen — der Gast selbst plus
+  // seine Begleitung. Promoter schreiben ihre Listen als "Max Mustermann +2";
+  // daraus wird ein Eintrag mit partySize 3. Beim Einchecken an der Tür wird
+  // die ganze Gruppe auf einmal eingecheckt, und alle Zählungen (Kapazität,
+  // Check-in-Statistik, Anmeldezahlen) rechnen mit Personen statt mit Zeilen.
+  // 1 bei allen anderen Tickets: Online-Käufe legen pro Ticket eine eigene
+  // Zeile an, dort steht die Stückzahl also schon in der Zeilenzahl.
+  partySize   Int      @default(1)
+
   // Von welchem Promoter der Eintrag stammt — für die Auswertung, wer wie
   // viele Gäste gebracht hat.
   promoterName String?
