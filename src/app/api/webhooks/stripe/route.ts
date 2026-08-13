@@ -88,6 +88,11 @@ export async function POST(req: Request) {
         feeCents: perTicket(feeCents, i),
         discountCents: discountCents > 0 ? perTicket(discountCents, i) : null,
         discountCode,
+        // Phase und ihr Name kommen aus den Metadaten der Checkout-Session,
+        // die serverseitig gesetzt wurden. tierLabel bleibt als Snapshot
+        // erhalten, falls die Phase später umbenannt oder gelöscht wird.
+        phaseId: session.metadata?.phaseId || null,
+        tierLabel: session.metadata?.phaseLabel || null,
         locale: session.metadata?.locale || undefined,
         stripeSessionId: session.id,
         stripePaymentIntentId:

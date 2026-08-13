@@ -6,6 +6,7 @@ import { countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { calculatePriceBreakdown, describeDiscount } from "@/lib/discount";
 import { resolveDiscount } from "@/lib/resolveDiscount";
+import { loadResolvedPhases } from "@/lib/loadTicketPhases";
 import { getLocale } from "@/lib/serverLocale";
 
 export async function POST(req: Request) {
@@ -68,6 +69,33 @@ export async function POST(req: Request) {
     }
   }
 
+  // Verkaufsphasen: die aktive Phase bestimmt den Preis und ihr Restkontingent
+  // die Stückzahl. Alles serverseitig — der Browser schickt nur die Menge, nie
+  // einen Preis oder eine Phase.
+  const phases = await loadResolvedPhases(event.id);
+  const activePhase = phases.find((p) => p.status === "ACTIVE") ?? null;
+
+  if (phases.length > 0 && !activePhase) {
+    return NextResponse.json(
+      { error: "Der Ticketverkauf für dieses Event ist abgeschlossen." },
+      { status: 409 }
+    );
+  }
+
+  if (activePhase && activePhase.remaining !== null && quantity > activePhase.remaining) {
+    return NextResponse.json(
+      {
+        error:
+          activePhase.remaining === 0
+            ? "Diese Ticketphase ist leider ausverkauft."
+            : `In der Phase „${activePhase.label}“ sind nur noch ${activePhase.remaining} Tickets verfügbar.`
+      },
+      { status: 409 }
+    );
+  }
+
+  const unitPriceCents = activePhase ? activePhase.priceCents : event.priceCents;
+
   // Rabatt serverseitig auflösen — der vom Browser geschickte Preis wird
   // bewusst nie übernommen, sonst könnte man sich den Preis selbst setzen.
   const { discount, codeInvalid } = await resolveDiscount(event.id, parsed.data.discountCode);
@@ -78,7 +106,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const breakdown = calculatePriceBreakdown(event.priceCents, quantity, discount?.rule ?? null);
+  const breakdown = calculatePriceBreakdown(unitPriceCents, quantity, discount?.rule ?? null);
 
   if (breakdown.totalCents <= 0) {
     return NextResponse.json(
@@ -164,6 +192,10 @@ export async function POST(req: Request) {
       discountCents: String(breakdown.discountCents),
       discountId: discount?.id ?? "",
       discountCode: discount?.rule.code ?? "",
+      // Phase mitgeben, damit der Webhook das Ticket der richtigen Phase
+      // zuordnen kann — sonst stimmt das Restkontingent nicht mehr.
+      phaseId: activePhase?.id ?? "",
+      phaseLabel: activePhase?.label ?? "",
       locale: await getLocale()
     },
     success_url: `${appUrl}/events/${event.slug}/success?session_id={CHECKOUT_SESSION_ID}`,

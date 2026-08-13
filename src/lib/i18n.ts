@@ -68,6 +68,16 @@ type Dict = {
     spotsLeft: string;
     soldOut: string;
     soldOutText: string;
+    /** Überschrift über der Liste der Ticketphasen. */
+    phaseHeading: string;
+    /** Badge auf einer ausverkauften Phase. */
+    phaseSoldOut: string;
+    /** Badge auf der gerade laufenden Phase. */
+    phaseActive: string;
+    /** Restmenge in der laufenden Phase. */
+    phaseRemaining: string;
+    /** Hinweis, wenn alle Phasen durch sind. */
+    boxOfficeHint: string;
     salesEndsIn: string;
     signupEndsIn: string;
     almostOver: string;
@@ -207,6 +217,12 @@ const de: Dict = {
     spotsLeft: "Nur noch {n} Plätze",
     soldOut: "Sold out",
     soldOutText: "Dieses Event ist leider ausgebucht.",
+    phaseHeading: "Ticketphasen",
+    phaseSoldOut: "Sold out",
+    phaseActive: "Jetzt gültig",
+    phaseRemaining: "nur noch {n}",
+    boxOfficeHint:
+      "Der Online-Vorverkauf ist beendet. An der Abendkasse gibt es noch ein limitiertes Restkontingent — komm früh, es gilt solange der Vorrat reicht.",
     salesEndsIn: "Ticketverkauf endet in",
     signupEndsIn: "Anmeldung schließt in",
     almostOver: "Nur noch kurz",
@@ -350,6 +366,12 @@ const en: Dict = {
     spotsLeft: "Only {n} spots left",
     soldOut: "Sold out",
     soldOutText: "This event is fully booked.",
+    phaseHeading: "Ticket phases",
+    phaseSoldOut: "Sold out",
+    phaseActive: "On sale now",
+    phaseRemaining: "only {n} left",
+    boxOfficeHint:
+      "Online pre-sale has ended. A limited number of tickets is still available at the door — come early, while stocks last.",
     salesEndsIn: "Ticket sales end in",
     signupEndsIn: "Sign-up closes in",
     almostOver: "Almost over",

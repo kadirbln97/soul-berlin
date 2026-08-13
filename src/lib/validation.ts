@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TICKET_MODES, EVENT_STATUS } from "./constants";
+import { MAX_TICKET_PHASES } from "./ticketPhases";
 
 export const MAX_TICKETS_PER_ORDER = 5;
 
@@ -54,6 +55,24 @@ export const guestlistTierSchema = z.object({
   label: z.string().trim().max(60).optional().nullable()
 });
 
+/**
+ * Eine Verkaufsphase für bezahlte Online-Tickets. Die id wird bei bestehenden
+ * Phasen mitgeschickt, damit sie beim Speichern aktualisiert statt neu
+ * angelegt werden — sonst verlören die bereits verkauften Tickets ihre
+ * Zuordnung und das Restkontingent würde zurückspringen.
+ */
+export const ticketPhaseSchema = z.object({
+  id: z.string().trim().max(40).optional().nullable(),
+  label: z.string().trim().min(1, "Bitte der Phase einen Namen geben").max(60),
+  priceCents: z.coerce.number().int().min(0).max(500_000),
+  // Null = unbegrenztes Kontingent (Phase endet dann über Zeit oder von Hand).
+  quantity: z.coerce.number().int().min(1).max(20_000).optional().nullable(),
+  // Leer = kein Zeitlimit.
+  untilTime: z.string().optional().nullable(),
+  // Manuell vorzeitig auf ausverkauft setzen.
+  isSoldOut: z.boolean().optional()
+});
+
 export const eventSchema = z.object({
   title: z.string().trim().min(2).max(120),
   subtitle: z.string().trim().max(160).optional().or(z.literal("")),
@@ -81,7 +100,9 @@ export const eventSchema = z.object({
   status: z.enum(EVENT_STATUS),
   // Bis zu 3 zeitbasierte Preis-Staffeln für die Gästeliste (informativ,
   // Zahlung an der Abendkasse — nur relevant bei ticketMode = GUESTLIST).
-  guestlistTiers: z.array(guestlistTierSchema).max(3).optional()
+  guestlistTiers: z.array(guestlistTierSchema).max(3).optional(),
+  // Verkaufsphasen für bezahlte Online-Tickets (nur bei ticketMode PAID/BOTH).
+  ticketPhases: z.array(ticketPhaseSchema).max(MAX_TICKET_PHASES).optional()
 });
 
 export const galleryItemSchema = z.object({

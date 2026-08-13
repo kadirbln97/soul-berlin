@@ -9,6 +9,17 @@ type GuestlistTierInitial = {
   label?: string | null;
 };
 
+type TicketPhaseInitial = {
+  id: string;
+  label: string;
+  priceCents: number;
+  quantity: number | null;
+  untilTime: string | null;
+  isSoldOut: boolean;
+  /** Schon verkaufte Tickets dieser Phase — reine Anzeige im Admin. */
+  soldCount?: number;
+};
+
 type EventInitial = {
   id: string;
   title: string;
@@ -29,6 +40,7 @@ type EventInitial = {
   ticketSalesEndAt: string | null;
   status: string;
   guestlistTiers?: GuestlistTierInitial[];
+  ticketPhases?: TicketPhaseInitial[];
 };
 
 type TierRow = {
@@ -37,7 +49,19 @@ type TierRow = {
   label: string;
 };
 
+type PhaseRow = {
+  /** Leer bei neu angelegten Phasen — bestehende behalten ihre Id. */
+  id: string | null;
+  label: string;
+  priceEuro: string;
+  quantity: string;
+  untilTime: string; // datetime-local Format
+  isSoldOut: boolean;
+  soldCount: number;
+};
+
 const MAX_TIERS = 3;
+const MAX_PHASES = 5;
 
 function toLocalInputValue(iso?: string | null) {
   if (!iso) return "";
@@ -80,6 +104,18 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       untilTime: toLocalInputValue(t.untilTime),
       priceEuro: (t.priceCents / 100).toString(),
       label: t.label ?? ""
+    }))
+  );
+
+  const [phases, setPhases] = useState<PhaseRow[]>(
+    (initial?.ticketPhases ?? []).map((p) => ({
+      id: p.id,
+      label: p.label,
+      priceEuro: (p.priceCents / 100).toString(),
+      quantity: p.quantity !== null ? String(p.quantity) : "",
+      untilTime: toLocalInputValue(p.untilTime),
+      isSoldOut: p.isSoldOut,
+      soldCount: p.soldCount ?? 0
     }))
   );
 
@@ -136,6 +172,42 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     setTiers(tiers.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
   }
 
+  function addPhase() {
+    if (phases.length >= MAX_PHASES) return;
+    setPhases([
+      ...phases,
+      {
+        id: null,
+        label: `Phase ${phases.length + 1}`,
+        priceEuro: "",
+        quantity: "",
+        untilTime: "",
+        isSoldOut: false,
+        soldCount: 0
+      }
+    ]);
+  }
+
+  function removePhase(index: number) {
+    const phase = phases[index];
+    // Warnen statt stillschweigend löschen: an einer Phase mit Verkäufen
+    // hängen echte Tickets. Die bleiben zwar bestehen, zählen danach aber
+    // keinem Kontingent mehr zu.
+    if (
+      phase.soldCount > 0 &&
+      !window.confirm(
+        `In der Phase „${phase.label}“ sind bereits ${phase.soldCount} Tickets verkauft.\n\nDie Tickets bleiben gültig, verlieren aber ihre Zuordnung zu dieser Phase. Trotzdem entfernen?`
+      )
+    ) {
+      return;
+    }
+    setPhases(phases.filter((_, i) => i !== index));
+  }
+
+  function updatePhase<K extends keyof PhaseRow>(index: number, field: K, value: PhaseRow[K]) {
+    setPhases(phases.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -149,11 +221,26 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       }));
 
     const usesGuestlist = ticketMode === "GUESTLIST" || ticketMode === "BOTH";
+    const usesTickets = ticketMode === "PAID" || ticketMode === "BOTH";
 
     if (usesGuestlist && tiers.length > 0 && tiersPayload.length !== tiers.length) {
       setError("Bitte bei jeder Preisstaffel Uhrzeit und Preis ausfüllen (oder die Zeile entfernen).");
       return;
     }
+
+    if (usesTickets && phases.some((p) => !p.label.trim() || p.priceEuro === "")) {
+      setError("Bitte bei jeder Ticketphase einen Namen und einen Preis angeben (oder die Zeile entfernen).");
+      return;
+    }
+
+    const phasesPayload = phases.map((p) => ({
+      id: p.id,
+      label: p.label.trim(),
+      priceCents: Math.round(parseFloat(p.priceEuro) * 100),
+      quantity: p.quantity ? parseInt(p.quantity, 10) : null,
+      untilTime: p.untilTime ? new Date(p.untilTime).toISOString() : null,
+      isSoldOut: p.isSoldOut
+    }));
 
     setLoading(true);
 
@@ -177,7 +264,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       capacity: capacity ? parseInt(capacity, 10) : undefined,
       ticketSalesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : "",
       status,
-      guestlistTiers: usesGuestlist ? tiersPayload : []
+      guestlistTiers: usesGuestlist ? tiersPayload : [],
+      ticketPhases: usesTickets ? phasesPayload : []
     };
 
     try {
@@ -463,6 +551,116 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             Gäste sehen bis dahin einen Countdown auf der Event-Seite. Leer lassen für kein Limit.
           </p>
         </div>
+
+        {(ticketMode === "PAID" || ticketMode === "BOTH") && (
+          <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <label className="label-field mb-0">
+                  Ticketphasen (optional, max. {MAX_PHASES})
+                </label>
+                <p className="mt-1 text-[11px] text-paper/40">
+                  Ohne Phasen gilt durchgehend der Ticketpreis oben. Mit Phasen verkaufst du
+                  gestaffelt: „Phase 1: 20 Stück à 10 €“, danach automatisch die nächste.
+                  Eine Phase endet, sobald das Kontingent voll ist, die Uhrzeit erreicht ist
+                  oder du den Schalter „Ausverkauft“ setzt.
+                </p>
+              </div>
+            </div>
+
+            {phases.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {phases.map((phase, i) => (
+                  <div
+                    key={phase.id ?? `neu-${i}`}
+                    className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[minmax(0,1.2fr)_100px_100px_minmax(0,1fr)_auto] sm:items-end"
+                  >
+                    <div>
+                      <label className="label-field text-[10px]">Name der Phase</label>
+                      <input
+                        value={phase.label}
+                        onChange={(e) => updatePhase(i, "label", e.target.value)}
+                        className="input-field"
+                        placeholder="Early Bird"
+                      />
+                    </div>
+                    <div>
+                      <label className="label-field text-[10px]">Preis (€)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={phase.priceEuro}
+                        onChange={(e) => updatePhase(i, "priceEuro", e.target.value)}
+                        className="input-field"
+                        placeholder="10.00"
+                      />
+                    </div>
+                    <div>
+                      <label className="label-field text-[10px]">Stückzahl</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={phase.quantity}
+                        onChange={(e) => updatePhase(i, "quantity", e.target.value)}
+                        className="input-field"
+                        placeholder="∞"
+                      />
+                    </div>
+                    <div>
+                      <label className="label-field text-[10px]">Endet am (optional)</label>
+                      <input
+                        type="datetime-local"
+                        value={phase.untilTime}
+                        onChange={(e) => updatePhase(i, "untilTime", e.target.value)}
+                        className="input-field"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removePhase(i)}
+                      className="justify-self-start text-xs uppercase tracking-widest text-paper/40 hover:text-red-400 sm:pb-3"
+                    >
+                      Entfernen
+                    </button>
+
+                    {/* Eigene Zeile: der Schalter ist die Funktion, wegen der
+                        die Phasen überhaupt existieren — vorzeitig dichtmachen,
+                        ohne auf das Kontingent zu warten. */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-5">
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-paper/75">
+                        <input
+                          type="checkbox"
+                          checked={phase.isSoldOut}
+                          onChange={(e) => updatePhase(i, "isSoldOut", e.target.checked)}
+                          className="h-4 w-4 accent-soul-orange"
+                        />
+                        Ausverkauft (schließt die Phase sofort)
+                      </label>
+                      <span className="text-[11px] text-paper/40">
+                        {phase.soldCount > 0
+                          ? `${phase.soldCount} verkauft${
+                              phase.quantity ? ` von ${phase.quantity}` : ""
+                            }`
+                          : "noch nichts verkauft"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {phases.length < MAX_PHASES && (
+              <button
+                type="button"
+                onClick={addPhase}
+                className="mt-3 text-xs font-semibold uppercase tracking-widest text-soul-orange hover:opacity-80"
+              >
+                + Phase hinzufügen
+              </button>
+            )}
+          </div>
+        )}
 
         {(ticketMode === "GUESTLIST" || ticketMode === "BOTH") && (
           <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">

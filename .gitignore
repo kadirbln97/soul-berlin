@@ -9,3 +9,6 @@ prisma/dev.db
 prisma/dev.db-journal
 .DS_Store
 tsconfig.tsbuildinfo
+
+# Von Next.js/tsc erzeugt, verweist auf .next/ und gehoert nicht ins Repo
+next-env.d.ts

@@ -63,7 +63,53 @@ model Event {
 
   tickets         Ticket[]
   guestlistTiers  GuestlistTier[]
+  ticketPhases    TicketPhase[]
   discounts       Discount[]
+}
+
+// Verkaufsphasen für bezahlte Online-Tickets ("Phase 1: 20 Stück à 10 €,
+// danach Phase 2 à 15 €"). Anders als die zeitbasierten GuestlistTier sind
+// das echte Kontingente: die Phase bestimmt den Preis, der tatsächlich über
+// Stripe kassiert wird.
+//
+// Eine Phase gilt als geschlossen, sobald EINE der drei Bedingungen zutrifft:
+//   1. quantity ist erreicht (ausverkauft),
+//   2. untilTime liegt in der Vergangenheit (Zeitfenster vorbei),
+//   3. isSoldOut wurde im Admin von Hand gesetzt (vorzeitig schließen).
+// Aktiv ist immer die erste noch offene Phase in der Reihenfolge (order).
+// Ohne Phasen bleibt alles wie bisher: Event.priceCents gilt als einziger Preis.
+model TicketPhase {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Anzeigename der Phase ("Early Bird", "Phase 1", "Last Call").
+  label      String
+
+  // Preis dieser Phase in Cent — ersetzt Event.priceCents, solange sie aktiv ist.
+  priceCents Int
+
+  // Kontingent dieser Phase. Null = unbegrenzt (dann endet die Phase nur über
+  // Zeit oder den manuellen Schalter).
+  quantity   Int?
+
+  // Optionaler Zeitpunkt, an dem die Phase automatisch endet. Null = kein
+  // Zeitlimit.
+  untilTime  DateTime?
+
+  // Manuell im Admin gesetzt: Phase sofort als ausverkauft behandeln, auch
+  // wenn das Kontingent noch nicht aufgebraucht ist. Genau dafür gedacht,
+  // früher als geplant auf die nächste Phase umzuschalten.
+  isSoldOut  Boolean  @default(false)
+
+  // Reihenfolge der Phasen (0 = erste/günstigste).
+  order      Int      @default(0)
+
+  createdAt  DateTime @default(now())
+
+  tickets    Ticket[]
+
+  @@index([eventId])
 }
 
 // Rabatt-Aktion für ein Event. Entweder als Gutscheincode (Gast tippt ihn im
@@ -231,6 +277,13 @@ model Ticket {
   // Null bei Events ohne Staffeln oder bei älteren Tickets vor diesem Feature.
   tierLabel   String?
 
+  // In welcher Verkaufsphase dieses Ticket gekauft wurde. Grundlage dafür,
+  // wie viele Stück einer Phase schon weg sind. Bewusst SetNull statt Cascade:
+  // wird eine Phase im Admin gelöscht, sollen die verkauften Tickets erhalten
+  // bleiben — sie zählen dann nur keinem Kontingent mehr zu.
+  phaseId     String?
+  phase       TicketPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
   // Bewusst NICHT unique: bei einer Bestellung über mehrere Tickets gehören
   // alle Tickets zur selben Stripe-Session. Der Schutz gegen doppelte
   // Webhook-Zustellung läuft stattdessen über eine Zählprüfung im Webhook.
@@ -248,4 +301,7 @@ model Ticket {
   @@index([eventId])
   @@index([email])
   @@index([stripeSessionId])
+  // Wird bei jedem Aufruf der Event-Seite gebraucht, um zu zählen, wie viele
+  // Tickets einer Phase schon verkauft sind.
+  @@index([phaseId])
 }

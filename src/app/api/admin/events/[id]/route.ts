@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { eventSchema } from "@/lib/validation";
+import { saveTicketPhases } from "@/lib/saveTicketPhases";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -75,6 +76,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       }
     }
   });
+
+  // Phasen nach dem Event-Update abgleichen (nicht löschen/neu anlegen —
+  // siehe Begründung in saveTicketPhases). Bei reinen Gästelisten-Events
+  // werden vorhandene Phasen entfernt, weil dort nichts online verkauft wird.
+  await saveTicketPhases(
+    id,
+    data.ticketMode === "PAID" || data.ticketMode === "BOTH" ? (data.ticketPhases ?? []) : []
+  );
 
   return NextResponse.json({ ok: true, event });
 }

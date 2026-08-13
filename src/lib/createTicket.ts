@@ -20,6 +20,8 @@ export async function createTicketAndSendEmail(params: {
   discountCents?: number | null;
   discountCode?: string | null;
   tierLabel?: string | null;
+  /** Verkaufsphase, in der gekauft wurde — Grundlage für das Restkontingent. */
+  phaseId?: string | null;
   /** Sprache des Gasts — bestimmt die Sprache der Ticket-E-Mail. */
   locale?: string | null;
   stripeSessionId?: string | null;
@@ -36,6 +38,7 @@ export async function createTicketAndSendEmail(params: {
       discountCents: params.discountCents ?? null,
       discountCode: params.discountCode ?? null,
       tierLabel: params.tierLabel ?? null,
+      phaseId: params.phaseId ?? null,
       locale: params.locale ?? undefined,
       currency: params.event.currency,
       status: "VALID",

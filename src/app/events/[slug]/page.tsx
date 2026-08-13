@@ -11,6 +11,7 @@ import { countActiveTickets } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
+import { loadResolvedPhases } from "@/lib/loadTicketPhases";
 import { getTranslations, pickText } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,14 @@ export default async function EventDetailPage({
   const salesEndAtIso = event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null;
   const salesClosed = event.ticketSalesEndAt ? new Date() > event.ticketSalesEndAt : false;
 
+  // Verkaufsphasen: bestimmen den aktuell gültigen Ticketpreis. Dieselbe
+  // Quelle wie im Checkout (loadResolvedPhases), damit angezeigter und
+  // kassierter Preis nicht auseinanderlaufen können.
+  const phases = await loadResolvedPhases(event.id);
+  const activePhase = phases.find((p) => p.status === "ACTIVE") ?? null;
+  const phasesSoldOut = phases.length > 0 && activePhase === null;
+  const effectivePriceCents = activePhase ? activePhase.priceCents : event.priceCents;
+
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
   const { locale, t } = await getTranslations();
@@ -133,8 +142,16 @@ export default async function EventDetailPage({
           <TicketPurchasePanel
             eventId={event.id}
             ticketMode={event.ticketMode}
-            priceCents={event.priceCents}
+            priceCents={effectivePriceCents}
             currency={event.currency}
+            ticketPhases={phases.map((phase) => ({
+              id: phase.id,
+              label: phase.label,
+              priceCents: phase.priceCents,
+              remaining: phase.remaining,
+              status: phase.status
+            }))}
+            phasesSoldOut={phasesSoldOut}
             guestlistTiers={event.guestlistTiers.map((tier) => ({
               id: tier.id,
               label: tier.label,

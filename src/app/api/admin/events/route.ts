@@ -71,6 +71,20 @@ export async function POST(req: Request) {
           label: tier.label || null,
           order: i
         }))
+      },
+      // Verkaufsphasen nur bei Events mit Online-Ticketverkauf.
+      ticketPhases: {
+        create:
+          data.ticketMode === "PAID" || data.ticketMode === "BOTH"
+            ? (data.ticketPhases ?? []).map((phase, i) => ({
+                label: phase.label,
+                priceCents: phase.priceCents,
+                quantity: phase.quantity ?? null,
+                untilTime: phase.untilTime ? new Date(phase.untilTime) : null,
+                isSoldOut: phase.isSoldOut ?? false,
+                order: i
+              }))
+            : []
       }
     }
   });

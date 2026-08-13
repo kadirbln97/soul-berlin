@@ -20,6 +20,15 @@ type GuestlistTierView = {
   priceCents: number;
 };
 
+type TicketPhaseView = {
+  id: string;
+  label: string;
+  priceCents: number;
+  /** Wie viele noch gehen; null = unbegrenzt. */
+  remaining: number | null;
+  status: "ACTIVE" | "SOLD_OUT" | "EXPIRED" | "UPCOMING";
+};
+
 /**
  * Sidebar-Box auf der Event-Detailseite. Bei ticketMode "PAID" oder
  * "GUESTLIST" verhält sie sich wie zuvor (ein einziges Formular). Bei
@@ -34,6 +43,8 @@ export function TicketPurchasePanel({
   currency,
   guestlistTiers,
   guestlistPrice,
+  ticketPhases = [],
+  phasesSoldOut = false,
   spotsLeft,
   isSoldOut,
   salesEndAtIso,
@@ -43,10 +54,14 @@ export function TicketPurchasePanel({
 }: {
   eventId: string;
   ticketMode: string;
+  /** Preis der aktiven Phase, sonst der Einzelpreis des Events. */
   priceCents: number | null;
   currency: string;
   guestlistTiers: GuestlistTierView[];
   guestlistPrice: number | null;
+  ticketPhases?: TicketPhaseView[];
+  /** Alle Phasen durch — online ist nichts mehr zu holen. */
+  phasesSoldOut?: boolean;
   spotsLeft: number | null;
   isSoldOut: boolean;
   salesEndAtIso: string | null;
@@ -252,6 +267,56 @@ export function TicketPurchasePanel({
         </div>
       )}
 
+      {/* Ticketphasen: zeigt den ganzen Verlauf, damit sichtbar wird, dass die
+          günstige Phase wirklich weg ist und der Preis gleich wieder steigt.
+          Ausverkaufte Phasen bleiben stehen statt zu verschwinden — das ist
+          der eigentliche Grund, sie überhaupt anzuzeigen. */}
+      {selected === "PAID" && ticketPhases.length > 0 && (
+        <div className="mb-6 flex flex-col gap-2 rounded-xl border border-paper/10 p-4">
+          <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/60">
+            {t.event.phaseHeading}
+          </p>
+          {ticketPhases.map((phase) => {
+            const isClosed = phase.status === "SOLD_OUT" || phase.status === "EXPIRED";
+            const isActive = phase.status === "ACTIVE";
+            return (
+              <div
+                key={phase.id}
+                className={`flex items-center justify-between gap-3 text-sm ${
+                  isClosed
+                    ? "text-paper/35 line-through decoration-paper/30"
+                    : isActive
+                      ? "text-soul-orange"
+                      : "text-paper/70"
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate">{phase.label}</span>
+                  {phase.status === "SOLD_OUT" && (
+                    <span className="shrink-0 rounded-full bg-paper/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-paper/50 no-underline">
+                      {t.event.phaseSoldOut}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="shrink-0 rounded-full bg-soul-orange/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-soul-orange">
+                      {t.event.phaseActive}
+                    </span>
+                  )}
+                  {isActive && phase.remaining !== null && phase.remaining <= 10 && (
+                    <span className="shrink-0 text-[10px] uppercase tracking-widest text-soul-orange">
+                      {fill(t.event.phaseRemaining, { n: phase.remaining })}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 font-semibold">
+                  {formatPrice(phase.priceCents, currency)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {selected === "GUESTLIST" && guestlistTiers.length > 0 && (
         <div className="mb-6 flex flex-col gap-1.5 rounded-xl border border-paper/10 p-4">
           <p className="mb-1 text-[11px] uppercase tracking-widest text-paper/60">
@@ -284,7 +349,15 @@ export function TicketPurchasePanel({
         </p>
       )}
 
-      {isSoldOut ? (
+      {/* Alle Phasen durch: online ist Schluss, an der Tür geht aber noch was.
+          Bewusst ein eigener Zustand statt des allgemeinen „ausgebucht“ —
+          sonst würden Gäste denken, ein Kommen lohnt sich nicht mehr. */}
+      {phasesSoldOut && selected === "PAID" && !isSoldOut ? (
+        <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/5 p-6 text-center">
+          <p className="text-display text-lg uppercase text-soul-orange">{t.event.soldOut}</p>
+          <p className="mt-2 text-sm text-paper/70">{t.event.boxOfficeHint}</p>
+        </div>
+      ) : isSoldOut ? (
         <div className="rounded-xl border border-paper/15 p-6 text-center">
           <p className="text-display text-lg uppercase text-paper/75">{t.event.soldOut}</p>
           <p className="mt-2 text-sm text-paper/60">{t.event.soldOutText}</p>

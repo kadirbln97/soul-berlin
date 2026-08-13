@@ -8,6 +8,7 @@ import { RevenueSummaryCard } from "@/components/RevenueSummaryCard";
 import { getEventRevenue } from "@/lib/revenue";
 import { DiscountManager } from "@/components/DiscountManager";
 import { ManualGuestForm } from "@/components/ManualGuestForm";
+import { loadResolvedPhases } from "@/lib/loadTicketPhases";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function AdminEventDetailPage({
   });
   if (!event) notFound();
 
-  const [tickets, revenue, discounts] = await Promise.all([
+  const [tickets, revenue, discounts, phases] = await Promise.all([
     prisma.ticket.findMany({
       where: { eventId: event.id },
       orderBy: { createdAt: "desc" }
@@ -32,7 +33,8 @@ export default async function AdminEventDetailPage({
     prisma.discount.findMany({
       where: { eventId: event.id },
       orderBy: { createdAt: "asc" }
-    })
+    }),
+    loadResolvedPhases(event.id)
   ]);
 
   return (
@@ -76,6 +78,15 @@ export default async function AdminEventDetailPage({
                 untilTime: tier.untilTime.toISOString(),
                 priceCents: tier.priceCents,
                 label: tier.label
+              })),
+              ticketPhases: phases.map((phase) => ({
+                id: phase.id,
+                label: phase.label,
+                priceCents: phase.priceCents,
+                quantity: phase.quantity,
+                untilTime: phase.untilTime ? new Date(phase.untilTime).toISOString() : null,
+                isSoldOut: phase.isSoldOut,
+                soldCount: phase.soldCount
               }))
             }}
           />
