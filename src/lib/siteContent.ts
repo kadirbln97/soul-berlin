@@ -111,6 +111,130 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
     group: "Galerie"
   },
 
+  // --- Häufige Fragen ---
+  // Sechs feste Plätze statt einer eigenen Tabelle: die Fragen ändern sich
+  // selten, und so bleibt alles im gewohnten Baukasten bearbeitbar. Ein Punkt
+  // ohne Frage oder ohne Antwort wird auf der Startseite einfach übersprungen —
+  // zum Ausblenden reicht es also, das Feld zu leeren.
+  {
+    key: "faq_heading",
+    translatable: true,
+    label: "Überschrift",
+    type: "text",
+    default: "Häufige Fragen",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_1_question",
+    translatable: true,
+    label: "1. Frage",
+    type: "text",
+    default: "Wie alt muss ich sein?",
+    help: "Frage leer lassen, um diesen Punkt auszublenden.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_1_answer",
+    translatable: true,
+    label: "1. Antwort",
+    type: "textarea",
+    default:
+      "SØUL ist strikt ab 18 Jahren. Ohne gültigen Ausweis kein Einlass — keine Ausnahmen.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_2_question",
+    translatable: true,
+    label: "2. Frage",
+    type: "text",
+    default: "Wie läuft das mit den Tickets?",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_2_answer",
+    translatable: true,
+    label: "2. Antwort",
+    type: "textarea",
+    default:
+      "Für die meisten Events trägst du dich einfach auf die Gästeliste ein — bezahlt wird " +
+      "dann an der Abendkasse. Bei ausgewählten Events gibt es Tickets online im Vorverkauf: " +
+      "die sind limitiert und meist günstiger als an der Tür. Was gilt, steht immer beim Event dabei.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_3_question",
+    translatable: true,
+    label: "3. Frage",
+    type: "text",
+    default: "Welche Musik läuft bei SØUL?",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_3_answer",
+    translatable: true,
+    label: "3. Antwort",
+    type: "textarea",
+    default:
+      "Bei uns dreht sich alles um House Music — Deep, Melodic, Tech & Vocal. Dazu die " +
+      "Klassiker, die jeder mitsingt. Wir holen die Crowd genau da ab, wo sie gerade steht.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_4_question",
+    translatable: true,
+    label: "4. Frage",
+    type: "text",
+    default: "Gibt es einen Dresscode?",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_4_answer",
+    translatable: true,
+    label: "4. Antwort",
+    type: "textarea",
+    default:
+      "Ja. Nur weil du ein Ticket oder einen Platz auf der Gästeliste hast, heißt das nicht " +
+      "automatisch Einlass. Wir behalten uns vor, Leute ohne passenden Style draußen zu lassen. " +
+      "Heißt: urban, stylish, clubtauglich — kein Stress, aber bitte auch kein Alltagslook.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_5_question",
+    translatable: true,
+    label: "5. Frage",
+    type: "text",
+    default: "Kann ich einen Tisch reservieren?",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_5_answer",
+    translatable: true,
+    label: "5. Antwort",
+    type: "textarea",
+    default:
+      "Ja. Schreib uns für Tischreservierungen per WhatsApp an +49 157 72 52 46 10 — am besten " +
+      "mit Datum, Anzahl der Personen und Wunschbereich. Wir melden uns mit Verfügbarkeit " +
+      "und Konditionen zurück.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_6_question",
+    translatable: true,
+    label: "6. Frage (optional)",
+    type: "text",
+    default: "",
+    help: "Freier Platz für eine weitere Frage — leer lassen, wenn nicht gebraucht.",
+    group: "Häufige Fragen"
+  },
+  {
+    key: "faq_6_answer",
+    translatable: true,
+    label: "6. Antwort (optional)",
+    type: "textarea",
+    default: "",
+    group: "Häufige Fragen"
+  },
+
   // --- Kontakt ---
   {
     key: "contact_email",

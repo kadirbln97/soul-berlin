@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EventCard } from "@/components/EventCard";
 import { Gallery } from "@/components/Gallery";
+import { FaqSection } from "@/components/FaqSection";
 import { AiBadge } from "@/components/AiBadge";
 import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
@@ -162,6 +163,8 @@ export default async function HomePage() {
           </div>
           <Gallery />
         </section>
+
+        <FaqSection content={content} />
       </main>
       <Footer />
     </>

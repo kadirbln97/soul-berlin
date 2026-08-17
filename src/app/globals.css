@@ -159,6 +159,16 @@ body {
     transition-property: opacity, display;
   }
 
+  /* Aufklappen ohne Höhenfahrt und ohne drehenden Pfeil — der Zustand bleibt
+     über die Pfeilrichtung trotzdem eindeutig erkennbar. */
+  .faq-item::details-content {
+    transition: none;
+  }
+
+  .faq-chevron {
+    transition: none;
+  }
+
   /* Fünf Balken, die im Takt hoch- und runterspringen, sind genau die Art
      Bewegung, die bei Vestibularstörungen unangenehm auffällt. Statt sie
      ganz abzuschalten (dann wirkt die Seite wieder eingefroren) wird daraus
@@ -189,6 +199,43 @@ body {
 
 .label-field {
   @apply mb-2 block text-xs font-semibold uppercase tracking-widest text-paper/75;
+}
+
+/* Häufige Fragen (FaqSection). Das Auf-/Zuklappen macht <details> selbst —
+   hier kommt nur die Politur dazu. */
+.faq-item summary::-webkit-details-marker {
+  /* Safaris eigenes Dreieck ausblenden; wir zeichnen einen eigenen Pfeil. */
+  display: none;
+}
+
+.faq-chevron {
+  transition: transform 200ms var(--ease-out);
+}
+
+.faq-item[open] .faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* Weiche Höhe beim Aufklappen. interpolate-size ist bewusst nur auf das
+   Element selbst gesetzt (nicht global), damit sonst nirgends versehentlich
+   auf auto-Größen animiert wird. Browser ohne ::details-content ignorieren
+   den Block einfach — dann klappt es ohne Übergang auf, was völlig okay ist.
+   Wichtig: im geöffneten Zustand steht bewusst block-size:auto, damit der
+   Inhalt auch ohne Animations-Unterstützung immer voll sichtbar ist. */
+.faq-item {
+  interpolate-size: allow-keywords;
+}
+
+.faq-item::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 260ms var(--ease-out),
+    content-visibility 260ms allow-discrete;
+}
+
+.faq-item[open]::details-content {
+  block-size: auto;
 }
 
 /* Equalizer-Balken für die Ladeanzeige (loading.tsx auf Start-, Events- und
