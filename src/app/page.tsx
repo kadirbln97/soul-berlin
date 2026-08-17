@@ -19,8 +19,12 @@ export const dynamic = "force-dynamic";
 // Varianten wie /?ref=instagram oder eine www-Schreibweise als eigenständige
 // Seiten gewertet werden — die Bewertung verteilt sich dann auf mehrere
 // Adressen statt sich auf einer zu bündeln.
+//
+// Bewusst die volle Adresse statt "/": mit dem kurzen Schrägstrich hat Next.js
+// hier gar kein canonical-Tag ausgegeben (bei Unterseiten mit echtem Pfad
+// dagegen schon) — live nachgeprüft, deshalb der ausgeschriebene Weg.
 export const metadata: Metadata = {
-  alternates: { canonical: "/" }
+  alternates: { canonical: process.env.APP_URL ?? "https://soulberlin.de" }
 };
 
 export default async function HomePage() {
