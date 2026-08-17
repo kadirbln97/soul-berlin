@@ -12,6 +12,7 @@ import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
 import { loadResolvedPhases } from "@/lib/loadTicketPhases";
+import { buildEventJsonLd } from "@/lib/structuredData";
 import { getTranslations, pickText } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
@@ -90,8 +91,31 @@ export default async function EventDetailPage({
   const subtitle = pickText(locale, event.subtitle ?? "", event.subtitleEn);
   const description = pickText(locale, event.description, event.descriptionEn);
 
+  // Auszeichnung für Google: dieselben Werte, die auch auf der Seite stehen.
+  // Beim Ticketverkauf gilt der Phasenpreis, bei der Gästeliste der aktuelle
+  // Staffelpreis (null = kostenlos).
+  const eventJsonLd = buildEventJsonLd({
+    title,
+    description,
+    slug: event.slug,
+    venue: event.venue,
+    address: event.address,
+    dateStart: event.dateStart,
+    dateEnd: event.dateEnd,
+    imageUrl: event.imageUrl,
+    currency: event.currency,
+    priceCents:
+      event.ticketMode === "GUESTLIST" ? guestlistPrice : effectivePriceCents,
+    isSoldOut: isSoldOut || phasesSoldOut,
+    appUrl: process.env.APP_URL ?? "https://soulberlin.de"
+  });
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
       <Header />
       <main id="main-content" className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">
         <div>

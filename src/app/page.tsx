@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
@@ -10,8 +11,17 @@ import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { getSiteContent } from "@/lib/siteContent";
 import { getTranslations, pickText } from "@/lib/serverLocale";
+import { buildOrganizationJsonLd } from "@/lib/structuredData";
 
 export const dynamic = "force-dynamic";
+
+// Sagt Google eindeutig, welche Adresse die maßgebliche ist. Ohne das können
+// Varianten wie /?ref=instagram oder eine www-Schreibweise als eigenständige
+// Seiten gewertet werden — die Bewertung verteilt sich dann auf mehrere
+// Adressen statt sich auf einer zu bündeln.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" }
+};
 
 export default async function HomePage() {
   // Texte/Bilder kommen aus dem Startseiten-Baukasten (/admin/homepage);
@@ -25,6 +35,17 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Sagt Google, dass "SØUL Berlin" eine Organisation mit Instagram-Profil
+          und Sitz in Berlin ist — bei einem so allgemeinen Namen der wichtigste
+          Hinweis, um nicht mit beliebigen "soul"-Treffern verwechselt zu werden. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            buildOrganizationJsonLd(process.env.APP_URL ?? "https://soulberlin.de")
+          )
+        }}
+      />
       <Header />
       <main id="main-content">
         {/* Der Kopfbereich wird auf großen Bildschirmen deutlich höher. Grund:

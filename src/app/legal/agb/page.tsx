@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+
+// Rechtstexte sollen auffindbar, aber nicht prominent sein: eigener Titel
+// und kanonische Adresse ja, aber bewusst kein Vorschaubild-Getöse.
+export const metadata: Metadata = {
+  title: "AGB",
+  description: "Allgemeine Geschäftsbedingungen für Tickets und Gästeliste bei SØUL Berlin.",
+  alternates: { canonical: "/legal/agb" }
+};
+
 
 export default function AgbPage() {
   return (

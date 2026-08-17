@@ -1,6 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+
+// Rechtstexte sollen auffindbar, aber nicht prominent sein: eigener Titel
+// und kanonische Adresse ja, aber bewusst kein Vorschaubild-Getöse.
+export const metadata: Metadata = {
+  title: "Datenschutz",
+  description: "Datenschutzerklärung von SØUL Berlin.",
+  alternates: { canonical: "/legal/datenschutz" }
+};
+
 
 export default function DatenschutzPage() {
   return (

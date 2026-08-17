@@ -4,8 +4,16 @@ import { EventCard } from "@/components/EventCard";
 import { getUpcomingPublishedEvents, getPastPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { getTranslations, pickText } from "@/lib/serverLocale";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Events",
+  description:
+    "Alle kommenden SØUL-Events in Berlin: Termine, Locations, Gästeliste und Tickets. House Music Culture.",
+  alternates: { canonical: "/events" }
+};
 
 export default async function EventsPage() {
   const { locale, t } = await getTranslations();
