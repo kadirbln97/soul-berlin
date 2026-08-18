@@ -40,8 +40,19 @@ model Event {
   dateStart   DateTime
   dateEnd     DateTime?
 
-  // "PAID" | "GUESTLIST" | "BOTH" (Ticketkauf + Gästeliste parallel, Gast wählt selbst)
+  // "PAID" | "GUESTLIST" | "BOTH" (Ticketkauf + Gästeliste parallel, Gast wählt
+  // selbst) | "EXTERNAL" (Verkauf läuft ausschließlich über den Fremdanbieter)
   ticketMode  String   @default("GUESTLIST")
+
+  // Optionaler Link zu einem externen Ticketshop (z.B. Eventbrite). Ist er
+  // gesetzt, erscheint auf der Event-Seite zusätzlich ein Knopf dorthin —
+  // egal in welchem Modus. Bei ticketMode "EXTERNAL" ist er die einzige
+  // Kaufmöglichkeit und damit Pflicht.
+  externalTicketUrl String?
+
+  // Name des Anbieters für die Knopfbeschriftung ("Tickets bei Eventbrite").
+  // Leer = neutrale Beschriftung.
+  externalTicketLabel String?
 
   // Preis in Cent (relevant bei ticketMode = PAID oder BOTH)
   priceCents  Int?

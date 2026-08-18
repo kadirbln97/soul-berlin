@@ -73,6 +73,8 @@ export default async function AdminEventDetailPage({
               priceCents: event.priceCents,
               capacity: event.capacity,
               ticketSalesEndAt: event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null,
+              externalTicketUrl: event.externalTicketUrl,
+              externalTicketLabel: event.externalTicketLabel,
               status: event.status,
               guestlistTiers: event.guestlistTiers.map((tier) => ({
                 untilTime: tier.untilTime.toISOString(),

@@ -40,7 +40,11 @@ export async function EventCard({
   // fällt keine Gebühr an; der Staffelpreis ist bereits der Endpreis.
   const badge = isSoldOut
     ? t.events.soldOut
-    : ticketMode === "PAID"
+    : // Bei rein externem Verkauf kennen wir den Preis nicht (der steht beim
+      // Fremdanbieter) — also nur "Ticket" statt einer erfundenen Zahl.
+      ticketMode === "EXTERNAL"
+      ? t.events.ticket
+      : ticketMode === "PAID"
       ? priceCents
         ? formatPrice(calculateTotalWithFeeCents(priceCents))
         : t.events.ticket

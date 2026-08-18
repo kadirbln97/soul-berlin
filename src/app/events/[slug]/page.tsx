@@ -106,6 +106,10 @@ export default async function EventDetailPage({
     currency: event.currency,
     priceCents:
       event.ticketMode === "GUESTLIST" ? guestlistPrice : effectivePriceCents,
+    // Nur bei rein externem Verkauf ist der Preis wirklich unbekannt. Bei
+    // "zusätzlich extern" gilt weiterhin unser eigener Preis.
+    externalTicketUrl:
+      event.ticketMode === "EXTERNAL" ? event.externalTicketUrl : null,
     isSoldOut: isSoldOut || phasesSoldOut,
     appUrl: process.env.APP_URL ?? "https://soulberlin.de"
   });
@@ -176,6 +180,8 @@ export default async function EventDetailPage({
               status: phase.status
             }))}
             phasesSoldOut={phasesSoldOut}
+            externalTicketUrl={event.externalTicketUrl}
+            externalTicketLabel={event.externalTicketLabel}
             guestlistTiers={event.guestlistTiers.map((tier) => ({
               id: tier.id,
               label: tier.label,

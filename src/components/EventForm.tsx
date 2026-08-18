@@ -38,6 +38,8 @@ type EventInitial = {
   priceCents: number | null;
   capacity: number | null;
   ticketSalesEndAt: string | null;
+  externalTicketUrl?: string | null;
+  externalTicketLabel?: string | null;
   status: string;
   guestlistTiers?: GuestlistTierInitial[];
   ticketPhases?: TicketPhaseInitial[];
@@ -97,6 +99,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   );
   const [capacity, setCapacity] = useState(initial?.capacity ? String(initial.capacity) : "");
   const [salesEndAt, setSalesEndAt] = useState(toLocalInputValue(initial?.ticketSalesEndAt));
+  const [externalUrl, setExternalUrl] = useState(initial?.externalTicketUrl ?? "");
+  const [externalLabel, setExternalLabel] = useState(initial?.externalTicketLabel ?? "");
   const [status, setStatus] = useState(initial?.status ?? "DRAFT");
 
   const [tiers, setTiers] = useState<TierRow[]>(
@@ -228,6 +232,18 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       return;
     }
 
+    if (ticketMode === "EXTERNAL" && !externalUrl.trim()) {
+      setError(
+        "Bei „Nur externer Anbieter“ muss ein Link zum Ticketshop angegeben werden — sonst hätte die Event-Seite keine Kaufmöglichkeit."
+      );
+      return;
+    }
+
+    if (externalUrl.trim() && !/^https?:\/\//i.test(externalUrl.trim())) {
+      setError("Der Link zum Ticketshop muss mit https:// beginnen.");
+      return;
+    }
+
     if (usesTickets && phases.some((p) => !p.label.trim() || p.priceEuro === "")) {
       setError("Bitte bei jeder Ticketphase einen Namen und einen Preis angeben (oder die Zeile entfernen).");
       return;
@@ -265,7 +281,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       ticketSalesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : "",
       status,
       guestlistTiers: usesGuestlist ? tiersPayload : [],
-      ticketPhases: usesTickets ? phasesPayload : []
+      ticketPhases: usesTickets ? phasesPayload : [],
+      externalTicketUrl: externalUrl.trim(),
+      externalTicketLabel: externalLabel.trim()
     };
 
     try {
@@ -493,7 +511,14 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             <option value="GUESTLIST">Gästeliste</option>
             <option value="PAID">Bezahlte Tickets (Stripe)</option>
             <option value="BOTH">Beides — Gast wählt (Ticket oder Gästeliste)</option>
+            <option value="EXTERNAL">Nur externer Anbieter (z.B. Eventbrite)</option>
           </select>
+          {ticketMode === "EXTERNAL" && (
+            <p className="mt-1 text-[11px] text-paper/40">
+              Weder Gästeliste noch eigener Ticketverkauf — auf der Event-Seite steht
+              nur der Knopf zum Anbieter. Link unten ist dann Pflicht.
+            </p>
+          )}
         </div>
         {(ticketMode === "PAID" || ticketMode === "BOTH") && (
           <div>
@@ -550,6 +575,46 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             Ab diesem Zeitpunkt schließt die Gästeliste bzw. der Ticketverkauf automatisch.
             Gäste sehen bis dahin einen Countdown auf der Event-Seite. Leer lassen für kein Limit.
           </p>
+        </div>
+
+        <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">
+          <label className="label-field mb-0">Externer Ticketshop (optional)</label>
+          <p className="mt-1 mb-3 text-[11px] text-paper/40">
+            Verkauft ihr (auch) über Eventbrite, RA o.Ä.? Dann erscheint auf der
+            Event-Seite zusätzlich ein Knopf dorthin — unter dem Formular, klar
+            abgesetzt, weil der Klick von unserer Seite wegführt.
+          </p>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 [&>*]:min-w-0 sm:grid-cols-[minmax(0,1fr)_200px]">
+            <div>
+              <label className="label-field text-[10px]" htmlFor="external-url">
+                Link zum Ticketshop
+              </label>
+              <input
+                id="external-url"
+                type="url"
+                inputMode="url"
+                value={externalUrl}
+                onChange={(e) => setExternalUrl(e.target.value)}
+                className="input-field"
+                placeholder="https://www.eventbrite.de/e/..."
+              />
+            </div>
+            <div>
+              <label className="label-field text-[10px]" htmlFor="external-label">
+                Name des Anbieters
+              </label>
+              <input
+                id="external-label"
+                value={externalLabel}
+                onChange={(e) => setExternalLabel(e.target.value)}
+                className="input-field"
+                placeholder="Eventbrite"
+              />
+              <p className="mt-1 text-[11px] text-paper/40">
+                Ergibt „Tickets bei Eventbrite ↗“. Leer = neutrale Beschriftung.
+              </p>
+            </div>
+          </div>
         </div>
 
         {(ticketMode === "PAID" || ticketMode === "BOTH") && (

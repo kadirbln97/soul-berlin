@@ -78,6 +78,12 @@ type Dict = {
     phaseRemaining: string;
     /** Hinweis, wenn alle Phasen durch sind. */
     boxOfficeHint: string;
+    /** Knopf zum externen Ticketshop, {name} = Anbietername. */
+    externalTickets: string;
+    /** Fallback ohne hinterlegten Anbieternamen. */
+    externalTicketsNeutral: string;
+    /** Hinweis unter dem Knopf: der Kauf läuft woanders. */
+    externalHint: string;
     salesEndsIn: string;
     signupEndsIn: string;
     almostOver: string;
@@ -223,6 +229,9 @@ const de: Dict = {
     phaseRemaining: "nur noch {n}",
     boxOfficeHint:
       "Der Online-Vorverkauf ist beendet. An der Abendkasse gibt es noch ein limitiertes Restkontingent — komm früh, es gilt solange der Vorrat reicht.",
+    externalTickets: "Tickets bei {name}",
+    externalTicketsNeutral: "Tickets extern kaufen",
+    externalHint: "Der Kauf läuft über einen externen Anbieter — du verlässt dabei unsere Seite.",
     salesEndsIn: "Ticketverkauf endet in",
     signupEndsIn: "Anmeldung schließt in",
     almostOver: "Nur noch kurz",
@@ -372,6 +381,9 @@ const en: Dict = {
     phaseRemaining: "only {n} left",
     boxOfficeHint:
       "Online pre-sale has ended. A limited number of tickets is still available at the door — come early, while stocks last.",
+    externalTickets: "Tickets on {name}",
+    externalTicketsNeutral: "Buy tickets externally",
+    externalHint: "Tickets are sold by an external provider — you will leave our site.",
     salesEndsIn: "Ticket sales end in",
     signupEndsIn: "Sign-up closes in",
     almostOver: "Almost over",

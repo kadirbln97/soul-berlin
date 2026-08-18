@@ -64,6 +64,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         data.ticketMode === "PAID" || data.ticketMode === "BOTH" ? data.priceCents : null,
       capacity: data.capacity || null,
       ticketSalesEndAt: data.ticketSalesEndAt ? new Date(data.ticketSalesEndAt) : null,
+      externalTicketUrl: data.externalTicketUrl?.trim() || null,
+      externalTicketLabel: data.externalTicketLabel?.trim() || null,
       status: data.status,
       guestlistTiers: {
         deleteMany: {},

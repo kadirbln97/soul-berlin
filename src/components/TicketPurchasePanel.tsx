@@ -45,6 +45,8 @@ export function TicketPurchasePanel({
   guestlistPrice,
   ticketPhases = [],
   phasesSoldOut = false,
+  externalTicketUrl = null,
+  externalTicketLabel = null,
   spotsLeft,
   isSoldOut,
   salesEndAtIso,
@@ -62,6 +64,10 @@ export function TicketPurchasePanel({
   ticketPhases?: TicketPhaseView[];
   /** Alle Phasen durch — online ist nichts mehr zu holen. */
   phasesSoldOut?: boolean;
+  /** Externer Ticketshop (z.B. Eventbrite), falls hinterlegt. */
+  externalTicketUrl?: string | null;
+  /** Anbietername für die Knopfbeschriftung. */
+  externalTicketLabel?: string | null;
   spotsLeft: number | null;
   isSoldOut: boolean;
   salesEndAtIso: string | null;
@@ -115,6 +121,49 @@ export function TicketPurchasePanel({
   const [selected, setSelected] = useState<"PAID" | "GUESTLIST">(
     ticketMode === "GUESTLIST" ? "GUESTLIST" : "PAID"
   );
+
+  const externalUrl = externalTicketUrl?.trim() || null;
+  const externalLabel = externalTicketLabel?.trim() || null;
+
+  /**
+   * Knopf zum externen Ticketshop. target/rel gesetzt, weil der Gast die
+   * Seite verlässt: noopener verhindert, dass die Zielseite über
+   * window.opener auf unsere Seite zugreifen kann.
+   */
+  const externerKnopf = externalUrl ? (
+    <div className="flex flex-col gap-2">
+      <a
+        href={externalUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="btn-primary w-full"
+      >
+        {externalLabel
+          ? fill(t.event.externalTickets, { name: externalLabel })
+          : t.event.externalTicketsNeutral}
+        <span aria-hidden="true">↗</span>
+      </a>
+      <p className="text-center text-[11px] leading-snug text-paper/50">
+        {t.event.externalHint}
+      </p>
+    </div>
+  ) : null;
+
+  // Verkauf läuft ausschließlich extern: keine Auswahl, kein Formular, kein
+  // Preisblock — nur der Weg zum Anbieter. Alles andere wäre irreführend,
+  // weil hier weder Preis noch Verfügbarkeit bekannt sind.
+  if (ticketMode === "EXTERNAL") {
+    return (
+      <div className="rounded-2xl card-border bg-white/[0.02] p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-paper/70">
+            {t.events.ticket}
+          </span>
+        </div>
+        {externerKnopf}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl card-border bg-white/[0.02] p-6">
@@ -386,6 +435,15 @@ export function TicketPurchasePanel({
             </p>
           )}
         </TicketAvailabilityGate>
+      )}
+
+      {/* Zusätzliche Kaufmöglichkeit über einen Fremdanbieter. Bewusst unter
+          dem Formular und klar abgesetzt statt als dritter Reiter: der Klick
+          führt von der Seite weg, das soll man vorher sehen.
+          Bei ausverkauftem Event ausgeblendet — sonst würden wir zu einem
+          Shop schicken, in dem es nichts mehr zu holen gibt. */}
+      {externerKnopf && !isSoldOut && (
+        <div className="mt-6 border-t border-paper/10 pt-6">{externerKnopf}</div>
       )}
     </div>
   );

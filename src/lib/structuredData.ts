@@ -59,9 +59,16 @@ export type EventJsonLdInput = {
   dateEnd: Date | null;
   imageUrl: string | null;
   currency: string;
-  /** Aktuell gültiger Preis in Cent — null, wenn kostenlos oder unbekannt. */
+  /** Aktuell gültiger Preis in Cent — null bedeutet kostenlos. */
   priceCents: number | null;
   isSoldOut: boolean;
+  /**
+   * Läuft der Verkauf über einen Fremdanbieter, kennen wir den Preis nicht.
+   * Dann wird bewusst keiner ausgezeichnet und als Kaufadresse der externe
+   * Shop angegeben — eine erfundene 0 wäre eine Falschangabe gegenüber Google
+   * und den Gästen.
+   */
+  externalTicketUrl?: string | null;
   /** Absolute Basisadresse der Seite (z.B. https://soulberlin.de). */
   appUrl: string;
 };
@@ -69,27 +76,29 @@ export type EventJsonLdInput = {
 export function buildEventJsonLd(e: EventJsonLdInput) {
   const url = `${e.appUrl}/events/${e.slug}`;
 
-  const angebot =
-    e.priceCents !== null
-      ? {
-          "@type": "Offer",
-          url,
-          price: (e.priceCents / 100).toFixed(2),
-          priceCurrency: e.currency.toUpperCase(),
-          availability: e.isSoldOut
-            ? "https://schema.org/SoldOut"
-            : "https://schema.org/InStock"
-        }
-      : {
-          // Kostenlose Gästeliste ist ebenfalls ein Angebot — mit Preis 0.
-          "@type": "Offer",
-          url,
-          price: "0",
-          priceCurrency: e.currency.toUpperCase(),
-          availability: e.isSoldOut
-            ? "https://schema.org/SoldOut"
-            : "https://schema.org/InStock"
-        };
+  const verfuegbarkeit = e.isSoldOut
+    ? "https://schema.org/SoldOut"
+    : "https://schema.org/InStock";
+
+  const externerShop = e.externalTicketUrl?.trim() || null;
+
+  const angebot = externerShop
+    ? {
+        // Preis unbekannt (steht beim Fremdanbieter): Adresse dorthin, aber
+        // keine Preisangabe. Lieber unvollständig als falsch.
+        "@type": "Offer",
+        url: externerShop,
+        availability: verfuegbarkeit
+      }
+    : {
+        // Eigener Verkauf bzw. Gästeliste — Preis kennen wir. null heißt
+        // kostenlos, das ist ebenfalls ein Angebot mit Preis 0.
+        "@type": "Offer",
+        url,
+        price: e.priceCents !== null ? (e.priceCents / 100).toFixed(2) : "0",
+        priceCurrency: e.currency.toUpperCase(),
+        availability: verfuegbarkeit
+      };
 
   return {
     "@context": "https://schema.org",

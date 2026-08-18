@@ -73,6 +73,31 @@ export const ticketPhaseSchema = z.object({
   isSoldOut: z.boolean().optional()
 });
 
+/**
+ * Adresse eines externen Ticketshops.
+ *
+ * Bewusst nicht nur z.string().url(): dessen Prüfung lässt auch
+ * "javascript:..." durch, weil das eine formal gültige URL ist. Ein solcher
+ * Wert würde später in ein href geschrieben und beim Klick Code im Browser
+ * des Gasts ausführen. Deshalb hier ausdrücklich nur http und https.
+ */
+const externalUrlSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .refine(
+    (wert) => {
+      if (wert === "") return true;
+      try {
+        const u = new URL(wert);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Bitte eine vollständige Adresse angeben, die mit https:// beginnt." }
+  );
+
 export const eventSchema = z.object({
   title: z.string().trim().min(2).max(120),
   subtitle: z.string().trim().max(160).optional().or(z.literal("")),
@@ -102,8 +127,21 @@ export const eventSchema = z.object({
   // Zahlung an der Abendkasse — nur relevant bei ticketMode = GUESTLIST).
   guestlistTiers: z.array(guestlistTierSchema).max(3).optional(),
   // Verkaufsphasen für bezahlte Online-Tickets (nur bei ticketMode PAID/BOTH).
-  ticketPhases: z.array(ticketPhaseSchema).max(MAX_TICKET_PHASES).optional()
-});
+  ticketPhases: z.array(ticketPhaseSchema).max(MAX_TICKET_PHASES).optional(),
+  // Optionaler Link zu einem externen Ticketshop (Eventbrite o.Ä.).
+  externalTicketUrl: externalUrlSchema.optional().or(z.literal("")),
+  externalTicketLabel: z.string().trim().max(40).optional().or(z.literal(""))
+})
+  .refine(
+    // Ohne Link hätte "nur extern" keine einzige Kaufmöglichkeit — die
+    // Event-Seite wäre dann eine Sackgasse.
+    (d) => d.ticketMode !== "EXTERNAL" || Boolean(d.externalTicketUrl?.trim()),
+    {
+      message:
+        "Bei „Nur externer Anbieter“ muss ein Link zum Ticketshop angegeben werden.",
+      path: ["externalTicketUrl"]
+    }
+  );
 
 export const galleryItemSchema = z.object({
   type: z.enum(["PHOTO", "VIDEO"]),
