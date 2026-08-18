@@ -130,13 +130,19 @@ export function TicketPurchasePanel({
    * Seite verlässt: noopener verhindert, dass die Zielseite über
    * window.opener auf unsere Seite zugreifen kann.
    */
+  // Läuft der Verkauf nur extern, ist dieser Knopf die einzige Aktion und
+  // damit die Hauptaktion (gefüllt). Steht er dagegen neben Gästeliste oder
+  // eigenem Ticketkauf, tritt er als Umriss zurück: zwei gleich kräftige
+  // Knöpfe untereinander schwächen sich gegenseitig.
+  const externerKnopfStil = ticketMode === "EXTERNAL" ? "btn-primary" : "btn-outline";
+
   const externerKnopf = externalUrl ? (
     <div className="flex flex-col gap-2">
       <a
         href={externalUrl}
         target="_blank"
         rel="noreferrer noopener"
-        className="btn-primary w-full"
+        className={`${externerKnopfStil} w-full`}
       >
         {externalLabel
           ? fill(t.event.externalTickets, { name: externalLabel })
