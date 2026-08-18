@@ -15,37 +15,49 @@
 const ORGANISATION_NAME = "SØUL Berlin";
 const INSTAGRAM_URL = "https://www.instagram.com/soulberliin/";
 
-/** Zerlegt "Straße 1, 10117 Berlin" in die von Google erwarteten Bestandteile. */
+/**
+ * Zerlegt eine frei eingetippte Adresse in die von Google erwarteten
+ * Bestandteile. Deckt beide Schreibweisen ab, die im Admin vorkommen:
+ *
+ *   "Stralauer Platz 30-31, 10243 Berlin"   (mit Komma)
+ *   "Stralauer Platz 30-31  10243 Berlin"   (nur Leerzeichen)
+ *
+ * Erkennungsmerkmal ist die fünfstellige Postleitzahl am Ende. Passt nichts,
+ * wird die Angabe unverändert als Straße übernommen — lieber grob als geraten.
+ */
 function parseAdresse(adresse: string | null, ort: string) {
-  if (!adresse || adresse.trim() === "") {
+  const wert = adresse?.trim() ?? "";
+  if (wert === "") {
     return { "@type": "Place" as const, name: ort };
   }
 
-  // Letzter Teil nach dem Komma sieht oft aus wie "10117 Berlin".
-  const teile = adresse.split(",").map((t) => t.trim()).filter(Boolean);
-  const letzter = teile[teile.length - 1] ?? "";
-  const plzStadt = letzter.match(/^(\d{5})\s+(.+)$/);
+  // Alles vor der PLZ = Straße, dann PLZ, dann Stadt. Das Trennzeichen davor
+  // darf Komma und/oder Leerraum sein.
+  const treffer = wert.match(/^(.*?)[,\s]+(\d{5})[,\s]+(.+)$/);
 
-  if (plzStadt && teile.length > 1) {
-    return {
-      "@type": "Place" as const,
-      name: ort,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: teile.slice(0, -1).join(", "),
-        postalCode: plzStadt[1],
-        addressLocality: plzStadt[2],
-        addressCountry: "DE"
-      }
-    };
+  if (treffer) {
+    const strasse = treffer[1].replace(/,\s*$/, "").trim();
+    const stadt = treffer[3].replace(/^,\s*/, "").trim();
+
+    if (strasse !== "" && stadt !== "") {
+      return {
+        "@type": "Place" as const,
+        name: ort,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: strasse,
+          postalCode: treffer[2],
+          addressLocality: stadt,
+          addressCountry: "DE"
+        }
+      };
+    }
   }
 
-  // Kein erkennbares Muster: die Angabe unverändert übernehmen, statt
-  // Bestandteile zu raten.
   return {
     "@type": "Place" as const,
     name: ort,
-    address: { "@type": "PostalAddress", streetAddress: adresse, addressCountry: "DE" }
+    address: { "@type": "PostalAddress", streetAddress: wert, addressCountry: "DE" }
   };
 }
 

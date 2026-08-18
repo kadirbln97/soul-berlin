@@ -29,8 +29,17 @@ export async function generateMetadata({
     return { title: "Event nicht gefunden" };
   }
 
-  const title = event.subtitle ? `${event.title} — ${event.subtitle}` : event.title;
-  const description = event.description.slice(0, 160);
+  // Nur der Eventname als Seitentitel. Vorher hing der Untertitel mit dran,
+  // was hier schnell 200 Zeichen ergab — Google zeigt aber nur rund 60 an,
+  // der Rest wird abgeschnitten und der eigentliche Name rutscht aus dem
+  // sichtbaren Bereich. Der Untertitel steht dafür in der Beschreibung.
+  const title = event.title;
+
+  // Der Untertitel ist ein geschriebener Werbesatz und damit als Suchtreffer-
+  // Text besser geeignet als der Anfang der Eventbeschreibung (die oft mit
+  // Emojis und Formatierung beginnt).
+  const rohBeschreibung = event.subtitle?.trim() || event.description;
+  const description = rohBeschreibung.replace(/\s+/g, " ").trim().slice(0, 160);
 
   return {
     title,
