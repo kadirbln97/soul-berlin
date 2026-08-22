@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getTranslations } from "@/lib/serverLocale";
+import { getSiteContent } from "@/lib/siteContent";
 
 export async function Footer() {
   const { t } = await getTranslations();
+  const content = await getSiteContent();
 
   return (
     <footer className="border-t border-paper/10 py-10">
@@ -24,22 +26,28 @@ export async function Footer() {
           <Link href="/legal/datenschutz" className="hover:text-soul-orange">
             {t.footer.privacy}
           </Link>
-          <a
-            href="https://www.instagram.com/soulberliin/"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-soul-orange"
-          >
-            Instagram
-          </a>
-          <a
-            href="https://chat.whatsapp.com/FGUD95jUIRz4TeJ7fcRqq8"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-soul-orange"
-          >
-            {t.footer.whatsapp}
-          </a>
+          {/* Adressen kommen aus dem Baukasten. Ist ein Feld leer, fällt der
+              Link weg statt ins Nichts zu führen. */}
+          {content.link_instagram && (
+            <a
+              href={content.link_instagram}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-soul-orange"
+            >
+              Instagram
+            </a>
+          )}
+          {content.link_whatsapp && (
+            <a
+              href={content.link_whatsapp}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-soul-orange"
+            >
+              {t.footer.whatsapp}
+            </a>
+          )}
         </div>
         <p className="text-[11px] text-paper/50">
           © {new Intl.DateTimeFormat("de-DE", { year: "numeric", timeZone: "Europe/Berlin" }).format(new Date())} SØUL Berlin

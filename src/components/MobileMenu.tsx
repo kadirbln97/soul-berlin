@@ -15,10 +15,13 @@ import type { Locale } from "@/lib/i18n";
  */
 export function MobileMenu({
   locale,
-  labels
+  labels,
+  instagramUrl
 }: {
   locale: Locale;
   labels: { home: string; events: string; instagram: string; menu: string; close: string };
+  /** Aus dem Baukasten; leer = Eintrag wird ausgeblendet. */
+  instagramUrl?: string;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -102,14 +105,16 @@ export function MobileMenu({
           <Link href="/events" className={linkClass}>
             {labels.events}
           </Link>
-          <a
-            href="https://www.instagram.com/soulberliin/"
-            target="_blank"
-            rel="noreferrer noopener"
-            className={linkClass}
-          >
-            {labels.instagram}
-          </a>
+          {instagramUrl && (
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className={linkClass}
+            >
+              {labels.instagram}
+            </a>
+          )}
         </nav>
         <div className="mt-4 border-t border-paper/10 pt-4">
           <LanguageSwitcher current={locale} />

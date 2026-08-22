@@ -183,6 +183,17 @@ export function HomepageEditor({ initialValues }: { initialValues: Record<string
                         </label>
                       )}
                     </div>
+                  ) : field.type === "longtext" ? (
+                    // Ganze Seitentexte: großes Feld mit fester Schrift, damit
+                    // Einrückungen und Leerzeilen beim Bearbeiten sichtbar sind.
+                    <textarea
+                      id={field.key}
+                      rows={24}
+                      value={values[field.key] ?? ""}
+                      onChange={(e) => setValue(field.key, e.target.value)}
+                      className="input-field resize-y font-mono text-xs leading-relaxed"
+                      spellCheck={false}
+                    />
                   ) : field.type === "textarea" ? (
                     <textarea
                       id={field.key}

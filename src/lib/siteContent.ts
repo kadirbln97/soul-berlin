@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { IMPRESSUM_DEFAULT, AGB_DEFAULT, DATENSCHUTZ_DEFAULT } from "./legalDefaults";
 
 /**
  * Alle im Admin-Bereich (/admin/homepage) änderbaren Inhalte der Startseite.
@@ -10,8 +11,12 @@ import { prisma } from "./prisma";
 export type SiteContentField = {
   key: string;
   label: string;
-  /** "text" = einzeilig, "textarea" = mehrzeilig, "image" = Bild-Upload */
-  type: "text" | "textarea" | "image";
+  /**
+   * "text" = einzeilig, "textarea" = mehrzeilig, "image" = Bild-Upload,
+   * "longtext" = großes Feld für ganze Seitentexte (Rechtstexte) mit
+   * einfacher Auszeichnung, siehe src/lib/renderText.ts
+   */
+  type: "text" | "textarea" | "image" | "longtext";
   default: string;
   help?: string;
   /** Überschrift der Gruppe, in der das Feld im Admin angezeigt wird. */
@@ -233,6 +238,56 @@ export const SITE_CONTENT_FIELDS: SiteContentField[] = [
     type: "textarea",
     default: "",
     group: "Häufige Fragen"
+  },
+
+  // --- Links ---
+  // Standen vorher an vier Stellen fest im Code (Kopfzeile, Handy-Menü,
+  // Fußzeile). Jetzt an einer Stelle pflegbar.
+  {
+    key: "link_instagram",
+    label: "Instagram",
+    type: "text",
+    default: "https://www.instagram.com/soulberliin/",
+    help: "Vollständige Adresse mit https://. Leer lassen, um den Link auszublenden.",
+    group: "Links"
+  },
+  {
+    key: "link_whatsapp",
+    label: "WhatsApp-Gruppe",
+    type: "text",
+    default: "https://chat.whatsapp.com/FGUD95jUIRz4TeJ7fcRqq8",
+    help: "Einladungslink der Gruppe. Leer lassen, um ihn aus der Fußzeile zu nehmen.",
+    group: "Links"
+  },
+
+  // --- Rechtstexte ---
+  // Bewusst NICHT übersetzbar: verbindlich ist die deutsche Fassung, eine
+  // Übersetzung könnte im Streitfall abweichen.
+  {
+    key: "legal_impressum",
+    label: "Impressum",
+    type: "longtext",
+    default: IMPRESSUM_DEFAULT,
+    help:
+      "Formatierung: „## " +
+      "Überschrift“ für Zwischenüberschriften, **fett** für Fettschrift, " +
+      "„- “ am Zeilenanfang für Aufzählungen, [Text](https://…) für Links. " +
+      "Leerzeile trennt Absätze.",
+    group: "Rechtstexte"
+  },
+  {
+    key: "legal_agb",
+    label: "AGB",
+    type: "longtext",
+    default: AGB_DEFAULT,
+    group: "Rechtstexte"
+  },
+  {
+    key: "legal_datenschutz",
+    label: "Datenschutzerklärung",
+    type: "longtext",
+    default: DATENSCHUTZ_DEFAULT,
+    group: "Rechtstexte"
   },
 
   // --- Kontakt ---

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "@/lib/serverLocale";
+import { getSiteContent } from "@/lib/siteContent";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 
 export async function Header() {
   const { locale, t } = await getTranslations();
+  const content = await getSiteContent();
 
   return (
     // relative, damit sich das aufgeklappte Handy-Menü darunter aufhängen kann.
@@ -37,19 +39,22 @@ export async function Header() {
           <Link href="/events" className="transition hover:text-soul-orange">
             {t.nav.events}
           </Link>
-          <a
-            href="https://www.instagram.com/soulberliin/"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="transition hover:text-soul-orange"
-          >
-            {t.nav.instagram}
-          </a>
+          {content.link_instagram && (
+            <a
+              href={content.link_instagram}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="transition hover:text-soul-orange"
+            >
+              {t.nav.instagram}
+            </a>
+          )}
           <LanguageSwitcher current={locale} />
         </nav>
 
         <MobileMenu
           locale={locale}
+          instagramUrl={content.link_instagram}
           labels={{
             home: t.nav.home,
             events: t.nav.events,
