@@ -7,7 +7,7 @@ import { TicketPurchasePanel } from "@/components/TicketPurchasePanel";
 import { LocationMap } from "@/components/LocationMap";
 import { AiBadge } from "@/components/AiBadge";
 import { prisma } from "@/lib/prisma";
-import { countActiveTickets } from "@/lib/createTicket";
+import { countActiveTickets, countGuestlistPeople } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
@@ -91,6 +91,17 @@ export default async function EventDetailPage({
   const activePhase = phases.find((p) => p.status === "ACTIVE") ?? null;
   const phasesSoldOut = phases.length > 0 && activePhase === null;
   const effectivePriceCents = activePhase ? activePhase.priceCents : event.priceCents;
+
+  // Eigenes Gästelisten-Kontingent — unabhängig von der Gesamtkapazität, damit
+  // eine volle Gästeliste bei Events mit beiden Wegen den Ticketverkauf nicht
+  // mitschließt.
+  const guestlistPeople = event.guestlistCapacity
+    ? await countGuestlistPeople(event.id)
+    : 0;
+  const guestlistSpotsLeft = event.guestlistCapacity
+    ? Math.max(event.guestlistCapacity - guestlistPeople, 0)
+    : null;
+  const guestlistFull = guestlistSpotsLeft !== null && guestlistSpotsLeft <= 0;
 
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
@@ -191,6 +202,11 @@ export default async function EventDetailPage({
             phasesSoldOut={phasesSoldOut}
             externalTicketUrl={event.externalTicketUrl}
             externalTicketLabel={event.externalTicketLabel}
+            guestlistSpotsLeft={guestlistSpotsLeft}
+            guestlistFull={guestlistFull}
+            activePhaseEndsAt={
+              activePhase?.untilTime ? new Date(activePhase.untilTime).toISOString() : null
+            }
             guestlistTiers={event.guestlistTiers.map((tier) => ({
               id: tier.id,
               label: tier.label,

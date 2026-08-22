@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { SignupForm } from "./SignupForm";
 import { TicketAvailabilityGate } from "./TicketAvailabilityGate";
+import { Countdown } from "./Countdown";
 import { formatPrice, formatEventTime } from "@/lib/format";
 import { fill } from "@/lib/i18n";
 import {
@@ -47,6 +49,9 @@ export function TicketPurchasePanel({
   phasesSoldOut = false,
   externalTicketUrl = null,
   externalTicketLabel = null,
+  guestlistSpotsLeft = null,
+  guestlistFull = false,
+  activePhaseEndsAt = null,
   spotsLeft,
   isSoldOut,
   salesEndAtIso,
@@ -68,6 +73,12 @@ export function TicketPurchasePanel({
   externalTicketUrl?: string | null;
   /** Anbietername für die Knopfbeschriftung. */
   externalTicketLabel?: string | null;
+  /** Restplätze im eigenen Gästelisten-Kontingent; null = unbegrenzt. */
+  guestlistSpotsLeft?: number | null;
+  /** Gästelisten-Kontingent erschöpft — Tickets können trotzdem laufen. */
+  guestlistFull?: boolean;
+  /** Ende der laufenden Ticketphase (ISO) für den Countdown. */
+  activePhaseEndsAt?: string | null;
   spotsLeft: number | null;
   isSoldOut: boolean;
   salesEndAtIso: string | null;
@@ -77,6 +88,7 @@ export function TicketPurchasePanel({
   locale: Locale;
 }) {
   const t = getDict(locale);
+  const router = useRouter();
   const offersBoth = ticketMode === "BOTH";
   const [quantity, setQuantity] = useState(1);
   const [codeInput, setCodeInput] = useState("");
@@ -397,6 +409,40 @@ export function TicketPurchasePanel({
         </div>
       )}
 
+      {/* Countdown auf das Ende der laufenden Phase. onExpire lädt die Seite
+          neu, damit der Server die nächste Phase auflöst — sonst stünde nach
+          Ablauf weiter der alte Preis da, während der Checkout schon den
+          neuen kassiert. */}
+      {selected === "PAID" && activePhaseEndsAt && !isSoldOut && !phasesSoldOut && (
+        <div className="mb-4">
+          <Countdown
+            target={activePhaseEndsAt}
+            onExpire={() => router.refresh()}
+            label={t.event.phaseEndsIn}
+            urgentLabel={t.event.phaseEndsIn}
+            unitLabels={{
+              days: t.event.unitDays,
+              hours: t.event.unitHours,
+              minutes: t.event.unitMinutes,
+              seconds: t.event.unitSeconds
+            }}
+          />
+        </div>
+      )}
+
+      {/* Restplätze der Gästeliste — eigenes Kontingent, deshalb getrennt von
+          der Gesamtkapazität darunter. */}
+      {selected === "GUESTLIST" &&
+        !guestlistFull &&
+        !isSoldOut &&
+        guestlistSpotsLeft !== null &&
+        guestlistSpotsLeft <= 20 && (
+          <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-soul-orange">
+            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-soul-orange" />
+            {fill(t.event.guestlistSpotsLeft, { n: guestlistSpotsLeft })}
+          </p>
+        )}
+
       {spotsLeft !== null && !isSoldOut && spotsLeft <= 20 && (
         <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-soul-orange">
           <span className="inline-flex h-1.5 w-1.5 rounded-full bg-soul-orange" />
@@ -407,7 +453,17 @@ export function TicketPurchasePanel({
       {/* Alle Phasen durch: online ist Schluss, an der Tür geht aber noch was.
           Bewusst ein eigener Zustand statt des allgemeinen „ausgebucht“ —
           sonst würden Gäste denken, ein Kommen lohnt sich nicht mehr. */}
-      {phasesSoldOut && selected === "PAID" && !isSoldOut ? (
+      {/* Gästeliste voll, aber das Event ist nicht ausverkauft: bei einem
+          Event mit beiden Wegen bleibt der Ticketkauf offen. Deshalb ein
+          eigener Zustand — „ausverkauft“ wäre hier schlicht falsch. */}
+      {guestlistFull && selected === "GUESTLIST" && !isSoldOut ? (
+        <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/5 p-6 text-center">
+          <p className="text-display text-lg uppercase text-soul-orange">
+            {t.event.guestlistFull}
+          </p>
+          <p className="mt-2 text-sm text-paper/70">{t.event.guestlistFullText}</p>
+        </div>
+      ) : phasesSoldOut && selected === "PAID" && !isSoldOut ? (
         <div className="rounded-xl border border-soul-orange/40 bg-soul-orange/5 p-6 text-center">
           <p className="text-display text-lg uppercase text-soul-orange">{t.event.soldOut}</p>
           <p className="mt-2 text-sm text-paper/70">{t.event.boxOfficeHint}</p>

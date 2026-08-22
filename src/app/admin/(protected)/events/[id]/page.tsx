@@ -72,6 +72,7 @@ export default async function AdminEventDetailPage({
               ticketMode: event.ticketMode,
               priceCents: event.priceCents,
               capacity: event.capacity,
+              guestlistCapacity: event.guestlistCapacity,
               ticketSalesEndAt: event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null,
               externalTicketUrl: event.externalTicketUrl,
               externalTicketLabel: event.externalTicketLabel,

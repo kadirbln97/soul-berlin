@@ -84,6 +84,13 @@ type Dict = {
     externalTicketsNeutral: string;
     /** Hinweis unter dem Knopf: der Kauf läuft woanders. */
     externalHint: string;
+    /** Gästeliste-Kontingent erschöpft (Tickets ggf. noch verfügbar). */
+    guestlistFull: string;
+    guestlistFullText: string;
+    /** Restplätze auf der Gästeliste. */
+    guestlistSpotsLeft: string;
+    /** Countdown-Beschriftung bis zum Ende der laufenden Ticketphase. */
+    phaseEndsIn: string;
     salesEndsIn: string;
     signupEndsIn: string;
     almostOver: string;
@@ -238,6 +245,11 @@ const de: Dict = {
     externalTickets: "Tickets bei {name}",
     externalTicketsNeutral: "Tickets extern kaufen",
     externalHint: "Der Kauf läuft über einen externen Anbieter — du verlässt dabei unsere Seite.",
+    guestlistFull: "Gästeliste voll",
+    guestlistFullText:
+      "Alle Gästelistenplätze sind vergeben. An der Abendkasse kommst du trotzdem rein — komm früh.",
+    guestlistSpotsLeft: "Nur noch {n} Plätze auf der Gästeliste",
+    phaseEndsIn: "Preis steigt in",
     salesEndsIn: "Ticketverkauf endet in",
     signupEndsIn: "Anmeldung schließt in",
     almostOver: "Nur noch kurz",
@@ -395,6 +407,11 @@ const en: Dict = {
     externalTickets: "Tickets on {name}",
     externalTicketsNeutral: "Buy tickets externally",
     externalHint: "Tickets are sold by an external provider — you will leave our site.",
+    guestlistFull: "Guest list full",
+    guestlistFullText:
+      "All guest list spots are taken. You can still get in at the door — come early.",
+    guestlistSpotsLeft: "Only {n} guest list spots left",
+    phaseEndsIn: "Price goes up in",
     salesEndsIn: "Ticket sales end in",
     signupEndsIn: "Sign-up closes in",
     almostOver: "Almost over",

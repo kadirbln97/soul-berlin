@@ -106,3 +106,25 @@ export async function countActiveTickets(eventId: string) {
 
   return result._sum.partySize ?? 0;
 }
+
+/**
+ * Wie viele Personen über die Gästeliste auf dem Event stehen — für das
+ * eigene Gästelisten-Kontingent (Event.guestlistCapacity).
+ *
+ * Abgrenzung zum Ticketkauf über stripeSessionId: online bezahlte Tickets
+ * haben eine Stripe-Session, Gästelisten-Einträge nicht. Manuell im Admin
+ * eingetragene Promoter-Gäste zählen bewusst mit — sie stehen genauso auf
+ * der Liste und nehmen an der Tür genauso Platz weg.
+ */
+export async function countGuestlistPeople(eventId: string) {
+  const result = await prisma.ticket.aggregate({
+    where: {
+      eventId,
+      status: { in: ["VALID", "CHECKED_IN"] },
+      stripeSessionId: null
+    },
+    _sum: { partySize: true }
+  });
+
+  return result._sum.partySize ?? 0;
+}

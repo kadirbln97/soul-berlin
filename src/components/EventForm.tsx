@@ -37,6 +37,7 @@ type EventInitial = {
   ticketMode: string;
   priceCents: number | null;
   capacity: number | null;
+  guestlistCapacity?: number | null;
   ticketSalesEndAt: string | null;
   externalTicketUrl?: string | null;
   externalTicketLabel?: string | null;
@@ -98,6 +99,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     initial?.priceCents ? (initial.priceCents / 100).toString() : ""
   );
   const [capacity, setCapacity] = useState(initial?.capacity ? String(initial.capacity) : "");
+  const [guestlistCapacity, setGuestlistCapacity] = useState(
+    initial?.guestlistCapacity ? String(initial.guestlistCapacity) : ""
+  );
   const [salesEndAt, setSalesEndAt] = useState(toLocalInputValue(initial?.ticketSalesEndAt));
   const [externalUrl, setExternalUrl] = useState(initial?.externalTicketUrl ?? "");
   const [externalLabel, setExternalLabel] = useState(initial?.externalTicketLabel ?? "");
@@ -278,6 +282,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       ticketMode,
       priceCents: priceEuro ? Math.round(parseFloat(priceEuro) * 100) : undefined,
       capacity: capacity ? parseInt(capacity, 10) : undefined,
+      guestlistCapacity: guestlistCapacity ? parseInt(guestlistCapacity, 10) : null,
       ticketSalesEndAt: salesEndAt ? new Date(salesEndAt).toISOString() : "",
       status,
       guestlistTiers: usesGuestlist ? tiersPayload : [],
@@ -542,7 +547,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </div>
         )}
         <div>
-          <label className="label-field">Kapazität (optional)</label>
+          <label className="label-field">Gesamtkapazität (optional)</label>
           <input
             type="number"
             min="1"
@@ -551,7 +556,29 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             className="input-field"
             placeholder="unbegrenzt, wenn leer"
           />
+          <p className="mt-1 text-[11px] text-paper/40">
+            Obergrenze über alle Wege zusammen — Tickets und Gästeliste.
+          </p>
         </div>
+
+        {(ticketMode === "GUESTLIST" || ticketMode === "BOTH") && (
+          <div>
+            <label className="label-field">Plätze auf der Gästeliste (optional)</label>
+            <input
+              type="number"
+              min="1"
+              value={guestlistCapacity}
+              onChange={(e) => setGuestlistCapacity(e.target.value)}
+              className="input-field"
+              placeholder="unbegrenzt, wenn leer"
+            />
+            <p className="mt-1 text-[11px] text-paper/40">
+              Eigenes Kontingent nur für Gästelisten-Eintragungen. Ist es voll, schließt
+              die Gästeliste automatisch — der Ticketverkauf läuft davon unberührt weiter.
+              Begleitpersonen („+2“) zählen mit.
+            </p>
+          </div>
+        )}
         <div>
           <label className="label-field">Status</label>
           <select

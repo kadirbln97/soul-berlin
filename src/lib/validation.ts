@@ -122,6 +122,8 @@ export const eventSchema = z.object({
   // absurden Beträgen und dient als grobe Plausibilitätsprüfung.
   priceCents: z.coerce.number().int().min(0).max(500_000).optional(),
   capacity: z.coerce.number().int().min(1).max(20_000).optional(),
+  // Eigenes Kontingent nur für die Gästeliste (unabhängig von capacity).
+  guestlistCapacity: z.coerce.number().int().min(1).max(20_000).optional().nullable(),
   // Optionaler Verkaufsschluss (Gästeliste/Tickets) — wird auf der
   // Event-Seite als Countdown angezeigt und von den Anmelde-APIs durchgesetzt.
   ticketSalesEndAt: z.string().optional().or(z.literal("")),

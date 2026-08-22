@@ -58,8 +58,18 @@ model Event {
   priceCents  Int?
   currency    String   @default("eur")
 
-  // optionales Kapazitätslimit (null = unbegrenzt)
+  // Gesamtkapazität über alle Wege hinweg (Tickets + Gästeliste).
+  // null = unbegrenzt. Greift zusätzlich zu den Einzelkontingenten unten.
   capacity    Int?
+
+  // Eigenes Kontingent nur für Gästelisten-Eintragungen (null = unbegrenzt).
+  //
+  // Getrennt von capacity, weil beides unterschiedliche Fragen beantwortet:
+  // capacity ist die Obergrenze des Ladens, guestlistCapacity steuert, wie
+  // viele davon über die Gästeliste reinkommen. Ohne diese Trennung würde bei
+  // einem Event mit beiden Wegen eine volle Gästeliste auch den Ticketverkauf
+  // abwürgen — und umgekehrt.
+  guestlistCapacity Int?
 
   // Optionaler Zeitpunkt, ab dem Gästeliste/Ticketverkauf automatisch
   // schließt (null = kein Verkaufsschluss). Wird auf der Event-Seite als

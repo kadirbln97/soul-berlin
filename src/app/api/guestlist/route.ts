@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validation";
-import { createTicketAndSendEmail, countActiveTickets } from "@/lib/createTicket";
+import {
+  createTicketAndSendEmail,
+  countActiveTickets,
+  countGuestlistPeople
+} from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { getCurrentGuestlistTier } from "@/lib/guestlistTiers";
 import { einwilligungErfassen } from "@/lib/newsletter";
@@ -58,6 +62,19 @@ export async function POST(req: Request) {
     const active = await countActiveTickets(event.id);
     if (active >= event.capacity) {
       return NextResponse.json({ error: "Dieses Event ist leider ausverkauft." }, { status: 409 });
+    }
+  }
+
+  // Eigenes Gästelisten-Kontingent. Bewusst eine getrennte Meldung: Bei einem
+  // Event mit beiden Wegen ist die Gästeliste dann zu, Tickets gibt es aber
+  // weiterhin — "ausverkauft" wäre hier schlicht falsch.
+  if (event.guestlistCapacity) {
+    const aufDerListe = await countGuestlistPeople(event.id);
+    if (aufDerListe >= event.guestlistCapacity) {
+      return NextResponse.json(
+        { error: "Die Gästeliste für dieses Event ist voll." },
+        { status: 409 }
+      );
     }
   }
 
