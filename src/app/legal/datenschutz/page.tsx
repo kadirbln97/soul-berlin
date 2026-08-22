@@ -102,7 +102,46 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">
-              6. Fotos und Videos von Veranstaltungen
+              6. Informationen zu kommenden Events per E-Mail
+            </h2>
+            <p>
+              <strong className="text-paper">Bei Eintrag in die Gästeliste:</strong> Wenn du
+              das entsprechende Kästchen ankreuzt, verwenden wir deine E-Mail-Adresse und
+              deinen Namen, um dich über kommende SØUL-Events zu informieren. Rechtsgrundlage
+              ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Das Kästchen ist nicht
+              vorausgewählt, und die Anmeldung zur Gästeliste funktioniert unabhängig davon —
+              du musst also nicht zustimmen, um teilzunehmen.
+            </p>
+            <p>
+              <strong className="text-paper">Bestätigungsverfahren (Double-Opt-in):</strong>{" "}
+              Nach dem Ankreuzen erhältst du eine E-Mail mit einem Bestätigungslink. Erst nach
+              dem Klick darauf nehmen wir dich in den Verteiler auf. Zum Nachweis der
+              Einwilligung speichern wir Zeitpunkt und IP-Adresse der Anmeldung sowie der
+              Bestätigung; Rechtsgrundlage hierfür ist unser berechtigtes Interesse an der
+              Nachweisbarkeit (Art. 6 Abs. 1 lit. f DSGVO) in Verbindung mit Art. 7 Abs. 1
+              DSGVO.
+            </p>
+            <p>
+              <strong className="text-paper">Bei Ticketkauf:</strong> Hast du bei uns ein
+              Ticket gekauft, informieren wir dich über eigene, ähnliche Veranstaltungen.
+              Grundlage ist § 7 Abs. 3 UWG in Verbindung mit Art. 6 Abs. 1 lit. f DSGVO
+              (berechtigtes Interesse an Direktwerbung gegenüber Bestandskunden). Auf dein
+              Widerspruchsrecht weisen wir dich bereits beim Kauf und in jeder E-Mail hin.
+            </p>
+            <p>
+              <strong className="text-paper">Widerruf und Widerspruch:</strong> Du kannst deine
+              Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen bzw. der Werbung
+              jederzeit widersprechen. Dafür genügt ein Klick auf den Abmeldelink am Ende jeder
+              E-Mail; es entstehen keine Kosten. Nach der Abmeldung speichern wir deine Adresse
+              nur noch, um sicherzustellen, dass du keine weiteren E-Mails erhältst
+              (Sperrliste, Art. 6 Abs. 1 lit. f DSGVO). Werbung wird ab dem Widerspruch nicht
+              mehr versendet.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-paper">
+              7. Fotos und Videos von Veranstaltungen
             </h2>
             <p>
               Auf unseren Veranstaltungen werden Foto- und Videoaufnahmen erstellt, die wir zur
@@ -118,7 +157,7 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">
-              7. Empfänger / Auftragsverarbeiter
+              8. Empfänger / Auftragsverarbeiter
             </h2>
             <ul className="list-inside list-disc space-y-1">
               <li>
@@ -138,7 +177,7 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">
-              8. Datenübermittlung in Drittländer
+              9. Datenübermittlung in Drittländer
             </h2>
             <p>
               Einzelne der genannten Dienstleister haben ihren Sitz in den USA oder verarbeiten
@@ -151,7 +190,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-paper">9. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-paper">10. Speicherdauer</h2>
             <p>
               Ticket- und Gästelistendaten werden 90 Tage nach dem jeweiligen Event gelöscht.
               Davon ausgenommen sind Daten, für die gesetzliche Aufbewahrungspflichten bestehen —
@@ -161,7 +200,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-paper">10. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-paper">11. Deine Rechte</h2>
             <p className="mb-2">
               Du hast jederzeit das Recht auf Auskunft über die zu dir gespeicherten Daten (Art.
               15 DSGVO), auf Berichtigung (Art. 16), auf Löschung (Art. 17), auf Einschränkung der
@@ -177,7 +216,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-paper">11. Beschwerderecht</h2>
+            <h2 className="mb-2 text-lg font-semibold text-paper">12. Beschwerderecht</h2>
             <p>
               Unabhängig davon kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren.
               Für uns zuständig ist:
@@ -193,7 +232,7 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">
-              12. Keine automatisierte Entscheidungsfindung
+              13. Keine automatisierte Entscheidungsfindung
             </h2>
             <p>
               Eine automatisierte Entscheidungsfindung oder ein Profiling im Sinne von Art. 22
@@ -203,7 +242,7 @@ export default function DatenschutzPage() {
 
           <section>
             <h2 className="mb-2 text-lg font-semibold text-paper">
-              13. Künstliche Intelligenz
+              14. Künstliche Intelligenz
             </h2>
             <p>
               Deine personenbezogenen Daten — Name, E-Mail-Adresse, Telefonnummer, Ticket- und

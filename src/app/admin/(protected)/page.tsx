@@ -30,6 +30,14 @@ export default async function AdminDashboardPage({
     ? await getEventRevenue(selectedEvent.id)
     : await getTotalRevenue();
 
+  // Newsletter-Zahlen: bewusst getrennt nach Rechtsgrundlage, weil davon
+  // abhängt, was verschickt werden darf.
+  const [mitEinwilligung, bestandskunden, offen] = await Promise.all([
+    prisma.newsletterSubscriber.count({ where: { status: "ACTIVE", source: "CONSENT" } }),
+    prisma.newsletterSubscriber.count({ where: { status: "ACTIVE", source: "CUSTOMER" } }),
+    prisma.newsletterSubscriber.count({ where: { status: "PENDING" } })
+  ]);
+
   return (
     <div>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
@@ -53,6 +61,61 @@ export default async function AdminDashboardPage({
             />
           }
         />
+      </div>
+
+      <div className="mb-8 rounded-2xl card-border p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-paper/40">
+            Newsletter-Verteiler
+          </h2>
+          {mitEinwilligung + bestandskunden > 0 && (
+            <a
+              href="/api/admin/newsletter/export"
+              className="text-xs font-semibold uppercase tracking-widest text-paper/60 hover:text-soul-orange"
+            >
+              Als CSV exportieren ↓
+            </a>
+          )}
+        </div>
+
+        <dl className="grid grid-cols-3 gap-x-4">
+          <div>
+            <dt className="text-[10px] font-semibold uppercase leading-tight tracking-wider text-paper/60">
+              Einwilligung
+            </dt>
+            <dd className="text-display mt-2 text-3xl leading-none text-paper">
+              {mitEinwilligung}
+            </dd>
+            <p className="mt-2 text-[10px] leading-snug text-paper/50">bestätigt per Klick</p>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase leading-tight tracking-wider text-paper/60">
+              Bestandskunden
+            </dt>
+            <dd className="text-display mt-2 text-3xl leading-none text-paper">
+              {bestandskunden}
+            </dd>
+            <p className="mt-2 text-[10px] leading-snug text-paper/50">aus Ticketkäufen</p>
+          </div>
+          <div>
+            <dt className="text-[10px] font-semibold uppercase leading-tight tracking-wider text-paper/60">
+              Offen
+            </dt>
+            <dd className="text-display mt-2 text-3xl leading-none text-paper/50">{offen}</dd>
+            <p className="mt-2 text-[10px] leading-snug text-paper/50">Bestätigung fehlt</p>
+          </div>
+        </dl>
+
+        {/* Der Unterschied ist kein Detail: Bestandskunden dürfen nur Werbung
+            für eigene ähnliche Veranstaltungen bekommen. Wer das vermischt,
+            verliert die Grundlage für den gesamten Verteiler. */}
+        <p className="mt-4 border-t border-paper/10 pt-4 text-[11px] leading-snug text-paper/40">
+          „Offen" bedeutet: angemeldet, aber der Bestätigungslink wurde noch nicht
+          geklickt — diese Adressen dürfen nicht angeschrieben werden und sind im
+          Export nicht enthalten. Bestandskunden dürfen ausschließlich Ankündigungen
+          zu eigenen, ähnlichen Veranstaltungen erhalten. Jede E-Mail braucht einen
+          Abmeldelink; er steht in der letzten Spalte des Exports.
+        </p>
       </div>
 
       {events.length === 0 ? (

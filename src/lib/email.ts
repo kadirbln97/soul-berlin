@@ -210,3 +210,52 @@ export async function sendContactEmail(params: {
     html
   });
 }
+
+/**
+ * Bestätigungsmail für das Double-Opt-in (nur bei ausdrücklicher
+ * Einwilligung über das Häkchen bei der Gästeliste).
+ *
+ * Diese Mail ist selbst noch keine Werbung, sondern dient allein der
+ * Überprüfung der Anmeldung — deshalb enthält sie bewusst keine
+ * Event-Werbung. Eine mit Werbung angereicherte Bestätigungsmail wäre
+ * ihrerseits unerlaubte Werbung, weil die Einwilligung ja noch aussteht.
+ */
+export async function sendNewsletterConfirmEmail(params: {
+  to: string;
+  name?: string | null;
+  confirmToken: string;
+}) {
+  const transport = getTransport();
+  const appUrl = (process.env.APP_URL ?? "https://soulberlin.de").replace(/\/$/, "");
+  const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
+  const url = `${appUrl}/newsletter/bestaetigen?token=${encodeURIComponent(params.confirmToken)}`;
+  const anrede = params.name ? `Hey ${escapeHtml(params.name)},` : "Hey,";
+
+  const html = `
+  <div style="background:#0a0a0a;padding:32px 0;font-family:Helvetica,Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#111;border-radius:16px;padding:28px;">
+      <div style="font-size:26px;font-weight:bold;color:#f5f3ee;letter-spacing:-.02em;">SØUL BERLIN</div>
+      <p style="color:#f5f3ee;font-size:15px;line-height:1.6;margin:20px 0 0;">${anrede}</p>
+      <p style="color:#f5f3ee;opacity:.8;font-size:14px;line-height:1.6;margin:12px 0 0;">
+        du möchtest von uns über kommende SØUL-Events informiert werden. Bitte
+        bestätige das einmal kurz — danach bist du dabei.
+      </p>
+      <div style="text-align:center;margin:26px 0 8px;">
+        <a href="${url}" style="display:inline-block;background:#ff6a1a;color:#0a0a0a;text-decoration:none;font-weight:bold;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:13px 24px;border-radius:999px;">
+          Anmeldung bestätigen
+        </a>
+      </div>
+      <p style="color:#f5f3ee;opacity:.5;font-size:12px;line-height:1.6;margin:18px 0 0;">
+        Falls du dich nicht angemeldet hast, ignoriere diese E-Mail einfach —
+        ohne Klick auf den Knopf passiert nichts und wir schreiben dich nicht an.
+      </p>
+    </div>
+  </div>`;
+
+  await transport.sendMail({
+    from,
+    to: params.to,
+    subject: "Bitte bestätige deine Anmeldung — SØUL Berlin",
+    html
+  });
+}

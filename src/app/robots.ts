@@ -9,8 +9,10 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // Admin-Bereich, interne API-Routen und persönliche Ticket-Seiten
-        // sollen nicht indexiert werden.
-        disallow: ["/admin", "/api", "/ticket"]
+        // sollen nicht indexiert werden. /newsletter ebenfalls: die Seiten
+        // funktionieren nur mit persönlichem Token und haben für Suchende
+        // keinen Nutzen — außerdem sollen die Token nicht in einem Index landen.
+        disallow: ["/admin", "/api", "/ticket", "/newsletter"]
       }
     ],
     sitemap: `${appUrl}/sitemap.xml`

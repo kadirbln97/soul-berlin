@@ -25,6 +25,9 @@ export function SignupForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // Bewusst false: eine vorangekreuzte Box ist keine wirksame Einwilligung
+  // (EuGH, Planet49). Der Haken muss vom Gast selbst gesetzt werden.
+  const [newsletter, setNewsletter] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +39,17 @@ export function SignupForm({
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId, name, email, phone, quantity, discountCode })
+        body: JSON.stringify({
+          eventId,
+          name,
+          email,
+          phone,
+          quantity,
+          discountCode,
+          // Nur bei der Gästeliste relevant. Beim Ticketkauf greift die
+          // Bestandskundenregel, dort wird nichts angekreuzt.
+          newsletter: ticketMode === "PAID" ? false : newsletter
+        })
       });
       const data = await res.json();
 
@@ -119,6 +132,42 @@ export function SignupForm({
       {error && (
         <p role="alert" className="text-sm text-red-400">
           {error}
+        </p>
+      )}
+
+      {/* Einwilligung in Werbung — bewusst als eigenes, leeres Kästchen und
+          getrennt vom AGB-Hinweis darunter. Art. 7 Abs. 2 DSGVO verlangt, dass
+          ein Einwilligungsersuchen von anderen Sachverhalten klar
+          unterscheidbar ist; mit den AGB gebündelt wäre sie unwirksam.
+          Die Anmeldung funktioniert ohne den Haken genauso — eine Kopplung
+          an den Vertrag wäre nach Art. 7 Abs. 4 DSGVO ebenfalls unwirksam. */}
+      {ticketMode !== "PAID" && (
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-paper/10 p-3 text-left">
+          <input
+            type="checkbox"
+            checked={newsletter}
+            onChange={(e) => setNewsletter(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-soul-orange"
+          />
+          <span className="min-w-0">
+            <span className="block text-xs leading-snug text-paper/80">
+              {t.form.newsletterLabel}
+            </span>
+            <span className="mt-1 block text-[11px] leading-snug text-paper/50">
+              {t.form.newsletterHint}
+            </span>
+          </span>
+        </label>
+      )}
+
+      {/* Pflichthinweis nach § 7 Abs. 3 UWG: Bestandskunden dürfen ohne
+          Einwilligung Werbung für eigene ähnliche Angebote bekommen, müssen
+          aber bereits bei der Erhebung der Adresse auf ihr kostenloses
+          Widerspruchsrecht hingewiesen werden. Fehlt der Hinweis, ist die
+          spätere Werbung unzulässig. */}
+      {ticketMode === "PAID" && (
+        <p className="rounded-xl border border-paper/10 p-3 text-[11px] leading-snug text-paper/50">
+          {t.form.customerInfoNotice}
         </p>
       )}
 

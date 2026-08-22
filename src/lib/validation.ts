@@ -12,7 +12,10 @@ export const signupSchema = z.object({
   // Anzahl Tickets pro Bestellung (nur beim Ticketkauf relevant).
   quantity: z.coerce.number().int().min(1).max(MAX_TICKETS_PER_ORDER).optional(),
   // Optional eingegebener Gutscheincode.
-  discountCode: z.string().trim().max(40).optional().or(z.literal(""))
+  discountCode: z.string().trim().max(40).optional().or(z.literal("")),
+  // Freiwillige Einwilligung in Event-Ankündigungen (nur Gästeliste).
+  // Fehlt das Feld, gilt bewusst false — keine Einwilligung durch Schweigen.
+  newsletter: z.boolean().optional()
 });
 
 export const discountSchema = z

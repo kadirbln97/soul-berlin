@@ -4,6 +4,8 @@ import { signupSchema } from "@/lib/validation";
 import { createTicketAndSendEmail, countActiveTickets } from "@/lib/createTicket";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { getCurrentGuestlistTier } from "@/lib/guestlistTiers";
+import { einwilligungErfassen } from "@/lib/newsletter";
+import { sendNewsletterConfirmEmail } from "@/lib/email";
 import { getLocale } from "@/lib/serverLocale";
 
 export async function POST(req: Request) {
@@ -89,6 +91,28 @@ export async function POST(req: Request) {
     tierLabel: currentTier ? currentTier.resolvedLabel : null,
     locale: await getLocale()
   });
+
+  // Einwilligung in Event-Ankündigungen — nur wenn der Haken gesetzt wurde.
+  // Bewusst nach der Anmeldung und in einem eigenen try/catch: ob die
+  // Bestätigungsmail rausgeht, darf die Gästelisten-Anmeldung nie gefährden.
+  if (parsed.data.newsletter === true) {
+    try {
+      const confirmToken = await einwilligungErfassen({
+        email: email.toLowerCase(),
+        name,
+        ip
+      });
+      if (confirmToken) {
+        await sendNewsletterConfirmEmail({
+          to: email.toLowerCase(),
+          name,
+          confirmToken
+        });
+      }
+    } catch (err) {
+      console.error("[guestlist] Newsletter-Bestätigung fehlgeschlagen:", err);
+    }
+  }
 
   return NextResponse.json({ ok: true, ticketId: ticket.id });
 }

@@ -231,6 +231,61 @@ model GalleryItem {
   @@index([order])
 }
 
+// Empfänger für Event-Ankündigungen per E-Mail.
+//
+// Bewusst eine eigene Tabelle statt eines Häkchens am Ticket: Eine Person kann
+// mehrere Tickets haben, aber nur einmal auf der Liste stehen — und eine
+// Abmeldung muss für die Adresse gelten, nicht für einen einzelnen Eintrag.
+//
+// Es gibt zwei getrennte Rechtsgrundlagen, die nie vermischt werden dürfen:
+//
+//   source "CONSENT"  — ausdrückliche Einwilligung über das Häkchen bei der
+//                       Gästeliste (Art. 6 Abs. 1 lit. a DSGVO). Wird erst
+//                       nach Bestätigung per Double-Opt-in aktiv.
+//   source "CUSTOMER" — Bestandskunde nach § 7 Abs. 3 UWG: Adresse stammt aus
+//                       einem Ticketkauf, Werbung nur für eigene ähnliche
+//                       Veranstaltungen. Hier ist keine Einwilligung nötig und
+//                       damit auch kein Double-Opt-in — Pflicht ist stattdessen
+//                       der Widerspruchshinweis bei Erhebung UND in jeder Mail.
+//
+// Die Nachweisfelder (Zeitpunkt + IP) sind kein Selbstzweck: im Streitfall
+// muss der Versender die Einwilligung belegen können, nicht der Empfänger
+// ihr Fehlen.
+model NewsletterSubscriber {
+  id    String  @id @default(cuid())
+  email String  @unique
+  name  String?
+
+  // "CONSENT" | "CUSTOMER" — siehe oben.
+  source String
+
+  // "PENDING" (wartet auf Bestätigung) | "ACTIVE" | "UNSUBSCRIBED"
+  status String @default("PENDING")
+
+  // Nachweis der Einwilligung (nur bei source CONSENT).
+  consentAt DateTime?
+  consentIp String?
+
+  // Nachweis der Bestätigung aus der Double-Opt-in-Mail.
+  confirmedAt DateTime?
+  confirmedIp String?
+
+  // Einmal-Token aus der Bestätigungsmail. Nach dem Klick auf null gesetzt,
+  // damit der Link nicht wiederverwendbar ist.
+  confirmToken String? @unique
+
+  // Dauerhafter Token für den Abmeldelink in jeder E-Mail. Muss ohne Login
+  // funktionieren — niemand soll sich anmelden müssen, um Werbung abzustellen.
+  unsubscribeToken String @unique
+
+  unsubscribedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
 model Ticket {
   id          String   @id @default(cuid())
   eventId     String

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { createTicketAndSendEmail } from "@/lib/createTicket";
+import { bestandskundeErfassen } from "@/lib/newsletter";
 import type Stripe from "stripe";
 
 // Stripe braucht den rohen, unveränderten Body für die Signaturprüfung —
@@ -98,6 +99,17 @@ export async function POST(req: Request) {
         stripePaymentIntentId:
           typeof session.payment_intent === "string" ? session.payment_intent : null
       });
+    }
+
+    // Bestandskunde nach § 7 Abs. 3 UWG: Die Adresse stammt aus einem
+    // tatsächlich abgeschlossenen Kauf — deshalb hier im Webhook und nicht
+    // schon beim Checkout-Start, wo noch nichts bezahlt ist. Der nötige
+    // Widerspruchshinweis stand beim Kauf im Formular und steht in jeder Mail.
+    try {
+      await bestandskundeErfassen({ email, name });
+    } catch (err) {
+      // Darf den Ticketkauf unter keinen Umständen scheitern lassen.
+      console.error("[stripe webhook] Newsletter-Eintrag fehlgeschlagen:", err);
     }
 
     if (discountId) {

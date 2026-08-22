@@ -115,6 +115,12 @@ type Dict = {
     successText: string;
     errorGeneric: string;
     errorConnection: string;
+    /** Freiwillige Einwilligung — bewusst getrennt vom AGB-Hinweis. */
+    newsletterLabel: string;
+    /** Anreiz, warum sich das Häkchen lohnt. */
+    newsletterHint: string;
+    /** Pflichthinweis fuer Ticketkaeufer nach § 7 Abs. 3 UWG. */
+    customerInfoNotice: string;
   };
   contact: {
     topicLabel: string;
@@ -262,7 +268,12 @@ const de: Dict = {
     successTitle: "Du bist auf der Liste 🎉",
     successText: "Check dein Postfach — dein QR-Ticket ist unterwegs an deine E-Mail-Adresse.",
     errorGeneric: "Etwas ist schiefgelaufen.",
-    errorConnection: "Verbindung fehlgeschlagen. Bitte versuch es erneut."
+    errorConnection: "Verbindung fehlgeschlagen. Bitte versuch es erneut.",
+    newsletterLabel: "Ja, schickt mir Infos zu kommenden SØUL-Events per E-Mail.",
+    newsletterHint:
+      "Neue Termine zuerst und Early-Bird-Tickets vorab. Jederzeit mit einem Klick abbestellbar.",
+    customerInfoNotice:
+      "Als Ticketkäufer:in informieren wir dich per E-Mail über kommende SØUL-Events. Du kannst dem jederzeit kostenlos widersprechen — ein Klick auf den Abmeldelink in jeder Mail genügt."
   },
   contact: {
     topicLabel: "Thema",
@@ -414,7 +425,12 @@ const en: Dict = {
     successTitle: "You're on the list 🎉",
     successText: "Check your inbox — your QR ticket is on its way to your email address.",
     errorGeneric: "Something went wrong.",
-    errorConnection: "Connection failed. Please try again."
+    errorConnection: "Connection failed. Please try again.",
+    newsletterLabel: "Yes, send me updates about upcoming SØUL events by email.",
+    newsletterHint:
+      "New dates first and early-bird tickets in advance. Unsubscribe anytime with one click.",
+    customerInfoNotice:
+      "As a ticket buyer we will email you about upcoming SØUL events. You can object at any time free of charge — one click on the unsubscribe link in every email is enough."
   },
   contact: {
     topicLabel: "Topic",
