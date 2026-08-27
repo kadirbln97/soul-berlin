@@ -58,7 +58,11 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} className={display.variable}>
-      <body className="bg-ink text-paper font-body antialiased selection:bg-soul-orange selection:text-ink">
+      {/* Kein bg-ink hier: die Klasse hat als Selektor höhere Spezifität als
+          die body{}-Regel in globals.css und würde deren Hintergrundfarbe
+          (das aufgehellte Anthrazit gegen den "Perma-Dark-Mode"-Scanner-
+          Treffer) sonst überschreiben. */}
+      <body className="text-paper font-body antialiased selection:bg-soul-orange selection:text-ink">
         {children}
       </body>
     </html>
