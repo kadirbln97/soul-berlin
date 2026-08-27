@@ -25,8 +25,14 @@ body {
      als "Perma-Dark-Mode" wertet (#0a0a0a liegt bei 4 %). Dieses eine Muster
      bleibt damit bewusst wieder aktiv, alle anderen drei Fixes bleiben. */
   background-color: #0a0a0a;
+  /* Feste Pixelgröße statt Prozent: Prozentwerte beziehen sich bei body auf
+     die GESAMTE Seitenhöhe, nicht den Viewport. Auf einer langen Seite wurde
+     die Ellipse dadurch riesig und reichte weit unter das Hero-Foto — sichtbar
+     wurde das nicht, weil das Foto sie deckt, bis der Abschnitt endet und der
+     Verlauf schlagartig als harte Kante "auftaucht". Mit fester Größe ist er
+     längst auf 0 ausgeblendet, bevor der Hero-Bereich zu Ende ist. */
   background-image: radial-gradient(
-      ellipse 80% 50% at 50% -10%,
+      ellipse 1200px 380px at 50% -40px,
       rgba(255, 106, 26, 0.18),
       transparent
     );
