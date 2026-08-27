@@ -26,7 +26,7 @@ export function AiBadge({
   return (
     <span
       title={title}
-      className={`pointer-events-none absolute z-10 ${position} rounded-full bg-ink/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-paper ring-1 ring-paper/30 backdrop-blur-sm`}
+      className={`pointer-events-none absolute z-10 ${position} rounded-full bg-ink/85 px-2.5 py-1 text-[11px] font-bold text-paper ring-1 ring-paper/30 backdrop-blur-sm`}
     >
       <span aria-hidden="true">{label}</span>
       <span className="sr-only">{title}</span>

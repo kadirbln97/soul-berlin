@@ -21,7 +21,16 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
-        body: ["var(--font-body)", "sans-serif"]
+        // Systemschrift statt Inter/Geist/Space Grotesk — siehe layout.tsx.
+        body: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica",
+          "Arial",
+          "sans-serif"
+        ]
       },
       backgroundImage: {
         "grain": "url('/grain.png')"

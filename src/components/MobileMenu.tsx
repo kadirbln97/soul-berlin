@@ -48,7 +48,7 @@ export function MobileMenu({
   }, [open]);
 
   const linkClass =
-    "block rounded-xl px-4 py-3 text-base font-semibold uppercase tracking-widest text-paper transition hover:bg-paper/5 hover:text-soul-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange";
+    "block rounded-xl px-4 py-3 text-base font-semibold text-paper transition hover:bg-paper/5 hover:text-soul-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange";
 
   return (
     <div className="sm:hidden">

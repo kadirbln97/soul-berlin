@@ -32,7 +32,7 @@ export async function Header() {
           />
         </Link>
         {/* Ab sm die gewohnte Leiste, darunter das Burger-Menü. */}
-        <nav className="hidden items-center gap-6 text-xs font-semibold uppercase tracking-widest text-paper/80 sm:flex">
+        <nav className="hidden items-center gap-6 text-sm font-semibold text-paper/80 sm:flex">
           <Link href="/" className="transition hover:text-soul-orange">
             {t.nav.home}
           </Link>

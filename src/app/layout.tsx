@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Anton, Inter } from "next/font/google";
+import { Anton } from "next/font/google";
 import "./globals.css";
 import { getLocale } from "@/lib/serverLocale";
 
@@ -11,11 +11,10 @@ const display = Anton({
   display: "swap"
 });
 
-const body = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap"
-});
+// Bewusst kein Google-Webfont fürs Fließtext: Inter/Geist/Space Grotesk sind
+// die Standardschriften, die praktisch jede KI-gebaute Seite verwendet — mit
+// einer davon wirkt selbst eine handgemachte Seite generisch. Die System-
+// schriftart lädt außerdem ohne Netzwerk-Roundtrip und ohne Layout-Sprung.
 
 const appUrl = process.env.APP_URL ?? "http://localhost:3000";
 
@@ -58,7 +57,7 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   return (
-    <html lang={locale} className={`${display.variable} ${body.variable}`}>
+    <html lang={locale} className={display.variable}>
       <body className="bg-ink text-paper font-body antialiased selection:bg-soul-orange selection:text-ink">
         {children}
       </body>

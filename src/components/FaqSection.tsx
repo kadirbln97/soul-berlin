@@ -63,13 +63,12 @@ function SlotIcon({ slot }: { slot: number }) {
 }
 
 /**
- * Häufige Fragen als aufklappbare Liste am Ende der Startseite.
+ * Häufige Fragen als offen sichtbare Liste am Ende der Startseite.
  *
- * Bewusst mit <details>/<summary> statt eigenem JavaScript: das Auf- und
- * Zuklappen funktioniert dadurch auch ohne JS, ist von Haus aus per Tastatur
- * bedienbar und wird von Screenreadern korrekt als Ausklappbereich angesagt.
- * Die weiche Höhenanimation ist reine Zugabe (siehe .faq-item in globals.css) —
- * wo der Browser sie nicht kann, klappt es eben ohne Übergang auf.
+ * Bewusst OHNE Akkordeon (<details>/<summary>): Fragen und Antworten stehen
+ * direkt da, ohne dass erst jemand antippen muss, um zu erfahren, ob SØUL
+ * einen Dresscode hat. Fünf kurze, echte Fragen wiegen das bisschen
+ * zusätzliche Scrollen locker auf.
  */
 export function FaqSection({ content }: { content: SiteContent }) {
   const items = FAQ_SLOTS.map((slot) => ({
@@ -80,8 +79,9 @@ export function FaqSection({ content }: { content: SiteContent }) {
 
   if (items.length === 0) return null;
 
-  // Damit Google die Fragen als FAQ erkennen kann. Kostet nichts und passt
-  // zur gerade eingerichteten Search Console.
+  // Damit KI-Suchassistenten (ChatGPT, Perplexity & Co.) die Fragen sauber
+  // zitieren können — kostet nichts, unabhängig davon, ob Google gerade ein
+  // klassisches Rich-Snippet dafür anzeigt.
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -100,33 +100,13 @@ export function FaqSection({ content }: { content: SiteContent }) {
 
       <div className="flex flex-col divide-y divide-paper/10 border-y border-paper/10">
         {items.map((item) => (
-          <details key={item.slot} className="faq-item group">
-            <summary className="flex cursor-pointer list-none items-center gap-3 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-soul-orange focus-visible:ring-offset-2 focus-visible:ring-offset-ink">
-              <SlotIcon slot={item.slot} />
-              <span className="flex-1 text-sm font-semibold text-paper sm:text-base">
-                {item.question}
-              </span>
-              {/* Der Pfeil dreht sich beim Aufklappen — die einzige Bewegung,
-                  die hier wirklich etwas erklärt (Zustand offen/zu). */}
-              <svg
-                aria-hidden="true"
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="faq-chevron shrink-0 text-paper/40"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </summary>
-            <p className="pb-5 pl-[30px] pr-1 text-sm leading-relaxed text-paper/70">
-              {item.answer}
-            </p>
-          </details>
+          <div key={item.slot} className="flex gap-3 py-5">
+            <SlotIcon slot={item.slot} />
+            <div>
+              <p className="text-sm font-semibold text-paper sm:text-base">{item.question}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-paper/70">{item.answer}</p>
+            </div>
+          </div>
         ))}
       </div>
 

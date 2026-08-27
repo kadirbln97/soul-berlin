@@ -84,7 +84,7 @@ export default async function HomePage() {
                  lässt die Bildmitte aber weitgehend frei */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,#0a0a0a_0%,rgba(10,10,10,0.92)_12%,rgba(10,10,10,0.55)_38%,rgba(10,10,10,0.18)_62%,rgba(10,10,10,0.55)_100%)]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,#544a40_0%,rgba(84,74,64,0.92)_12%,rgba(84,74,64,0.55)_38%,rgba(84,74,64,0.18)_62%,rgba(84,74,64,0.55)_100%)]"
           />
           {/* 2) schmaler Streifen oben: hält Logo und Navigation im Header lesbar */}
           <div
@@ -96,7 +96,7 @@ export default async function HomePage() {
                  Text dort fast die volle Breite einnimmt */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_46%_at_50%_60%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_50%,transparent_80%)] sm:bg-[radial-gradient(58%_46%_at_50%_62%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_45%,transparent_78%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_46%_at_50%_60%,rgba(84,74,64,0.72)_0%,rgba(84,74,64,0.42)_50%,transparent_80%)] sm:bg-[radial-gradient(58%_46%_at_50%_62%,rgba(84,74,64,0.72)_0%,rgba(84,74,64,0.42)_45%,transparent_78%)]"
           />
           {content.hero_image_ai === "1" && (
             <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="bottom-3 right-3" />
@@ -120,7 +120,7 @@ export default async function HomePage() {
               )}
             </h1>
             {content.hero_tagline && (
-              <p className="max-w-xl text-sm uppercase tracking-[0.3em] text-paper/70 [text-shadow:0_1px_12px_rgba(0,0,0,0.8)]">
+              <p className="max-w-xl text-base text-paper/70 [text-shadow:0_1px_12px_rgba(0,0,0,0.8)]">
                 {content.hero_tagline}
               </p>
             )}
@@ -145,7 +145,7 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/events"
-              className="text-xs font-semibold uppercase tracking-widest text-paper/75 hover:text-soul-orange"
+              className="text-sm font-semibold text-paper/75 hover:text-soul-orange"
             >
               {content.events_link_label}
             </Link>

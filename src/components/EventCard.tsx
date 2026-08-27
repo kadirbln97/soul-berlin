@@ -79,7 +79,7 @@ export async function EventCard({
           <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="left-2 top-2" />
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
-          <span className="rounded-full bg-soul-orange px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-ink">
+          <span className="rounded-full bg-soul-orange px-3 py-1 text-xs font-bold text-ink">
             {formatShortDate(dateStart)}
           </span>
         </div>
@@ -87,21 +87,21 @@ export async function EventCard({
       <div className="flex flex-1 flex-col gap-1 p-5">
         <h3 className="text-display text-xl uppercase leading-tight text-paper">{title}</h3>
         {subtitle && <p className="text-sm text-paper/75">{subtitle}</p>}
-        <p className="mt-1 text-xs uppercase tracking-widest text-paper/60">{venue}</p>
+        <p className="mt-1 text-sm text-paper/60">{venue}</p>
         <div className="mt-4 flex items-center justify-between">
           <span
-            className={`text-xs font-semibold uppercase tracking-widest ${
+            className={`text-sm font-semibold ${
               isSoldOut ? "text-paper/60" : "text-soul-orange"
             }`}
           >
             {badge}
             {showsFeeNote && (
-              <span className="ml-1.5 font-normal normal-case tracking-normal text-paper/60">
+              <span className="ml-1.5 font-normal text-paper/60">
                 {t.price.feeIncluded}
               </span>
             )}
           </span>
-          <span className="text-xs uppercase tracking-widest text-paper/70 transition group-hover:text-soul-orange">
+          <span className="text-sm text-paper/70 transition group-hover:text-soul-orange">
             {t.events.details}
           </span>
         </div>
