@@ -20,11 +20,11 @@ html {
 }
 
 body {
-  /* So dunkel wie möglich, ohne als "Perma-Dark-Mode" zu gelten: automatisierte
-     Scanner werten jeden Hintergrund mit HSL-Helligkeit < 25 % als Slop-Signal,
-     unabhängig vom Textkontrast. #4c433a liegt bei 26,3 % — knapp drüber, mit
-     etwas Sicherheitsabstand, aber so nah wie vertretbar am ursprünglichen Schwarz. */
-  background-color: #4c433a;
+  /* Zurück auf reines Schwarz — auf ausdrücklichen Wunsch, obwohl ein
+     automatisierter Slop-Scanner jeden Hintergrund mit HSL-Helligkeit < 25 %
+     als "Perma-Dark-Mode" wertet (#0a0a0a liegt bei 4 %). Dieses eine Muster
+     bleibt damit bewusst wieder aktiv, alle anderen drei Fixes bleiben. */
+  background-color: #0a0a0a;
   background-image: radial-gradient(
       ellipse 80% 50% at 50% -10%,
       rgba(255, 106, 26, 0.18),

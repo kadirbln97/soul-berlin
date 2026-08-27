@@ -84,7 +84,7 @@ export default async function HomePage() {
                  lässt die Bildmitte aber weitgehend frei */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,#4c433a_0%,rgba(76,67,58,0.92)_12%,rgba(76,67,58,0.55)_38%,rgba(76,67,58,0.18)_62%,rgba(76,67,58,0.55)_100%)]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,#0a0a0a_0%,rgba(10,10,10,0.92)_12%,rgba(10,10,10,0.55)_38%,rgba(10,10,10,0.18)_62%,rgba(10,10,10,0.55)_100%)]"
           />
           {/* 2) schmaler Streifen oben: hält Logo und Navigation im Header lesbar */}
           <div
@@ -96,7 +96,7 @@ export default async function HomePage() {
                  Text dort fast die volle Breite einnimmt */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_46%_at_50%_60%,rgba(76,67,58,0.72)_0%,rgba(76,67,58,0.42)_50%,transparent_80%)] sm:bg-[radial-gradient(58%_46%_at_50%_62%,rgba(76,67,58,0.72)_0%,rgba(76,67,58,0.42)_45%,transparent_78%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_46%_at_50%_60%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_50%,transparent_80%)] sm:bg-[radial-gradient(58%_46%_at_50%_62%,rgba(10,10,10,0.72)_0%,rgba(10,10,10,0.42)_45%,transparent_78%)]"
           />
           {content.hero_image_ai === "1" && (
             <AiBadge label={t.ai.badge} title={t.ai.imageNotice} position="bottom-3 right-3" />
