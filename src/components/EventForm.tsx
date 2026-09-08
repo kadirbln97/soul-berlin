@@ -1072,7 +1072,11 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                     {tables.map((t, i) => (
                       <div
                         key={i}
-                        className="absolute flex items-center justify-center rounded border-2 border-soul-orange bg-soul-orange/20 text-[10px] font-bold text-paper"
+                        // Nummer oben links statt mittig: mittig läge sie genau
+                        // auf der Tischnummer, die schon im Grundriss gedruckt
+                        // ist. Hier im Admin bleibt sie sichtbar, damit sich
+                        // Zeile und Fläche beim Einmessen zuordnen lassen.
+                        className="absolute flex items-start justify-start rounded border-2 border-soul-orange bg-soul-orange/20 px-1 text-[10px] font-bold leading-none text-paper"
                         style={{
                           left: `${t.x}%`,
                           top: `${t.y}%`,

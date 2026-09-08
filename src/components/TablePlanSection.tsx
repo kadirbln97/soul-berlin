@@ -68,10 +68,17 @@ export function TablePlanSection({
                 onClick={() => selectTable(table.id)}
                 aria-pressed={isSelected}
                 aria-label={`Tisch ${table.id}, ${table.capacity} Personen, Mindestverzehr ${formatTablePlanEuro(table.minSpendCents)} €`}
-                className={`absolute flex items-center justify-center rounded border-2 text-xs font-bold transition sm:text-sm ${
+                // Bewusst ohne eigene Beschriftung: die Tischnummern stehen
+                // bereits im Grundriss-Bild. Eine zweite Zahl obendrauf lag
+                // leicht versetzt über der gedruckten und sah doppelt aus.
+                // Die Fläche bleibt deshalb durchsichtig getönt — sie zeigt
+                // nur, dass hier etwas anklickbar ist, und lässt die Nummer
+                // aus dem Bild durchscheinen. Für Screenreader steht die
+                // vollständige Angabe weiterhin im aria-label.
+                className={`absolute rounded border-2 transition ${
                   isSelected
-                    ? "border-soul-orange bg-soul-orange/70 text-ink"
-                    : "border-paper/50 bg-ink/40 text-paper hover:border-soul-orange hover:bg-soul-orange/30"
+                    ? "border-soul-orange bg-soul-orange/30"
+                    : "border-paper/25 bg-paper/[0.06] hover:border-soul-orange hover:bg-soul-orange/20"
                 }`}
                 style={{
                   left: `${table.x}%`,
@@ -79,9 +86,7 @@ export function TablePlanSection({
                   width: `${table.w}%`,
                   height: `${table.h}%`
                 }}
-              >
-                {table.id}
-              </button>
+              />
             );
           })}
         </div>
