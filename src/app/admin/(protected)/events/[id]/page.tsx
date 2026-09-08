@@ -9,6 +9,7 @@ import { getEventRevenue } from "@/lib/revenue";
 import { DiscountManager } from "@/components/DiscountManager";
 import { ManualGuestForm } from "@/components/ManualGuestForm";
 import { loadResolvedPhases } from "@/lib/loadTicketPhases";
+import { tablePlanSchema } from "@/lib/tablePlan";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,12 @@ export default async function AdminEventDetailPage({
     include: { guestlistTiers: { orderBy: { untilTime: "asc" } } }
   });
   if (!event) notFound();
+
+  // event.tablePlan kommt als unbekannter Json-Wert aus der DB — erst durch
+  // das gleiche Zod-Schema wie beim Speichern schicken, statt ihm blind zu
+  // vertrauen (z.B. falls das Feld je von Hand in der DB verändert wurde).
+  const tablePlanParsed = tablePlanSchema.safeParse(event.tablePlan);
+  const tablePlan = tablePlanParsed.success ? tablePlanParsed.data : null;
 
   const [tickets, revenue, discounts, phases] = await Promise.all([
     prisma.ticket.findMany({
@@ -90,7 +97,8 @@ export default async function AdminEventDetailPage({
                 untilTime: phase.untilTime ? new Date(phase.untilTime).toISOString() : null,
                 isSoldOut: phase.isSoldOut,
                 soldCount: phase.soldCount
-              }))
+              })),
+              tablePlan
             }}
           />
         </div>

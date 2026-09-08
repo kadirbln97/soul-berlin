@@ -6,9 +6,11 @@ import { Footer } from "@/components/Footer";
 import { TicketPurchasePanel } from "@/components/TicketPurchasePanel";
 import { LocationMap } from "@/components/LocationMap";
 import { AiBadge } from "@/components/AiBadge";
+import { TablePlanSection } from "@/components/TablePlanSection";
 import { prisma } from "@/lib/prisma";
 import { countActiveTickets, countGuestlistPeople } from "@/lib/createTicket";
 import { formatEventDate } from "@/lib/format";
+import { tablePlanSchema } from "@/lib/tablePlan";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
 import { loadResolvedPhases } from "@/lib/loadTicketPhases";
@@ -106,6 +108,11 @@ export default async function EventDetailPage({
   // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
   const { discount: autoDiscount } = await resolveDiscount(event.id);
   const { locale, t } = await getTranslations();
+
+  // event.tablePlan kommt als unbekannter Json-Wert aus der DB — erst durchs
+  // Zod-Schema validieren, statt der gespeicherten Form blind zu vertrauen.
+  const tablePlanParsed = tablePlanSchema.safeParse(event.tablePlan);
+  const tablePlan = tablePlanParsed.success ? tablePlanParsed.data : null;
 
   const title = pickText(locale, event.title, event.titleEn);
   const subtitle = pickText(locale, event.subtitle ?? "", event.subtitleEn);
@@ -223,6 +230,13 @@ export default async function EventDetailPage({
           />
         </div>
       </main>
+      {tablePlan && (
+        <TablePlanSection
+          tablePlan={tablePlan}
+          eventTitle={title}
+          eventDateLabel={formatEventDate(event.dateStart)}
+        />
+      )}
       <Footer />
     </>
   );

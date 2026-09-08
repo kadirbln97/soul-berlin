@@ -3,6 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
+type TablePlanTableInitial = {
+  id: string;
+  capacity: number;
+  minSpendCents: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+type TablePlanInitial = {
+  imageUrl: string;
+  whatsappNumber: string;
+  tables: TablePlanTableInitial[];
+};
+
 type GuestlistTierInitial = {
   untilTime: string;
   priceCents: number;
@@ -44,12 +60,23 @@ type EventInitial = {
   status: string;
   guestlistTiers?: GuestlistTierInitial[];
   ticketPhases?: TicketPhaseInitial[];
+  tablePlan?: TablePlanInitial | null;
 };
 
 type TierRow = {
   untilTime: string; // datetime-local Format
   priceEuro: string;
   label: string;
+};
+
+type TableRow = {
+  id: string;
+  capacity: string;
+  minSpendEuro: string;
+  x: string;
+  y: string;
+  w: string;
+  h: string;
 };
 
 type PhaseRow = {
@@ -65,6 +92,7 @@ type PhaseRow = {
 
 const MAX_TIERS = 3;
 const MAX_PHASES = 5;
+const MAX_TABLES = 60;
 
 function toLocalInputValue(iso?: string | null) {
   if (!iso) return "";
@@ -79,6 +107,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
   const router = useRouter();
   const isEdit = Boolean(initial);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tablePlanFileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [subtitle, setSubtitle] = useState(initial?.subtitle ?? "");
@@ -127,6 +156,25 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     }))
   );
 
+  const [tablePlanEnabled, setTablePlanEnabled] = useState(Boolean(initial?.tablePlan));
+  const [tablePlanImageUrl, setTablePlanImageUrl] = useState(initial?.tablePlan?.imageUrl ?? "");
+  const [tablePlanUploading, setTablePlanUploading] = useState(false);
+  const [tablePlanUploadError, setTablePlanUploadError] = useState<string | null>(null);
+  const [tablePlanWhatsapp, setTablePlanWhatsapp] = useState(
+    initial?.tablePlan?.whatsappNumber ?? "4915772524610"
+  );
+  const [tables, setTables] = useState<TableRow[]>(
+    (initial?.tablePlan?.tables ?? []).map((t) => ({
+      id: t.id,
+      capacity: String(t.capacity),
+      minSpendEuro: (t.minSpendCents / 100).toString(),
+      x: String(t.x),
+      y: String(t.y),
+      w: String(t.w),
+      h: String(t.h)
+    }))
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -165,6 +213,65 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  }
+
+  async function handleTablePlanFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setTablePlanUploadError(null);
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setTablePlanUploadError(
+        `Datei zu groß (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximal 10 MB erlaubt.`
+      );
+      if (tablePlanFileInputRef.current) tablePlanFileInputRef.current.value = "";
+      return;
+    }
+
+    setTablePlanUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setTablePlanUploadError(data.error ?? "Upload fehlgeschlagen.");
+        setTablePlanUploading(false);
+        return;
+      }
+      setTablePlanImageUrl(data.url);
+    } catch {
+      setTablePlanUploadError("Verbindung fehlgeschlagen.");
+    } finally {
+      setTablePlanUploading(false);
+      if (tablePlanFileInputRef.current) tablePlanFileInputRef.current.value = "";
+    }
+  }
+
+  function addTableRow() {
+    if (tables.length >= MAX_TABLES) return;
+    setTables([
+      ...tables,
+      {
+        id: String(tables.length + 1),
+        capacity: "4",
+        minSpendEuro: "300",
+        x: "40",
+        y: "40",
+        w: "15",
+        h: "10"
+      }
+    ]);
+  }
+
+  function removeTableRow(index: number) {
+    setTables(tables.filter((_, i) => i !== index));
+  }
+
+  function updateTableRow(index: number, field: keyof TableRow, value: string) {
+    setTables(tables.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
   }
 
   function addTier() {
@@ -262,6 +369,54 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       isSoldOut: p.isSoldOut
     }));
 
+    if (tablePlanEnabled) {
+      if (!tablePlanImageUrl) {
+        setError("Bitte für den Tischplan einen Grundriss hochladen (oder den Tischplan deaktivieren).");
+        return;
+      }
+      if (tables.length === 0) {
+        setError("Bitte mindestens einen Tisch anlegen (oder den Tischplan deaktivieren).");
+        return;
+      }
+      if (
+        tables.some(
+          (t) =>
+            !t.id.trim() ||
+            t.capacity === "" ||
+            t.minSpendEuro === "" ||
+            t.x === "" ||
+            t.y === "" ||
+            t.w === "" ||
+            t.h === ""
+        )
+      ) {
+        setError("Bitte bei jedem Tisch alle Felder ausfüllen (oder die Zeile entfernen).");
+        return;
+      }
+      if (!/^[1-9]\d{6,14}$/.test(tablePlanWhatsapp.trim())) {
+        setError(
+          "WhatsApp-Nummer bitte als Ländervorwahl + Nummer ohne Plus oder führende Null angeben, z.B. 4915772524610."
+        );
+        return;
+      }
+    }
+
+    const tablePlanPayload = tablePlanEnabled
+      ? {
+          imageUrl: tablePlanImageUrl,
+          whatsappNumber: tablePlanWhatsapp.trim(),
+          tables: tables.map((t) => ({
+            id: t.id.trim(),
+            capacity: parseInt(t.capacity, 10),
+            minSpendCents: Math.round(parseFloat(t.minSpendEuro) * 100),
+            x: parseFloat(t.x),
+            y: parseFloat(t.y),
+            w: parseFloat(t.w),
+            h: parseFloat(t.h)
+          }))
+        }
+      : null;
+
     setLoading(true);
 
     const payload = {
@@ -288,7 +443,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       guestlistTiers: usesGuestlist ? tiersPayload : [],
       ticketPhases: usesTickets ? phasesPayload : [],
       externalTicketUrl: externalUrl.trim(),
-      externalTicketLabel: externalLabel.trim()
+      externalTicketLabel: externalLabel.trim(),
+      tablePlan: tablePlanPayload
     };
 
     try {
@@ -824,6 +980,229 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             )}
           </div>
         )}
+
+        <div className="sm:col-span-2 rounded-xl border border-paper/10 p-4">
+          <label className="mb-1 flex cursor-pointer items-start gap-2">
+            <input
+              type="checkbox"
+              checked={tablePlanEnabled}
+              onChange={(e) => setTablePlanEnabled(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-soul-orange"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-paper">
+                Tischplan mit WhatsApp-Reservierung
+              </span>
+              <span className="mt-0.5 block text-[11px] text-paper/40">
+                Grundriss hochladen, klickbare Tische mit Kapazität & Mindestverzehr anlegen.
+                Ein Klick auf „Jetzt reservieren“ öffnet WhatsApp mit einer vorausgefüllten
+                Nachricht an die unten hinterlegte Nummer.
+              </span>
+            </span>
+          </label>
+
+          {tablePlanEnabled && (
+            <div className="mt-4 flex flex-col gap-4">
+              <div>
+                <label className="label-field">Grundriss-Bild</label>
+                <div className="flex min-w-0 items-start gap-4">
+                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-paper/15 bg-neutral-900">
+                    {tablePlanImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={tablePlanImageUrl}
+                        alt="Vorschau"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] uppercase text-paper/30">
+                        Kein Bild
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <input
+                      ref={tablePlanFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleTablePlanFileChange}
+                      disabled={tablePlanUploading}
+                      className="sr-only"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => tablePlanFileInputRef.current?.click()}
+                      disabled={tablePlanUploading}
+                      className="w-full max-w-[200px] rounded-full bg-soul-orange px-4 py-2 text-xs font-bold uppercase tracking-widest text-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {tablePlanUploading
+                        ? "Lädt hoch …"
+                        : tablePlanImageUrl
+                          ? "Bild ersetzen"
+                          : "Datei auswählen"}
+                    </button>
+                    {tablePlanUploadError && (
+                      <p role="alert" className="text-xs text-red-400">
+                        {tablePlanUploadError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="sm:max-w-xs">
+                <label className="label-field">WhatsApp-Nummer</label>
+                <input
+                  value={tablePlanWhatsapp}
+                  onChange={(e) => setTablePlanWhatsapp(e.target.value)}
+                  className="input-field"
+                  placeholder="4915772524610"
+                />
+                <p className="mt-1 text-[11px] text-paper/40">
+                  Ländervorwahl + Nummer, ohne Plus und ohne führende Null.
+                </p>
+              </div>
+
+              {tablePlanImageUrl && tables.length > 0 && (
+                <div>
+                  <label className="label-field">Vorschau der Klickflächen</label>
+                  <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-paper/15 bg-neutral-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={tablePlanImageUrl} alt="Tischplan" className="block w-full" />
+                    {tables.map((t, i) => (
+                      <div
+                        key={i}
+                        className="absolute flex items-center justify-center rounded border-2 border-soul-orange bg-soul-orange/20 text-[10px] font-bold text-paper"
+                        style={{
+                          left: `${t.x}%`,
+                          top: `${t.y}%`,
+                          width: `${t.w}%`,
+                          height: `${t.h}%`
+                        }}
+                      >
+                        {t.id}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="label-field mb-0">Tische (max. {MAX_TABLES})</label>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {tables.map((t, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[70px_80px_100px_70px_70px_70px_70px_auto] sm:items-end"
+                    >
+                      <div>
+                        <label className="label-field text-[10px]">Nr.</label>
+                        <input
+                          value={t.id}
+                          onChange={(e) => updateTableRow(i, "id", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">Personen</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={t.capacity}
+                          onChange={(e) => updateTableRow(i, "capacity", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">Mindestverzehr (€)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={t.minSpendEuro}
+                          onChange={(e) => updateTableRow(i, "minSpendEuro", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">X %</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={t.x}
+                          onChange={(e) => updateTableRow(i, "x", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">Y %</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.5"
+                          value={t.y}
+                          onChange={(e) => updateTableRow(i, "y", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">Breite %</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          step="0.5"
+                          value={t.w}
+                          onChange={(e) => updateTableRow(i, "w", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div>
+                        <label className="label-field text-[10px]">Höhe %</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          step="0.5"
+                          value={t.h}
+                          onChange={(e) => updateTableRow(i, "h", e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeTableRow(i)}
+                        className="justify-self-start text-xs uppercase tracking-widest text-paper/40 hover:text-red-400 sm:pb-3"
+                      >
+                        Entfernen
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {tables.length < MAX_TABLES && (
+                  <button
+                    type="button"
+                    onClick={addTableRow}
+                    className="mt-3 text-xs font-semibold uppercase tracking-widest text-soul-orange hover:underline"
+                  >
+                    + Tisch hinzufügen
+                  </button>
+                )}
+                <p className="mt-2 text-[11px] text-paper/40">
+                  X/Y = Position der linken oberen Ecke, Breite/Höhe = Größe der Klickfläche —
+                  alle Werte in Prozent vom Bild (0–100), damit die Fläche bei jeder
+                  Bildschirmgröße an der richtigen Stelle sitzt. In der Vorschau oben
+                  direkt kontrollieren.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (

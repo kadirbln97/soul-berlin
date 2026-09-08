@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TICKET_MODES, EVENT_STATUS } from "./constants";
 import { MAX_TICKET_PHASES } from "./ticketPhases";
+import { tablePlanSchema } from "./tablePlan";
 
 export const MAX_TICKETS_PER_ORDER = 5;
 
@@ -135,7 +136,10 @@ export const eventSchema = z.object({
   ticketPhases: z.array(ticketPhaseSchema).max(MAX_TICKET_PHASES).optional(),
   // Optionaler Link zu einem externen Ticketshop (Eventbrite o.Ä.).
   externalTicketUrl: externalUrlSchema.optional().or(z.literal("")),
-  externalTicketLabel: z.string().trim().max(40).optional().or(z.literal(""))
+  externalTicketLabel: z.string().trim().max(40).optional().or(z.literal("")),
+  // Klickbarer Tischplan mit WhatsApp-Reservierung (siehe src/lib/tablePlan.ts).
+  // null/undefined = kein Tischplan für dieses Event.
+  tablePlan: tablePlanSchema.optional().nullable()
 })
   .refine(
     // Ohne Link hätte "nur extern" keine einzige Kaufmöglichkeit — die

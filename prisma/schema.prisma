@@ -79,6 +79,18 @@ model Event {
   // "DRAFT" | "PUBLISHED"
   status      String   @default("DRAFT")
 
+  // Klickbarer Tischplan mit WhatsApp-Reservierung (optional, pro Event).
+  // Als ein JSON-Feld statt eigener Tabelle, weil die Tische (Position,
+  // Kapazität, Mindestverzehr) komplett vom jeweiligen Grundriss-Bild abhängen
+  // und nie einzeln abgefragt/verknüpft werden — ein Blob pro Event reicht.
+  // Form (siehe src/lib/tablePlan.ts):
+  //   { imageUrl: string; whatsappNumber: string;
+  //     tables: { id: string; capacity: number; minSpendCents: number;
+  //               x: number; y: number; w: number; h: number }[] }
+  // x/y/w/h sind Prozentwerte relativ zum Bild (0-100), damit die Klickflächen
+  // bei jeder Bildschirmgröße an der richtigen Stelle sitzen.
+  tablePlan   Json?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

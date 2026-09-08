@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { eventSchema } from "@/lib/validation";
@@ -67,6 +68,10 @@ export async function POST(req: Request) {
       externalTicketUrl: data.externalTicketUrl?.trim() || null,
       externalTicketLabel: data.externalTicketLabel?.trim() || null,
       status: data.status,
+      // Prisma.DbNull statt null: bei einem nullable Json-Feld setzt ein
+      // simples "null" in Prisma keinen SQL-NULL, sondern wirft zur Laufzeit
+      // einen Fehler — Prisma.DbNull ist hier der eigens dafür vorgesehene Wert.
+      tablePlan: data.tablePlan ?? Prisma.DbNull,
       guestlistTiers: {
         create: tiers.map((tier, i) => ({
           untilTime: new Date(tier.untilTime),
