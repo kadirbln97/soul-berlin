@@ -23,6 +23,8 @@ type Dict = {
   nav: { home: string; events: string; instagram: string; skipToContent: string; menu: string; close: string };
   footer: { contact: string; imprint: string; terms: string; privacy: string; whatsapp: string };
   home: { allEvents: string };
+  /** Schwebender Ticket-Knopf, der auf allen Seiten außer der Event-Seite liegt. */
+  ticketFab: { label: string; title: string; close: string; move: string };
   /** Hinweis auf KI-generierte Bilder (Art. 50 KI-VO). */
   ai: { badge: string; imageNotice: string };
   /** Dauerhafte Ticket-Seite, auf die die Bestätigungsmail verlinkt. */
@@ -186,6 +188,12 @@ const de: Dict = {
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "Alle ansehen →" },
+  ticketFab: {
+    label: "Tickets",
+    title: "Tickets fürs nächste Event",
+    close: "Ticket-Knopf ausblenden",
+    move: "Zum Verschieben ziehen"
+  },
   ai: {
     badge: "KI-generiert",
     imageNotice: "Dieses Bild wurde mit Künstlicher Intelligenz erstellt oder bearbeitet."
@@ -348,6 +356,12 @@ const en: Dict = {
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "See all →" },
+  ticketFab: {
+    label: "Tickets",
+    title: "Tickets for the next event",
+    close: "Hide ticket button",
+    move: "Drag to move"
+  },
   ai: {
     badge: "AI-generated",
     imageNotice: "This image was created or edited using artificial intelligence."

@@ -34,6 +34,32 @@ export async function getUpcomingPublishedEvents(limit?: number) {
   );
 }
 
+/**
+ * Ticketshop-Link des nächsten anstehenden Events — für den schwebenden
+ * Ticket-Knopf, der auf jeder Seite außer der Event-Detailseite liegt.
+ *
+ * Bewusst eine eigene, schmale Abfrage statt getUpcomingPublishedEvents():
+ * die läuft für jedes Event zusätzlich über Phasen und Ticketzählungen, und
+ * das Layout rendert auf wirklich jeder Seite. Hier reichen vier Felder.
+ */
+export async function getNextExternalTicketLink() {
+  const event = await prisma.event.findFirst({
+    where: {
+      status: "PUBLISHED",
+      dateStart: { gte: new Date(new Date().toDateString()) },
+      externalTicketUrl: { not: null },
+      NOT: { externalTicketUrl: "" }
+    },
+    orderBy: { dateStart: "asc" },
+    select: { id: true, title: true, externalTicketUrl: true }
+  });
+
+  const url = event?.externalTicketUrl?.trim();
+  if (!event || !url) return null;
+
+  return { eventId: event.id, title: event.title, url };
+}
+
 export async function getPastPublishedEvents(limit?: number) {
   return prisma.event.findMany({
     where: { status: "PUBLISHED", dateStart: { lt: new Date(new Date().toDateString()) } },

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anton } from "next/font/google";
 import "./globals.css";
-import { getLocale } from "@/lib/serverLocale";
+import { getTranslations } from "@/lib/serverLocale";
+import { getNextExternalTicketLink } from "@/lib/events";
+import { TicketFab } from "@/components/TicketFab";
 
 const display = Anton({
   subsets: ["latin"],
@@ -54,7 +56,11 @@ export default async function RootLayout({
 }) {
   // lang-Attribut folgt der gewählten Sprache — wichtig für Screenreader und
   // für die automatische Übersetzungserkennung im Browser.
-  const locale = await getLocale();
+  const { locale, t } = await getTranslations();
+
+  // Ticketlink des nächsten Events für den schwebenden Knopf. Gibt es kein
+  // anstehendes Event mit externem Shop, erscheint gar kein Knopf.
+  const ticketLink = await getNextExternalTicketLink();
 
   return (
     <html lang={locale} className={display.variable}>
@@ -64,6 +70,15 @@ export default async function RootLayout({
           Treffer) sonst überschreiben. */}
       <body className="text-paper font-body antialiased selection:bg-soul-orange selection:text-ink">
         {children}
+        {ticketLink && (
+          <TicketFab
+            url={ticketLink.url}
+            label={t.ticketFab.label}
+            title={t.ticketFab.title}
+            closeLabel={t.ticketFab.close}
+            moveLabel={t.ticketFab.move}
+          />
+        )}
       </body>
     </html>
   );
