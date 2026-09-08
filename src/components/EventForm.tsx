@@ -11,6 +11,7 @@ type TablePlanTableInitial = {
   y: number;
   w: number;
   h: number;
+  isReserved?: boolean;
 };
 
 type TablePlanInitial = {
@@ -77,6 +78,7 @@ type TableRow = {
   y: string;
   w: string;
   h: string;
+  isReserved: boolean;
 };
 
 type PhaseRow = {
@@ -171,7 +173,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       x: String(t.x),
       y: String(t.y),
       w: String(t.w),
-      h: String(t.h)
+      h: String(t.h),
+      isReserved: t.isReserved ?? false
     }))
   );
 
@@ -261,7 +264,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         x: "40",
         y: "40",
         w: "15",
-        h: "10"
+        h: "10",
+        isReserved: false
       }
     ]);
   }
@@ -270,7 +274,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     setTables(tables.filter((_, i) => i !== index));
   }
 
-  function updateTableRow(index: number, field: keyof TableRow, value: string) {
+  function updateTableRow<K extends keyof TableRow>(index: number, field: K, value: TableRow[K]) {
     setTables(tables.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
   }
 
@@ -412,7 +416,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             x: parseFloat(t.x),
             y: parseFloat(t.y),
             w: parseFloat(t.w),
-            h: parseFloat(t.h)
+            h: parseFloat(t.h),
+            isReserved: t.isReserved
           }))
         }
       : null;
@@ -1076,7 +1081,11 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         // auf der Tischnummer, die schon im Grundriss gedruckt
                         // ist. Hier im Admin bleibt sie sichtbar, damit sich
                         // Zeile und Fläche beim Einmessen zuordnen lassen.
-                        className="absolute flex items-start justify-start rounded border-2 border-soul-orange bg-soul-orange/20 px-1 text-[10px] font-bold leading-none text-paper"
+                        className={`absolute flex items-start justify-start rounded border-2 px-1 text-[10px] font-bold leading-none text-paper ${
+                          t.isReserved
+                            ? "border-paper/25 bg-ink/70 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(245,243,238,0.18)_4px,rgba(245,243,238,0.18)_6px)]"
+                            : "border-soul-orange bg-soul-orange/20"
+                        }`}
                         style={{
                           left: `${t.x}%`,
                           top: `${t.y}%`,
@@ -1185,6 +1194,20 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       >
                         Entfernen
                       </button>
+
+                      {/* Eigene Zeile, weil der Schalter der Grund ist, warum
+                          du hier während der Woche überhaupt reinschaust:
+                          vergebene Tische ausknipsen. */}
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-paper/75 sm:col-span-8">
+                        <input
+                          type="checkbox"
+                          checked={t.isReserved}
+                          onChange={(e) => updateTableRow(i, "isReserved", e.target.checked)}
+                          className="h-4 w-4 accent-soul-orange"
+                        />
+                        Vergeben — Gäste sehen den Tisch schraffiert und können ihn nicht mehr
+                        auswählen
+                      </label>
                     </div>
                   ))}
                 </div>

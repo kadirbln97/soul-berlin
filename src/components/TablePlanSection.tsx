@@ -21,15 +21,26 @@ export function TablePlanSection({
   const selected = tablePlan.tables.find((t) => t.id === selectedId) ?? null;
 
   function selectTable(id: string) {
-    setSelectedId(id);
     const table = tablePlan.tables.find((t) => t.id === id);
+    // Vergebene Tische lassen sich gar nicht erst auswählen — die Prüfung
+    // steht hier zusätzlich zum disabled-Attribut am Knopf, damit ein Tisch
+    // auch dann nicht ausgewählt bleibt, wenn er erst nach der Auswahl als
+    // reserviert markiert wurde.
+    if (!table || table.isReserved) return;
+    setSelectedId(id);
     // Sinnvoller Startwert statt leerem Feld — bei den meisten Reservierungen
     // kommt ohnehin die volle Tischgröße, der Gast muss dann nichts eintippen.
-    if (table) setPartySize(String(table.capacity));
+    setPartySize(String(table.capacity));
   }
 
+  const hasReserved = tablePlan.tables.some((t) => t.isReserved);
+
   const canReserve =
-    Boolean(selected) && firstName.trim().length > 0 && lastName.trim().length > 0 && Number(partySize) > 0;
+    Boolean(selected) &&
+    !selected?.isReserved &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    Number(partySize) > 0;
 
   function handleReserve() {
     if (!selected || !canReserve) return;
@@ -56,18 +67,27 @@ export function TablePlanSection({
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <div className="relative w-full overflow-hidden rounded-2xl border border-paper/10 bg-neutral-950">
+        <div>
+          {/* Der Rahmen ums Bild ist ein eigener Kasten, damit die Legende
+              darunter außerhalb des beschnittenen Bereichs liegt. */}
+          <div className="relative w-full overflow-hidden rounded-2xl border border-paper/10 bg-neutral-950">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tablePlan.imageUrl} alt="Tischplan" className="block w-full" />
           {tablePlan.tables.map((table) => {
             const isSelected = table.id === selectedId;
+            const isReserved = Boolean(table.isReserved);
             return (
               <button
                 key={table.id}
                 type="button"
                 onClick={() => selectTable(table.id)}
+                disabled={isReserved}
                 aria-pressed={isSelected}
-                aria-label={`Tisch ${table.id}, ${table.capacity} Personen, Mindestverzehr ${formatTablePlanEuro(table.minSpendCents)} €`}
+                aria-label={
+                  isReserved
+                    ? `Tisch ${table.id}, bereits vergeben`
+                    : `Tisch ${table.id}, ${table.capacity} Personen, Mindestverzehr ${formatTablePlanEuro(table.minSpendCents)} €`
+                }
                 // Bewusst ohne eigene Beschriftung: die Tischnummern stehen
                 // bereits im Grundriss-Bild. Eine zweite Zahl obendrauf lag
                 // leicht versetzt über der gedruckten und sah doppelt aus.
@@ -76,9 +96,18 @@ export function TablePlanSection({
                 // aus dem Bild durchscheinen. Für Screenreader steht die
                 // vollständige Angabe weiterhin im aria-label.
                 className={`absolute rounded border-2 transition ${
-                  isSelected
-                    ? "border-soul-orange bg-soul-orange/30"
-                    : "border-paper/25 bg-paper/[0.06] hover:border-soul-orange hover:bg-soul-orange/20"
+                  isReserved
+                    ? // Vergeben: kräftig abgedunkelt und mit Schraffur, damit
+                      // der Unterschied auch ohne Farbsehen erkennbar ist.
+                      "cursor-not-allowed border-paper/20 bg-ink/75 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(245,243,238,0.14)_5px,rgba(245,243,238,0.14)_7px)]"
+                    : isSelected
+                      ? // Ausgewählt: deutlich kräftiger als der Ruhezustand —
+                        // auf dem Handy ist der Rahmen allein zu leise, um den
+                        // Tipp sicher zu quittieren. Der Leuchtrahmen (ring)
+                        // liegt außerhalb der Fläche und verdeckt die Nummer
+                        // aus dem Grundriss deshalb nicht.
+                        "border-soul-orange bg-soul-orange/55 ring-2 ring-soul-orange ring-offset-2 ring-offset-ink"
+                      : "border-paper/25 bg-paper/[0.06] hover:border-soul-orange hover:bg-soul-orange/20"
                 }`}
                 style={{
                   left: `${table.x}%`,
@@ -89,6 +118,26 @@ export function TablePlanSection({
               />
             );
           })}
+          </div>
+
+          {/* Legende nur, wenn es tatsächlich vergebene Tische gibt — sonst
+              erklärt sie einen Zustand, den auf dieser Seite niemand sieht. */}
+          {hasReserved && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-paper/60">
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-5 rounded-sm border-2 border-paper/25 bg-paper/[0.06]" />
+                frei
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-5 rounded-sm border-2 border-soul-orange bg-soul-orange/55" />
+                ausgewählt
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-5 rounded-sm border-2 border-paper/20 bg-ink/75 bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,rgba(245,243,238,0.2)_3px,rgba(245,243,238,0.2)_4px)]" />
+                schon vergeben
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-5 rounded-2xl card-border p-6">
@@ -103,6 +152,7 @@ export function TablePlanSection({
           ) : (
             <p className="text-sm text-paper/60">
               Tippe im Plan auf eine Tischnummer, um sie zu reservieren.
+              {hasReserved && " Schraffierte Tische sind bereits vergeben."}
             </p>
           )}
 

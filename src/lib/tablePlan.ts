@@ -18,6 +18,12 @@ export type TablePlanTable = {
   y: number;
   w: number;
   h: number;
+  /**
+   * Bereits vergeben. Der Tisch bleibt im Plan sichtbar (Gäste sollen sehen,
+   * dass es ihn gibt), wird aber ausgegraut und lässt sich nicht mehr
+   * auswählen — so kommen keine Anfragen mehr für belegte Tische an.
+   */
+  isReserved?: boolean;
 };
 
 export type TablePlan = {
@@ -34,7 +40,8 @@ export const tablePlanTableSchema = z.object({
   x: z.coerce.number().min(0).max(100),
   y: z.coerce.number().min(0).max(100),
   w: z.coerce.number().min(1).max(100),
-  h: z.coerce.number().min(1).max(100)
+  h: z.coerce.number().min(1).max(100),
+  isReserved: z.boolean().optional()
 });
 
 export const tablePlanSchema = z.object({
