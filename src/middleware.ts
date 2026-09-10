@@ -123,15 +123,17 @@ export async function middleware(req: NextRequest) {
 
   // Debug-Fall: zusätzlich die strenge Nonce-Policy im Report-Only-Modus.
   // Die Nonce geht als Request-Header an die Serverfunktion — unter beiden
-  // Header-Namen, die Next dafür ausliest —, außerdem als x-nonce fürs Layout,
-  // das daraus ein Diagnose-Meta-Tag baut.
+  // Header-Namen, die Next dafür ausliest. Stand September 2026: die Header
+  // kommen dort nachweislich an (mit headers() geprüft), Next 15.5 hängt die
+  // Nonce auf Vercel trotzdem an kein einziges Skript. Nach einem
+  // Next-Update hier erneut prüfen: Cookie setzen, Seite laden, im HTML nach
+  // nonce="…" an den <script>-Tags suchen.
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
   const strict = buildStrictCsp(nonce);
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("Content-Security-Policy", strict);
   requestHeaders.set("Content-Security-Policy-Report-Only", strict);
   requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("x-csp-debug", "1");
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set("Content-Security-Policy", enforced);
