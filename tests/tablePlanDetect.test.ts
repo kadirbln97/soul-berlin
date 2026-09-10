@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildGridOverlaySvg, parseDetectedTables } from "../src/lib/tablePlanDetect";
+import { buildGridOverlaySvg, parseDetectedTables, pickBackground } from "../src/lib/tablePlanDetect";
 
 test("liest sauberes JSON", () => {
   const tables = parseDetectedTables(
@@ -55,4 +55,13 @@ test("Raster-SVG hat neun Linien je Richtung und Beschriftungen", () => {
   assert.ok(svg.includes('x1="300" y1="0"'));
   assert.ok(svg.includes(">30<"));
   assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500">'));
+});
+
+test("Hintergrund: helle Striche auf Transparenz → dunkler Grund, dunkle → heller", () => {
+  // 3 Pixel: transparent, weiß, transparent → nur der weiße zählt.
+  const lightStrokes = Uint8Array.from([0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0]);
+  assert.equal(pickBackground(lightStrokes), "#111111");
+  const darkStrokes = Uint8Array.from([0, 0, 0, 0, 20, 20, 20, 255, 255, 255, 255, 100]);
+  assert.equal(pickBackground(darkStrokes), "#ffffff");
+  assert.equal(pickBackground(Uint8Array.from([])), "#ffffff");
 });

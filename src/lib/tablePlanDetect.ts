@@ -24,7 +24,7 @@ export type DetectedTable = {
   h: number;
 };
 
-export const DETECT_PROMPT = `Du siehst den Grundriss eines Veranstaltungsorts mit nummerierten Tischen (Sitzplätze, Lounges, Booths). Über das Bild ist ein magentafarbenes Hilfsraster gelegt: Linien alle 10 % der Bildbreite bzw. -höhe, an den Rändern beschriftet. Das Raster gehört nicht zum Plan — es dient nur dir als Maßstab.
+export const DETECT_PROMPT = `Du siehst den Grundriss eines Veranstaltungsorts mit nummerierten Tischen (Sitzplätze, Lounges, Booths) — als Strichzeichnung, helle Linien auf dunklem Grund oder dunkle auf hellem. Über das Bild ist ein magentafarbenes Hilfsraster gelegt: Linien alle 10 % der Bildbreite bzw. -höhe, an den Rändern beschriftet. Das Raster gehört nicht zum Plan — es dient nur dir als Maßstab.
 
 Finde jeden Tisch, der eine Nummer oder Bezeichnung trägt, und gib für jeden ein Rechteck an, das die Tischgrafik samt Nummer eng umschließt.
 
@@ -142,15 +142,45 @@ export function buildGridOverlaySvg(width: number, height: number): string {
 }
 
 /**
+ * Hintergrundfarbe für transparente Pläne: helle Striche (typisch für Pläne,
+ * die auf der dunklen Seite liegen) brauchen einen dunklen Grund, dunkle
+ * Striche einen hellen — sonst sieht das Modell weiß auf weiß und findet
+ * nichts. Entscheidet anhand der Helligkeit der sichtbaren Pixel.
+ */
+export function pickBackground(rgba: Uint8Array | Buffer): string {
+  let light = 0;
+  let dark = 0;
+  for (let i = 0; i + 3 < rgba.length; i += 4) {
+    if (rgba[i + 3] < 128) continue;
+    const luminance = 0.299 * rgba[i] + 0.587 * rgba[i + 1] + 0.114 * rgba[i + 2];
+    if (luminance > 128) light++;
+    else dark++;
+  }
+  return light > dark ? "#111111" : "#ffffff";
+}
+
+/**
  * Bild fürs Modell vorbereiten: verkleinern, Raster drüber, als PNG (Linien
  * und Ziffern bleiben scharf; JPEG würde sie verschmieren).
  */
 export async function prepareImageForDetection(input: Buffer): Promise<Buffer> {
   const { default: sharp } = await import("sharp");
+
+  const meta = await sharp(input).metadata();
+  let background = "#ffffff";
+  if (meta.hasAlpha) {
+    const sample = await sharp(input)
+      .resize({ width: 64, height: 64, fit: "inside" })
+      .ensureAlpha()
+      .raw()
+      .toBuffer();
+    background = pickBackground(sample);
+  }
+
   const resized = await sharp(input)
     .rotate()
     .resize({ width: DETECT_MAX_EDGE, height: DETECT_MAX_EDGE, fit: "inside", withoutEnlargement: true })
-    .flatten({ background: "#ffffff" })
+    .flatten({ background })
     .png()
     .toBuffer({ resolveWithObject: true });
 
