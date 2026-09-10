@@ -87,11 +87,20 @@ export function TablePlanEditor({
     return live[index] ?? tables[index];
   }
 
+  /** Pointer an die Zeichenfläche binden, damit Ziehen auch außerhalb weiterläuft. */
+  function capture(pointerId: number) {
+    try {
+      surfaceRef.current?.setPointerCapture(pointerId);
+    } catch {
+      // Ohne Capture funktioniert das Ziehen innerhalb der Fläche trotzdem.
+    }
+  }
+
   function startDrawing(e: PointerEvent<HTMLDivElement>) {
     if (e.button !== 0 || e.target !== surfaceRef.current) return;
     const p = toPercent(e);
     movedRef.current = false;
-    surfaceRef.current!.setPointerCapture(e.pointerId);
+    capture(e.pointerId);
     setDrag({ kind: "draw", startX: p.x, startY: p.y, index: -1 });
     setLive({ [-1]: { x: p.x, y: p.y, w: 0, h: 0 } });
     onSelect(null);
@@ -103,7 +112,7 @@ export function TablePlanEditor({
     const p = toPercent(e);
     const t = tables[index];
     movedRef.current = false;
-    surfaceRef.current!.setPointerCapture(e.pointerId);
+    capture(e.pointerId);
     setDrag({ kind: "move", index, offsetX: p.x - t.x, offsetY: p.y - t.y });
     onSelect(index);
   }
@@ -117,7 +126,7 @@ export function TablePlanEditor({
     const anchorX = corner === "nw" || corner === "sw" ? t.x + t.w : t.x;
     const anchorY = corner === "nw" || corner === "ne" ? t.y + t.h : t.y;
     movedRef.current = true;
-    surfaceRef.current!.setPointerCapture(e.pointerId);
+    capture(e.pointerId);
     setDrag({ kind: "resize", index, corner, anchorX, anchorY });
     onSelect(index);
   }
