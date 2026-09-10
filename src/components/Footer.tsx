@@ -24,6 +24,9 @@ export async function Footer() {
           <Link href="/legal/datenschutz" className="hover:text-soul-orange">
             {t.footer.privacy}
           </Link>
+          <Link href="/legal/barrierefreiheit" className="hover:text-soul-orange">
+            {t.footer.accessibility}
+          </Link>
           {/* Adressen kommen aus dem Baukasten. Ist ein Feld leer, fällt der
               Link weg statt ins Nichts zu führen. */}
           {content.link_instagram && (

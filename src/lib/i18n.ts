@@ -21,7 +21,14 @@ export function isLocale(value: unknown): value is Locale {
 
 type Dict = {
   nav: { home: string; events: string; instagram: string; skipToContent: string; menu: string; close: string };
-  footer: { contact: string; imprint: string; terms: string; privacy: string; whatsapp: string };
+  footer: {
+    contact: string;
+    imprint: string;
+    terms: string;
+    privacy: string;
+    accessibility: string;
+    whatsapp: string;
+  };
   home: { allEvents: string };
   /** Schwebender Ticket-Knopf, der auf allen Seiten außer der Event-Seite liegt. */
   ticketFab: { label: string; title: string; close: string; move: string };
@@ -185,6 +192,7 @@ const de: Dict = {
     imprint: "Impressum",
     terms: "AGB",
     privacy: "Datenschutz",
+    accessibility: "Barrierefreiheit",
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "Alle ansehen →" },
@@ -353,6 +361,7 @@ const en: Dict = {
     imprint: "Imprint",
     terms: "Terms",
     privacy: "Privacy",
+    accessibility: "Accessibility",
     whatsapp: "WhatsApp"
   },
   home: { allEvents: "See all →" },

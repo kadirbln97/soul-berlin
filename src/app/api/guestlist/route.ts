@@ -24,6 +24,13 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null);
+
+  // Honeypot (siehe SignupForm.tsx): ausgefüllt heißt Bot. Bewusst ein
+  // "ok" zurückgeben statt eines Fehlers, damit der Bot nichts lernt.
+  if (typeof body?.website === "string" && body.website.length > 0) {
+    return NextResponse.json({ ok: true });
+  }
+
   const parsed = signupSchema.safeParse(body);
 
   if (!parsed.success) {

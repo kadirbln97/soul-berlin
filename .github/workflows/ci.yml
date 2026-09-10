@@ -1,0 +1,28 @@
+# Läuft bei jedem Push und Pull Request: Typen prüfen und Tests ausführen.
+# Vercel baut unabhängig davon — dieser Lauf ist die zweite Meinung, die
+# einen kaputten Stand sichtbar macht, bevor jemand ihn live bemerkt.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # prisma generate braucht keine Datenbank — nur das Schema.
+      - run: npx prisma generate
+      - run: npm run typecheck
+      - run: npm test
+      # Bekannte Schwachstellen in Abhängigkeiten sichtbar machen. "high" als
+      # Schwelle, damit der Lauf nicht an jeder Kleinigkeit scheitert.
+      - run: npm audit --audit-level=high
+        continue-on-error: true

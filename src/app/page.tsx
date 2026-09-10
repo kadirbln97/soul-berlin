@@ -73,7 +73,16 @@ export default async function HomePage() {
             // ohnehin einen Großteil der Details, der Unterschied ist im
             // fertigen Bild nicht zu sehen, spart aber zusätzlich Bytes.
             quality={70}
-            unoptimized={content.hero_image.startsWith("http")}
+            // Früher unoptimized für alle Blob-URLs — seit der Blob-Host in
+            // next.config unter remotePatterns steht, darf Next auch diese
+            // Bilder umrechnen: Handys bekommen dann die 640/750-px-Stufe
+            // (~50 KB) statt des 1600-px-Originals (~260 KB). Nur eine
+            // fremde Adresse bleibt unoptimiert — sonst würde Next beim
+            // Rendern mit "hostname not configured" abbrechen.
+            unoptimized={
+              content.hero_image.startsWith("http") &&
+              !content.hero_image.includes(".public.blob.vercel-storage.com")
+            }
             className="object-cover object-[64%_30%] sm:object-[68%_22%]"
           />
 

@@ -57,7 +57,8 @@ export function TicketPurchasePanel({
   salesEndAtIso,
   salesClosed,
   autoDiscount,
-  locale
+  locale,
+  hasTablePlan = false
 }: {
   eventId: string;
   ticketMode: string;
@@ -86,6 +87,8 @@ export function TicketPurchasePanel({
   /** Rabatt, der ohne Code für alle gilt (falls eingerichtet). */
   autoDiscount?: DiscountRule | null;
   locale: Locale;
+  /** Gibt es weiter unten einen Tischplan? Dann Sprunglink zeigen. */
+  hasTablePlan?: boolean;
 }) {
   const t = getDict(locale);
   const router = useRouter();
@@ -185,6 +188,17 @@ export function TicketPurchasePanel({
 
   return (
     <div className="rounded-2xl card-border bg-white/[0.02] p-6">
+      {/* Der Tischplan liegt unter Beschreibung und Karte — wer nur einen
+          Tisch will, soll nicht suchen müssen. */}
+      {hasTablePlan && (
+        <a
+          href="#tableplan-heading"
+          className="mb-5 flex items-center justify-between rounded-xl border border-paper/15 px-4 py-3 text-sm text-paper/80 transition hover:border-soul-orange hover:text-soul-orange"
+        >
+          <span>{locale === "en" ? "Reserve a table" : "Tisch reservieren"}</span>
+          <span aria-hidden="true">↓</span>
+        </a>
+      )}
       {offersBoth && (
         <div className="relative mb-6 grid grid-cols-2 gap-1 rounded-xl border border-paper/10 p-1">
           {/* Der orange Hintergrund ist ein eigenes Element und wandert zwischen
@@ -351,7 +365,7 @@ export function TicketPurchasePanel({
                 key={phase.id}
                 className={`flex items-center justify-between gap-3 text-sm ${
                   isClosed
-                    ? "text-paper/35 line-through decoration-paper/30"
+                    ? "text-paper/50 line-through decoration-paper/40"
                     : isActive
                       ? "text-soul-orange"
                       : "text-paper/70"

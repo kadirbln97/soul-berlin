@@ -28,6 +28,8 @@ export function SignupForm({
   // Bewusst false: eine vorangekreuzte Box ist keine wirksame Einwilligung
   // (EuGH, Planet49). Der Haken muss vom Gast selbst gesetzt werden.
   const [newsletter, setNewsletter] = useState(false);
+  // Honeypot — bleibt für Menschen leer, siehe ContactForm.tsx.
+  const [website, setWebsite] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,7 +50,8 @@ export function SignupForm({
           discountCode,
           // Nur bei der Gästeliste relevant. Beim Ticketkauf greift die
           // Bestandskundenregel, dort wird nichts angekreuzt.
-          newsletter: ticketMode === "PAID" ? false : newsletter
+          newsletter: ticketMode === "PAID" ? false : newsletter,
+          website
         })
       });
       const data = await res.json();
@@ -126,6 +129,21 @@ export function SignupForm({
           onChange={(e) => setPhone(e.target.value)}
           className="input-field"
           placeholder="+49 …"
+        />
+      </div>
+
+      {/* Honeypot: für Menschen unsichtbar (aus dem Bildschirm geschoben, nicht
+          im Tab-Fluss), Bots füllen es oft trotzdem aus. Die API verwirft
+          Anmeldungen mit ausgefülltem Feld stillschweigend. */}
+      <div className="absolute -left-[9999px] top-auto h-0 w-0 overflow-hidden" aria-hidden="true">
+        <label htmlFor="signup-website">Website</label>
+        <input
+          id="signup-website"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
         />
       </div>
 

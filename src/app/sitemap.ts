@@ -15,7 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${appUrl}/kontakt`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${appUrl}/legal/impressum`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${appUrl}/legal/datenschutz`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${appUrl}/legal/agb`, changeFrequency: "yearly", priority: 0.2 }
+    { url: `${appUrl}/legal/agb`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${appUrl}/legal/barrierefreiheit`, changeFrequency: "yearly", priority: 0.2 }
   ];
 
   const eventRoutes: MetadataRoute.Sitemap = events.map((event) => ({

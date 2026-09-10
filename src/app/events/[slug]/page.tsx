@@ -80,34 +80,38 @@ export default async function EventDetailPage({
 
   const guestlistPrice = getCurrentGuestlistPrice(event.guestlistTiers);
 
-  const activeTickets = await countActiveTickets(event.id);
+  // Vier voneinander unabhängige Abfragen gleichzeitig statt nacheinander:
+  // jede kostet einen Weg zur Datenbank, und die Seite wartete vorher auf die
+  // Summe aller Wege statt auf den längsten.
+  const [activeTickets, phases, guestlistPeople, { discount: autoDiscount }, { locale, t }] =
+    await Promise.all([
+      countActiveTickets(event.id),
+      // Verkaufsphasen: bestimmen den aktuell gültigen Ticketpreis. Dieselbe
+      // Quelle wie im Checkout (loadResolvedPhases), damit angezeigter und
+      // kassierter Preis nicht auseinanderlaufen können.
+      loadResolvedPhases(event.id),
+      // Eigenes Gästelisten-Kontingent — unabhängig von der Gesamtkapazität,
+      // damit eine volle Gästeliste bei Events mit beiden Wegen den
+      // Ticketverkauf nicht mitschließt.
+      event.guestlistCapacity ? countGuestlistPeople(event.id) : Promise.resolve(0),
+      // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
+      resolveDiscount(event.id),
+      getTranslations()
+    ]);
+
   const isSoldOut = event.capacity ? activeTickets >= event.capacity : false;
   const spotsLeft = event.capacity ? Math.max(event.capacity - activeTickets, 0) : null;
   const salesEndAtIso = event.ticketSalesEndAt ? event.ticketSalesEndAt.toISOString() : null;
   const salesClosed = event.ticketSalesEndAt ? new Date() > event.ticketSalesEndAt : false;
 
-  // Verkaufsphasen: bestimmen den aktuell gültigen Ticketpreis. Dieselbe
-  // Quelle wie im Checkout (loadResolvedPhases), damit angezeigter und
-  // kassierter Preis nicht auseinanderlaufen können.
-  const phases = await loadResolvedPhases(event.id);
   const activePhase = phases.find((p) => p.status === "ACTIVE") ?? null;
   const phasesSoldOut = phases.length > 0 && activePhase === null;
   const effectivePriceCents = activePhase ? activePhase.priceCents : event.priceCents;
 
-  // Eigenes Gästelisten-Kontingent — unabhängig von der Gesamtkapazität, damit
-  // eine volle Gästeliste bei Events mit beiden Wegen den Ticketverkauf nicht
-  // mitschließt.
-  const guestlistPeople = event.guestlistCapacity
-    ? await countGuestlistPeople(event.id)
-    : 0;
   const guestlistSpotsLeft = event.guestlistCapacity
     ? Math.max(event.guestlistCapacity - guestlistPeople, 0)
     : null;
   const guestlistFull = guestlistSpotsLeft !== null && guestlistSpotsLeft <= 0;
-
-  // Rabatt, der ohne Code für alle gilt — für die Preisvorschau im Panel.
-  const { discount: autoDiscount } = await resolveDiscount(event.id);
-  const { locale, t } = await getTranslations();
 
   // event.tablePlan kommt als unbekannter Json-Wert aus der DB — erst durchs
   // Zod-Schema validieren, statt der gespeicherten Form blind zu vertrauen.
@@ -227,6 +231,7 @@ export default async function EventDetailPage({
             salesClosed={salesClosed}
             autoDiscount={autoDiscount?.rule ?? null}
             locale={locale}
+            hasTablePlan={Boolean(tablePlan)}
           />
         </div>
 
