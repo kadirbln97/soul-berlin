@@ -484,8 +484,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           nach oben durch den Container begrenzt — das Feld muss sich fügen. */}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-5 [&>*]:min-w-0 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="label-field">Titel</label>
+          <label className="label-field" htmlFor="ev-titel">Titel</label>
           <input
+            id="ev-titel"
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -494,8 +495,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="label-field">Untertitel (optional)</label>
+          <label className="label-field" htmlFor="ev-untertitel">Untertitel (optional)</label>
           <input
+            id="ev-untertitel"
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
             className="input-field"
@@ -503,8 +505,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="label-field">Beschreibung</label>
+          <label className="label-field" htmlFor="ev-beschreibung">Beschreibung</label>
           <textarea
+            id="ev-beschreibung"
             required
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -525,8 +528,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </p>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="label-field">Title (EN)</label>
+              <label className="label-field" htmlFor="ev-title">Title (EN)</label>
               <input
+                id="ev-title"
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
                 className="input-field"
@@ -534,16 +538,18 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               />
             </div>
             <div>
-              <label className="label-field">Subtitle (EN)</label>
+              <label className="label-field" htmlFor="ev-subtitle">Subtitle (EN)</label>
               <input
+                id="ev-subtitle"
                 value={subtitleEn}
                 onChange={(e) => setSubtitleEn(e.target.value)}
                 className="input-field"
               />
             </div>
             <div>
-              <label className="label-field">Description (EN)</label>
+              <label className="label-field" htmlFor="ev-description">Description (EN)</label>
               <textarea
+                id="ev-description"
                 value={descriptionEn}
                 onChange={(e) => setDescriptionEn(e.target.value)}
                 rows={5}
@@ -554,8 +560,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         </div>
 
         <div>
-          <label className="label-field">Venue</label>
+          <label className="label-field" htmlFor="ev-venue">Venue</label>
           <input
+            id="ev-venue"
             required
             value={venue}
             onChange={(e) => setVenue(e.target.value)}
@@ -564,8 +571,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           />
         </div>
         <div>
-          <label className="label-field">Adresse (optional)</label>
+          <label className="label-field" htmlFor="ev-adresse">Adresse (optional)</label>
           <input
+            id="ev-adresse"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             className="input-field"
@@ -649,8 +657,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           )}
         </div>
         <div>
-          <label className="label-field">Start (Datum & Uhrzeit)</label>
+          <label className="label-field" htmlFor="ev-start">Start (Datum & Uhrzeit)</label>
           <input
+            id="ev-start"
             required
             type="datetime-local"
             value={dateStart}
@@ -659,8 +668,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           />
         </div>
         <div>
-          <label className="label-field">Ende (optional)</label>
+          <label className="label-field" htmlFor="ev-ende">Ende (optional)</label>
           <input
+            id="ev-ende"
             type="datetime-local"
             value={dateEnd}
             onChange={(e) => setDateEnd(e.target.value)}
@@ -668,8 +678,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           />
         </div>
         <div>
-          <label className="label-field">Ticket-Modus</label>
+          <label className="label-field" htmlFor="ev-ticket-modus">Ticket-Modus</label>
           <select
+            id="ev-ticket-modus"
             value={ticketMode}
             onChange={(e) => setTicketMode(e.target.value)}
             className="input-field"
@@ -688,8 +699,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         </div>
         {(ticketMode === "PAID" || ticketMode === "BOTH") && (
           <div>
-            <label className="label-field">Preis Ticket (€)</label>
+            <label className="label-field" htmlFor="ev-preis-ticket">Preis Ticket (€)</label>
             <input
+              id="ev-preis-ticket"
               required
               type="number"
               min="0"
@@ -708,8 +720,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </div>
         )}
         <div>
-          <label className="label-field">Gesamtkapazität (optional)</label>
+          <label className="label-field" htmlFor="ev-gesamtkapazitaet">Gesamtkapazität (optional)</label>
           <input
+            id="ev-gesamtkapazitaet"
             type="number"
             min="1"
             value={capacity}
@@ -724,8 +737,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
 
         {(ticketMode === "GUESTLIST" || ticketMode === "BOTH") && (
           <div>
-            <label className="label-field">Plätze auf der Gästeliste (optional)</label>
+            <label className="label-field" htmlFor="ev-plaetze-auf-der-gaesteliste">Plätze auf der Gästeliste (optional)</label>
             <input
+              id="ev-plaetze-auf-der-gaesteliste"
               type="number"
               min="1"
               value={guestlistCapacity}
@@ -741,8 +755,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </div>
         )}
         <div>
-          <label className="label-field">Status</label>
+          <label className="label-field" htmlFor="ev-status">Status</label>
           <select
+            id="ev-status"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="input-field"
@@ -752,8 +767,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label className="label-field">Anmelde-/Verkaufsschluss (optional)</label>
+          <label className="label-field" htmlFor="ev-anmelde-verkaufsschluss">Anmelde-/Verkaufsschluss (optional)</label>
           <input
+            id="ev-anmelde-verkaufsschluss"
             type="datetime-local"
             value={salesEndAt}
             onChange={(e) => setSalesEndAt(e.target.value)}
@@ -829,8 +845,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                     className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[minmax(0,1.2fr)_100px_100px_minmax(0,1fr)_auto] sm:items-end"
                   >
                     <div>
-                      <label className="label-field text-[10px]">Name der Phase</label>
+                      <label className="label-field text-[10px]" htmlFor={`ev-name-der-phase-phase-${i}`}>Name der Phase</label>
                       <input
+                        id={`ev-name-der-phase-phase-${i}`}
                         value={phase.label}
                         onChange={(e) => updatePhase(i, "label", e.target.value)}
                         className="input-field"
@@ -838,8 +855,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       />
                     </div>
                     <div>
-                      <label className="label-field text-[10px]">Preis (€)</label>
+                      <label className="label-field text-[10px]" htmlFor={`ev-preis-phase-${i}`}>Preis (€)</label>
                       <input
+                        id={`ev-preis-phase-${i}`}
                         type="number"
                         min="0"
                         step="0.01"
@@ -850,8 +868,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       />
                     </div>
                     <div>
-                      <label className="label-field text-[10px]">Stückzahl</label>
+                      <label className="label-field text-[10px]" htmlFor={`ev-stueckzahl-phase-${i}`}>Stückzahl</label>
                       <input
+                        id={`ev-stueckzahl-phase-${i}`}
                         type="number"
                         min="1"
                         value={phase.quantity}
@@ -861,8 +880,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       />
                     </div>
                     <div>
-                      <label className="label-field text-[10px]">Endet am (optional)</label>
+                      <label className="label-field text-[10px]" htmlFor={`ev-endet-am-phase-${i}`}>Endet am (optional)</label>
                       <input
+                        id={`ev-endet-am-phase-${i}`}
                         type="datetime-local"
                         value={phase.untilTime}
                         onChange={(e) => updatePhase(i, "untilTime", e.target.value)}
@@ -934,8 +954,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                   className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_100px_auto] sm:items-end sm:border-0 sm:p-0"
                 >
                   <div>
-                    <label className="label-field">Name (optional)</label>
+                    <label className="label-field" htmlFor={`ev-name-tier-${i}`}>Name (optional)</label>
                     <input
+                      id={`ev-name-tier-${i}`}
                       value={tier.label}
                       onChange={(e) => updateTier(i, "label", e.target.value)}
                       className="input-field"
@@ -943,8 +964,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                     />
                   </div>
                   <div>
-                    <label className="label-field">Gültig bis</label>
+                    <label className="label-field" htmlFor={`ev-gueltig-bis-tier-${i}`}>Gültig bis</label>
                     <input
+                      id={`ev-gueltig-bis-tier-${i}`}
                       type="datetime-local"
                       value={tier.untilTime}
                       onChange={(e) => updateTier(i, "untilTime", e.target.value)}
@@ -952,8 +974,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                     />
                   </div>
                   <div>
-                    <label className="label-field">Preis (€)</label>
+                    <label className="label-field" htmlFor={`ev-preis-tier-${i}`}>Preis (€)</label>
                     <input
+                      id={`ev-preis-tier-${i}`}
                       type="number"
                       min="0"
                       step="0.01"
@@ -1056,8 +1079,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
               </div>
 
               <div className="sm:max-w-xs">
-                <label className="label-field">WhatsApp-Nummer</label>
+                <label className="label-field" htmlFor="ev-whatsapp-nummer">WhatsApp-Nummer</label>
                 <input
+                  id="ev-whatsapp-nummer"
                   value={tablePlanWhatsapp}
                   onChange={(e) => setTablePlanWhatsapp(e.target.value)}
                   className="input-field"
@@ -1111,16 +1135,18 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[70px_80px_100px_70px_70px_70px_70px_auto] sm:items-end"
                     >
                       <div>
-                        <label className="label-field text-[10px]">Nr.</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-nr-table-${i}`}>Nr.</label>
                         <input
+                          id={`ev-nr-table-${i}`}
                           value={t.id}
                           onChange={(e) => updateTableRow(i, "id", e.target.value)}
                           className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">Personen</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-personen-table-${i}`}>Personen</label>
                         <input
+                          id={`ev-personen-table-${i}`}
                           type="number"
                           min="1"
                           value={t.capacity}
@@ -1129,8 +1155,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">Mindestverzehr (€)</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-mindestverzehr-table-${i}`}>Mindestverzehr (€)</label>
                         <input
+                          id={`ev-mindestverzehr-table-${i}`}
                           type="number"
                           min="0"
                           step="1"
@@ -1140,8 +1167,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">X %</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-x-pct-table-${i}`}>X %</label>
                         <input
+                          id={`ev-x-pct-table-${i}`}
                           type="number"
                           min="0"
                           max="100"
@@ -1152,8 +1180,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">Y %</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-y-pct-table-${i}`}>Y %</label>
                         <input
+                          id={`ev-y-pct-table-${i}`}
                           type="number"
                           min="0"
                           max="100"
@@ -1164,8 +1193,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">Breite %</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-breite-pct-table-${i}`}>Breite %</label>
                         <input
+                          id={`ev-breite-pct-table-${i}`}
                           type="number"
                           min="1"
                           max="100"
@@ -1176,8 +1206,9 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                         />
                       </div>
                       <div>
-                        <label className="label-field text-[10px]">Höhe %</label>
+                        <label className="label-field text-[10px]" htmlFor={`ev-hoehe-pct-table-${i}`}>Höhe %</label>
                         <input
+                          id={`ev-hoehe-pct-table-${i}`}
                           type="number"
                           min="1"
                           max="100"

@@ -259,3 +259,21 @@ export async function sendNewsletterConfirmEmail(params: {
     html
   });
 }
+
+/**
+ * Alarm-Mail an die Betreiber bei Serverfehlern (siehe src/instrumentation.ts).
+ * Bewusst schlicht und ohne Abhängigkeiten von Datenbank oder Baukasten —
+ * wenn die gerade das Problem sind, muss die Mail trotzdem rausgehen.
+ */
+export async function sendAlertEmail(params: { subject: string; text: string }) {
+  const to = process.env.ALERT_EMAIL?.trim() || process.env.ADMIN_EMAIL?.trim();
+  if (!to) return;
+  const transport = getTransport();
+  const from = process.env.SMTP_FROM ?? "SØUL Berlin <no-reply@soul-berlin.example>";
+  await transport.sendMail({
+    from,
+    to,
+    subject: `[soulberlin.de] ${params.subject}`,
+    text: params.text
+  });
+}

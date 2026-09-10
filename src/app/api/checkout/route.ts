@@ -12,7 +12,7 @@ import { getLocale } from "@/lib/serverLocale";
 export async function POST(req: Request) {
   // Schutz vor Checkout-Session-Spam: max. 10 Versuche pro 10 Minuten pro IP.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`checkout:${ip}`, 10, 10 * 60_000);
+  const rl = await checkRateLimit(`checkout:${ip}`, 10, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Zu viele Versuche. Bitte in ein paar Minuten erneut versuchen." },

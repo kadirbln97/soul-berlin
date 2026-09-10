@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 import { sendTicketEmail } from "./email";
-import type { Event } from "@prisma/client";
+import type { Event, Ticket } from "@prisma/client";
 
 /**
  * Zentrale Stelle, an der ein Ticket entsteht — egal ob über die kostenlose
@@ -47,45 +47,72 @@ export async function createTicketAndSendEmail(params: {
     }
   });
 
+  await sendTicketEmailWithRetry(ticket, params.event);
+
+  return ticket;
+}
+
+/**
+ * Verschickt die Ticket-E-Mail — mit einem zweiten Versuch nach kurzer Pause.
+ * SMTP-Anbieter haben kurze Aussetzer (Verbindungsabbruch, Warteschlange
+ * voll); ein zweiter Versuch reicht meistens. Bewusst nur zwei Versuche:
+ * der Aufruf hängt an der Gästelisten-Anmeldung bzw. am Stripe-Webhook, und
+ * Vercel bricht Funktionen nach zehn Sekunden ab — mehr Warten würde dem
+ * Gast einen Fehler zeigen, obwohl sein Ticket längst existiert. Bleibt es
+ * beim Fehler, bleibt das Ticket gültig und emailSentAt leer — in der
+ * Gästetabelle erscheint dann "E-Mail erneut senden".
+ *
+ * Wird auch vom Admin-Knopf "erneut senden" benutzt.
+ */
+export async function sendTicketEmailWithRetry(
+  ticket: Ticket,
+  event: Pick<Event, "title" | "titleEn" | "dateStart" | "venue" | "address">,
+  attempts = 2
+): Promise<boolean> {
   // isPaid/isDoorPrice werden bewusst am tatsächlichen Kaufweg dieses konkreten
   // Tickets festgemacht (stripeSessionId gesetzt = online bezahlt) statt am
   // event.ticketMode — bei ticketMode "BOTH" sagt der Event-Modus allein nicht
   // mehr aus, ob dieses Ticket per Stripe-Kauf oder Gästeliste entstanden ist.
-  const isPaid = Boolean(params.stripeSessionId);
+  const isPaid = Boolean(ticket.stripeSessionId);
   const isDoorPrice = !isPaid && Boolean(ticket.amountCents);
 
-  try {
-    await sendTicketEmail({
-      to: ticket.email,
-      name: ticket.name,
-      ticketId: ticket.id,
-      // Bei englischsprachigen Gästen den englischen Eventtitel verwenden,
-      // sofern gepflegt — sonst bleibt es beim deutschen Original.
-      eventTitle:
-        ticket.locale === "en" && params.event.titleEn?.trim()
-          ? params.event.titleEn
-          : params.event.title,
-      eventDateStart: params.event.dateStart,
-      eventVenue: params.event.venue,
-      eventAddress: params.event.address,
-      isPaid,
-      isDoorPrice,
-      amountCents: ticket.amountCents,
-      // Bei Online-Käufen zeigt die Mail den tatsächlich gezahlten Gesamtbetrag
-      // inkl. Servicegebühr — sonst stünde dort weniger, als abgebucht wurde.
-      feeCents: ticket.feeCents,
-      locale: ticket.locale
-    });
-    await prisma.ticket.update({
-      where: { id: ticket.id },
-      data: { emailSentAt: new Date() }
-    });
-  } catch (err) {
-    // Ticket bleibt gültig — E-Mail kann bei Bedarf im Admin-Bereich erneut ausgelöst werden.
-    console.error(`[createTicket] E-Mail-Versand fehlgeschlagen für Ticket ${ticket.id}:`, err);
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await sendTicketEmail({
+        to: ticket.email,
+        name: ticket.name,
+        ticketId: ticket.id,
+        // Bei englischsprachigen Gästen den englischen Eventtitel verwenden,
+        // sofern gepflegt — sonst bleibt es beim deutschen Original.
+        eventTitle:
+          ticket.locale === "en" && event.titleEn?.trim() ? event.titleEn : event.title,
+        eventDateStart: event.dateStart,
+        eventVenue: event.venue,
+        eventAddress: event.address,
+        isPaid,
+        isDoorPrice,
+        amountCents: ticket.amountCents,
+        // Bei Online-Käufen zeigt die Mail den tatsächlich gezahlten Gesamtbetrag
+        // inkl. Servicegebühr — sonst stünde dort weniger, als abgebucht wurde.
+        feeCents: ticket.feeCents,
+        locale: ticket.locale
+      });
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { emailSentAt: new Date() }
+      });
+      return true;
+    } catch (err) {
+      console.error(
+        `[createTicket] E-Mail-Versand für Ticket ${ticket.id} fehlgeschlagen (Versuch ${attempt}/${attempts}):`,
+        err
+      );
+      if (attempt < attempts) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
   }
-
-  return ticket;
+  return false;
 }
 
 /**

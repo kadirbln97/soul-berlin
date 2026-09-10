@@ -393,3 +393,18 @@ model Ticket {
   // Tickets einer Phase schon verkauft sind.
   @@index([phaseId])
 }
+
+// Zähler fürs Rate-Limiting (Login, Gästeliste, Kontakt, Checkout …).
+//
+// In der Datenbank statt im Arbeitsspeicher: auf Vercel hat jede
+// Funktionsinstanz ihren eigenen Speicher und lebt nur Minuten — ein Zähler
+// dort zählt also nur, was zufällig dieselbe Instanz sieht, und fängt nach
+// jedem Kaltstart bei null an. Hier zählt jede Instanz denselben Wert.
+// Abgelaufene Zeilen räumt der nächtliche Cron weg (src/lib/retention.ts).
+model RateLimitBucket {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime
+
+  @@index([resetAt])
+}

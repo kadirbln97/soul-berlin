@@ -19,6 +19,10 @@ type Ticket = {
   /** Gast plus Begleitung — bei "Max Mustermann +2" also 3. */
   partySize: number;
   checkedInAt: string | null;
+  /** Zeitpunkt der Ticket-E-Mail — leer heißt: nie angekommen bzw. nie versucht. */
+  emailSentAt: string | null;
+  /** Von Hand eingetragen (Promoter-Liste) — hat keine E-Mail-Adresse. */
+  isManual: boolean;
   createdAt: string;
 };
 
@@ -55,6 +59,23 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? "Löschen fehlgeschlagen.");
+      setLoadingId(null);
+      return;
+    }
+
+    setLoadingId(null);
+    router.refresh();
+  }
+
+  async function handleResend(ticket: Ticket) {
+    setLoadingId(ticket.id);
+    setError(null);
+
+    const res = await fetch(`/api/admin/tickets/${ticket.id}/resend-email`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setError(data.error ?? "Versand fehlgeschlagen.");
       setLoadingId(null);
       return;
     }
@@ -157,6 +178,30 @@ export function GuestTable({ tickets }: { tickets: Ticket[] }) {
                 <td className="px-5 py-4 text-paper/50">{formatEventDate(ticket.createdAt)}</td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex justify-end gap-4">
+                    {/* Nur bei echten E-Mail-Tickets: Promoter-Gäste haben keine
+                        Adresse. Ohne Versandzeitpunkt rot — das ist der Fall,
+                        für den es den Knopf gibt. */}
+                    {!ticket.isManual &&
+                      (ticket.status === "VALID" || ticket.status === "CHECKED_IN") && (
+                        <button
+                          onClick={() => handleResend(ticket)}
+                          disabled={loadingId === ticket.id}
+                          title={
+                            ticket.emailSentAt
+                              ? `E-Mail zuletzt gesendet: ${formatEventDate(ticket.emailSentAt)}`
+                              : "Die Ticket-E-Mail konnte nicht zugestellt werden"
+                          }
+                          className={`text-xs font-semibold uppercase tracking-widest hover:underline disabled:opacity-40 ${
+                            ticket.emailSentAt ? "text-paper/40 hover:text-paper" : "text-red-400"
+                          }`}
+                        >
+                          {loadingId === ticket.id
+                            ? "…"
+                            : ticket.emailSentAt
+                              ? "Mail erneut"
+                              : "Mail fehlt — erneut senden"}
+                        </button>
+                      )}
                     {(ticket.status === "VALID" || ticket.status === "CHECKED_IN") && (
                       <button
                         onClick={() => handleRefund(ticket)}

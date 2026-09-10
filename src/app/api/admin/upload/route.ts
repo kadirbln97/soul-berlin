@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   // Schutz vor Missbrauch/Massen-Uploads: max. 20 Uploads pro 10 Minuten.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`upload:${ip}`, 20, 10 * 60_000);
+  const rl = await checkRateLimit(`upload:${ip}`, 20, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Zu viele Uploads. Bitte kurz warten." },

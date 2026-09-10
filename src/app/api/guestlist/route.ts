@@ -15,7 +15,7 @@ import { getLocale } from "@/lib/serverLocale";
 export async function POST(req: Request) {
   // Schutz vor Spam-Anmeldungen / E-Mail-Flut: max. 5 Anmeldungen pro 10 Minuten pro IP.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`guestlist:${ip}`, 5, 10 * 60_000);
+  const rl = await checkRateLimit(`guestlist:${ip}`, 5, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Zu viele Anmeldungen. Bitte in ein paar Minuten erneut versuchen." },

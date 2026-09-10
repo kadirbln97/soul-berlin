@@ -6,7 +6,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 export async function POST(req: Request) {
   // Schutz vor Spam: max. 5 Nachrichten pro 10 Minuten pro IP.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`contact:${ip}`, 5, 10 * 60_000);
+  const rl = await checkRateLimit(`contact:${ip}`, 5, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Zu viele Nachrichten. Bitte in ein paar Minuten erneut versuchen." },

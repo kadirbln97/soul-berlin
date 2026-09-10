@@ -41,6 +41,9 @@ export const PENDING_SUBSCRIBER_DAYS = 30;
 export async function runRetentionCleanup(now = new Date()) {
   const cutoff = retentionCutoff(now);
 
+  // Abgelaufene Rate-Limit-Zähler: nach dem Fenster nur noch Ballast.
+  await prisma.$executeRaw`DELETE FROM "RateLimitBucket" WHERE "resetAt" < ${now}`;
+
   const stalePending = await prisma.newsletterSubscriber.deleteMany({
     where: {
       status: "PENDING",

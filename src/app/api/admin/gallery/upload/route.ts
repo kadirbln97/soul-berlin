@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   // Videos sind groß — großzügigeres, aber weiterhin begrenztes Limit gegen Missbrauch.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`gallery-upload:${ip}`, 30, 10 * 60_000);
+  const rl = await checkRateLimit(`gallery-upload:${ip}`, 30, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Zu viele Uploads. Bitte kurz warten." }, { status: 429 });
   }

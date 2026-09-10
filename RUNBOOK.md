@@ -16,7 +16,7 @@ Kurz und für den Ernstfall geschrieben. Wenn etwas brennt, hier nachsehen — n
 ## Umgebungsvariablen (Vercel → Settings → Environment Variables)
 
 Pflicht: `DATABASE_URL`, `APP_URL`, `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `CRON_SECRET`.
-Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`.
+Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`, `ALERT_EMAIL` (Empfänger der Fehler-Alarme, sonst `ADMIN_EMAIL`), `ADMIN_USERS` (weitere Admin-Konten als `email:bcrypt-hash`, kommagetrennt).
 
 Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt der alte Wert weiter.
 
@@ -43,12 +43,20 @@ Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt d
 2. SMTP-Anbieter-Dashboard prüfen (Kontingent, gesperrter Absender, Bounce).
 3. Gast kann sein Ticket immer unter `/ticket/<token>` öffnen — der Link steht in der E-Mail; notfalls den Token aus der Datenbank (Tabelle `Ticket`) heraussuchen und dem Gast schicken.
 
-### … das Admin-Passwort vergessen ist
+### … das Admin-Passwort vergessen ist oder jemand Fremdes drin sein könnte
 
 ```
 npm run hash-password -- "NeuesLangesPasswort"
 ```
-Den ausgegebenen Hash als `ADMIN_PASSWORD_HASH` in Vercel setzen, Redeploy. Alle bestehenden Sessions bleiben gültig, bis sie ablaufen (7 Tage) — bei Verdacht auf Fremdzugriff zusätzlich `APP_SECRET` neu setzen, das wirft alle sofort raus (und macht bestehende Ticket-QR-Codes ungültig → nur tun, wenn gerade kein Event läuft, sonst vorher die Tickets neu versenden).
+Den ausgegebenen Hash als `ADMIN_PASSWORD_HASH` (bzw. in `ADMIN_USERS`) in Vercel setzen, Redeploy. Damit sind **alle bestehenden Admin-Sessions sofort ungültig** — der Session-Schlüssel wird aus den Passwort-Hashes abgeleitet. `APP_SECRET` muss dafür nicht angefasst werden (das würde auch alle Ticket-QR-Codes ungültig machen).
+
+### … eine Alarm-Mail „Fehler auf /…“ kommt
+
+Der Server hat einen Fehler beim Rendern oder in einer API-Route gemeldet (`src/instrumentation.ts`). In der Mail stehen Route, Fehlermeldung und Stack. Pro Fehlerart kommt höchstens alle 15 Minuten eine Mail. Vorgehen wie unter „die Seite zeigt einen Fehler“.
+
+### … Login oder Gästeliste „Zu viele Versuche“ meldet, obwohl niemand spammt
+
+Die Zähler liegen in der Tabelle `RateLimitBucket` (Neon). Einen Schlüssel freigeben: Zeile mit `key = 'login:<IP>'` löschen. Alle Fenster laufen von selbst nach 10 Minuten (Scanner: 1 Minute) ab.
 
 ### … `APP_SECRET` rotiert werden muss
 

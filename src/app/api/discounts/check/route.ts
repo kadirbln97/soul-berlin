@@ -11,7 +11,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 export async function GET(req: Request) {
   // Verhindert das Durchprobieren von Codes.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`discount-check:${ip}`, 20, 10 * 60_000);
+  const rl = await checkRateLimit(`discount-check:${ip}`, 20, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Zu viele Versuche. Bitte kurz warten." },

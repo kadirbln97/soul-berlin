@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   // Grober Schutz gegen automatisiertes Durchprobieren von Ticket-IDs,
   // selbst durch einen eingeloggten Account: max. 120 Scans/Minute.
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`validate:${ip}`, 120, 60_000);
+  const rl = await checkRateLimit(`validate:${ip}`, 120, 60_000);
   if (!rl.allowed) {
     return NextResponse.json({ result: "INVALID", message: "Zu viele Anfragen — kurz warten." });
   }

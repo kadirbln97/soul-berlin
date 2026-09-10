@@ -175,6 +175,8 @@ export default async function AdminEventDetailPage({
             isPaidOnline: Boolean(t.stripePaymentIntentId),
             partySize: t.partySize,
             checkedInAt: t.checkedInAt ? t.checkedInAt.toISOString() : null,
+            emailSentAt: t.emailSentAt ? t.emailSentAt.toISOString() : null,
+            isManual: t.isManual,
             createdAt: t.createdAt.toISOString()
           }))}
         />

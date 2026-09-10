@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   // systematisches Durchprobieren. Großzügig genug für das Polling (alle 1,5s
   // über maximal ~25 Sekunden).
   const ip = getClientIp(req);
-  const rl = checkRateLimit(`ticket-by-session:${ip}`, 60, 10 * 60_000);
+  const rl = await checkRateLimit(`ticket-by-session:${ip}`, 60, 10 * 60_000);
   if (!rl.allowed) {
     return NextResponse.json({ ready: false }, { status: 429 });
   }
