@@ -1,9 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Verrät sonst in jeder Antwort "X-Powered-By: Next.js" — unnötige
+  // Information für automatisierte Schwachstellen-Scanner.
+  poweredByHeader: false,
   images: {
+    // Nur der eigene Blob-Speicher statt "**": mit dem Platzhalter kann jeder
+    // /_next/image?url=https://beliebige-seite/… aufrufen und den Server
+    // fremde Bilder laden und umrechnen lassen (Bandbreite, Kosten, Missbrauch
+    // als Proxy). Hochgeladene Bilder liegen ausschließlich bei Vercel Blob.
     remotePatterns: [
-      { protocol: "https", hostname: "**" }
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" }
     ],
+    // AVIF zusätzlich zu WebP: nochmal spürbar kleiner bei gleicher Qualität;
+    // Browser ohne AVIF bekommen automatisch weiterhin WebP.
+    formats: ["image/avif", "image/webp"],
     // Ohne diese Zeile nimmt Next.js seine Standardliste bis 3840px — die
     // größte Stufe greift beim vollflächigen Hero-Bild auf breiten/hochauf-
     // lösenden Bildschirmen (gemessen: 3840px-Variante wurde tatsächlich
@@ -22,6 +32,13 @@ const nextConfig = {
         // Auf allen Seiten: solide Basis-Sicherheitsheader.
         source: "/:path*",
         headers: [
+          // Vercel setzt HSTS zwar von sich aus, aber ohne includeSubDomains —
+          // damit bliebe z.B. www.soulberlin.de oder eine spätere Subdomain
+          // ohne den Zwang zu HTTPS.
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains"
+          },
           { key: "X-Content-Type-Options", value: "nosniff" },
           // SAMEORIGIN statt DENY: fremde Seiten können die Seite weiterhin
           // nicht einbetten (Schutz vor Clickjacking bleibt), aber die

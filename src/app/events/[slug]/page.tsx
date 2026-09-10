@@ -229,14 +229,19 @@ export default async function EventDetailPage({
             locale={locale}
           />
         </div>
+
+        {/* Innerhalb von <main>, damit der Tischplan Teil des Hauptinhalts ist
+            (Screenreader-Landmark) — über beide Rasterspalten gespannt. */}
+        {tablePlan && (
+          <div className="lg:col-span-2">
+            <TablePlanSection
+              tablePlan={tablePlan}
+              eventTitle={title}
+              eventDateLabel={formatEventDate(event.dateStart)}
+            />
+          </div>
+        )}
       </main>
-      {tablePlan && (
-        <TablePlanSection
-          tablePlan={tablePlan}
-          eventTitle={title}
-          eventDateLabel={formatEventDate(event.dateStart)}
-        />
-      )}
       <Footer />
     </>
   );

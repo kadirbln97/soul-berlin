@@ -55,7 +55,7 @@ export function TicketFab({
   moveLabel: string;
 }) {
   const pathname = usePathname();
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
   const movedRef = useRef(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -79,7 +79,7 @@ export function TicketFab({
     }
   }, []);
 
-  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerDown(e: React.PointerEvent<HTMLElement>) {
     // Nur mit der Hauptmaustaste bzw. Finger ziehen.
     if (e.button !== 0) return;
     startRef.current = { x: e.clientX, y: e.clientY };
@@ -87,7 +87,7 @@ export function TicketFab({
     wrapperRef.current?.setPointerCapture(e.pointerId);
   }
 
-  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerMove(e: React.PointerEvent<HTMLElement>) {
     const start = startRef.current;
     if (!start) return;
     const dx = e.clientX - start.x;
@@ -97,7 +97,7 @@ export function TicketFab({
     setOffset({ x: dx, y: dy });
   }
 
-  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+  function handlePointerUp(e: React.PointerEvent<HTMLElement>) {
     const start = startRef.current;
     startRef.current = null;
     wrapperRef.current?.releasePointerCapture(e.pointerId);
@@ -146,7 +146,10 @@ export function TicketFab({
   const dragging = offset !== null;
 
   return (
-    <div
+    // aside + aria-label: eigene Landmark, damit der Knopf für Screenreader
+    // nicht als "Inhalt außerhalb jeder Region" herumschwebt.
+    <aside
+      aria-label={title}
       ref={wrapperRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -188,6 +191,6 @@ export function TicketFab({
         <span aria-hidden="true">×</span>
       </button>
       <span className="sr-only">{moveLabel}</span>
-    </div>
+    </aside>
   );
 }

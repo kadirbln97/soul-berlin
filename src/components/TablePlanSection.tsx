@@ -58,9 +58,9 @@ export function TablePlanSection({
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-5 pb-24">
+    <section aria-labelledby="tableplan-heading" className="mt-4">
       <div className="mb-8">
-        <h2 className="text-display text-2xl uppercase text-paper sm:text-3xl">Tischplan</h2>
+        <h2 id="tableplan-heading" className="text-display text-2xl uppercase text-paper sm:text-3xl">Tischplan</h2>
         <p className="mt-1 text-sm text-paper/70">
           Tisch auswählen, Angaben ausfüllen und direkt per WhatsApp reservieren.
         </p>
@@ -158,8 +158,10 @@ export function TablePlanSection({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="label-field">Vorname</label>
+              <label className="label-field" htmlFor="tableplan-first-name">Vorname</label>
               <input
+                id="tableplan-first-name"
+                autoComplete="given-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 className="input-field"
@@ -167,8 +169,10 @@ export function TablePlanSection({
               />
             </div>
             <div>
-              <label className="label-field">Nachname</label>
+              <label className="label-field" htmlFor="tableplan-last-name">Nachname</label>
               <input
+                id="tableplan-last-name"
+                autoComplete="family-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="input-field"
@@ -178,8 +182,9 @@ export function TablePlanSection({
           </div>
 
           <div>
-            <label className="label-field">Personenzahl</label>
+            <label className="label-field" htmlFor="tableplan-party-size">Personenzahl</label>
             <input
+              id="tableplan-party-size"
               type="number"
               min="1"
               max="50"
@@ -197,7 +202,7 @@ export function TablePlanSection({
           >
             Jetzt reservieren →
           </button>
-          <p className="text-[11px] text-paper/40">
+          <p className="text-[11px] text-paper/60">
             Öffnet WhatsApp mit einer vorausgefüllten Nachricht — die Reservierung ist erst
             bestätigt, sobald wir dort antworten.
           </p>
