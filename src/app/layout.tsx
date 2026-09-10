@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anton } from "next/font/google";
 import "./globals.css";
+import { headers } from "next/headers";
 import { getTranslations } from "@/lib/serverLocale";
 import { getNextExternalTicketLink } from "@/lib/events";
 import { TicketFab } from "@/components/TicketFab";
@@ -62,8 +63,14 @@ export default async function RootLayout({
   // anstehendes Event mit externem Shop, erscheint gar kein Knopf.
   const ticketLink = await getNextExternalTicketLink();
 
+  // Nonce aus der Middleware (src/middleware.ts). Next hängt sie selbst an
+  // seine Skripte; hier zusätzlich als Meta-Tag, damit sich live prüfen
+  // lässt, ob die Middleware-Header die Serverfunktion erreichen.
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
     <html lang={locale} className={display.variable}>
+      <head>{nonce && <meta name="csp-nonce" content={nonce} />}</head>
       {/* Kein bg-ink hier: die Klasse hat als Selektor höhere Spezifität als
           die body{}-Regel in globals.css und würde deren Hintergrundfarbe
           (das aufgehellte Anthrazit gegen den "Perma-Dark-Mode"-Scanner-

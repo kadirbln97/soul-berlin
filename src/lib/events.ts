@@ -43,21 +43,28 @@ export async function getUpcomingPublishedEvents(limit?: number) {
  * das Layout rendert auf wirklich jeder Seite. Hier reichen vier Felder.
  */
 export async function getNextExternalTicketLink() {
-  const event = await prisma.event.findFirst({
-    where: {
-      status: "PUBLISHED",
-      dateStart: { gte: new Date(new Date().toDateString()) },
-      externalTicketUrl: { not: null },
-      NOT: { externalTicketUrl: "" }
-    },
-    orderBy: { dateStart: "asc" },
-    select: { id: true, title: true, externalTicketUrl: true }
-  });
+  // Läuft im Root-Layout, also auf jeder Seite. Ein Datenbankfehler darf hier
+  // nicht die ganze Seite reißen — dann fehlt eben der Ticket-Knopf.
+  try {
+    const event = await prisma.event.findFirst({
+      where: {
+        status: "PUBLISHED",
+        dateStart: { gte: new Date(new Date().toDateString()) },
+        externalTicketUrl: { not: null },
+        NOT: { externalTicketUrl: "" }
+      },
+      orderBy: { dateStart: "asc" },
+      select: { id: true, title: true, externalTicketUrl: true }
+    });
 
-  const url = event?.externalTicketUrl?.trim();
-  if (!event || !url) return null;
+    const url = event?.externalTicketUrl?.trim();
+    if (!event || !url) return null;
 
-  return { eventId: event.id, title: event.title, url };
+    return { eventId: event.id, title: event.title, url };
+  } catch (err) {
+    console.error("[getNextExternalTicketLink] Datenbank nicht erreichbar:", err);
+    return null;
+  }
 }
 
 export async function getPastPublishedEvents(limit?: number) {
