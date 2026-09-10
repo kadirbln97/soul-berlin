@@ -28,25 +28,31 @@ export const onRequestError: Instrumentation.onRequestError = async (error, requ
   if (now - last < ALERT_COOLDOWN_MS) return;
   lastAlertAt.set(key, now);
 
-  try {
-    // Dynamischer Import: instrumentation läuft sehr früh, und nodemailer
-    // soll nicht in Edge-Bundles landen.
-    const { sendAlertEmail } = await import("./lib/email");
-    await sendAlertEmail({
-      subject: `Fehler auf ${path}`,
-      text: [
-        `Zeit: ${new Date(now).toISOString()}`,
-        `Route: ${request.method} ${path}`,
-        `Art: ${context.routeType} (${context.renderSource ?? "-"})`,
-        `Fehler: ${err.message}`,
-        "",
-        err.stack ?? "",
-        "",
-        "Nächste Schritte: RUNBOOK.md → 'die Seite zeigt einen Fehler'.",
-        "Diese Mail kommt pro Fehlerart höchstens alle 15 Minuten."
-      ].join("\n")
-    });
-  } catch (mailErr) {
-    console.error("[onRequestError] Alarm-Mail konnte nicht gesendet werden:", mailErr);
+  // Nur im Node-Runtime: Next baut diese Datei auch für die Edge-Runtime
+  // (Middleware), und dort gibt es kein nodemailer ('crypto', 'path' …).
+  // Der Import muss IN dem if-Block stehen — webpack erkennt den Zweig beim
+  // Bündeln als tot (NEXT_RUNTIME wird beim Build zu einem festen Wert) und
+  // lässt nodemailer aus dem Edge-Bundle. Ein früher return davor würde
+  // nicht reichen, weil der Import schon beim Parsen eingesammelt wird.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    try {
+      const { sendAlertEmail } = await import("./lib/email");
+      await sendAlertEmail({
+        subject: `Fehler auf ${path}`,
+        text: [
+          `Zeit: ${new Date(now).toISOString()}`,
+          `Route: ${request.method} ${path}`,
+          `Art: ${context.routeType} (${context.renderSource ?? "-"})`,
+          `Fehler: ${err.message}`,
+          "",
+          err.stack ?? "",
+          "",
+          "Nächste Schritte: RUNBOOK.md → 'die Seite zeigt einen Fehler'.",
+          "Diese Mail kommt pro Fehlerart höchstens alle 15 Minuten."
+        ].join("\n")
+      });
+    } catch (mailErr) {
+      console.error("[onRequestError] Alarm-Mail konnte nicht gesendet werden:", mailErr);
+    }
   }
 };
