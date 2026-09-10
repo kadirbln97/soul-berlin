@@ -3,6 +3,10 @@ import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validation";
 import { createSessionToken, getAdminUsers, SESSION_COOKIE } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { verifyTotp } from "@/lib/totp";
+
+// TOTP braucht node:crypto — nicht im Edge-Runtime ausführen.
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   // Brute-Force-Schutz: max. 8 Login-Versuche pro 10 Minuten pro IP.
@@ -22,7 +26,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Bitte E-Mail und Passwort angeben" }, { status: 400 });
   }
 
-  const { email, password } = parsed.data;
+  const { email, password, code } = parsed.data;
 
   const users = getAdminUsers();
   if (users.length === 0) {
@@ -37,8 +41,22 @@ export async function POST(req: Request) {
   const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   const passwordMatches = bcrypt.compareSync(password, (user ?? users[0]).passwordHash);
 
-  if (!user || !passwordMatches) {
-    return NextResponse.json({ error: "E-Mail oder Passwort falsch" }, { status: 401 });
+  // Zweiter Faktor: Einmalcode aus der Authenticator-App, sobald
+  // ADMIN_TOTP_SECRET gesetzt ist. Wird zusammen mit dem Passwort geprüft und
+  // mit derselben Fehlermeldung beantwortet — ein Angreifer erfährt so nicht,
+  // ob das Passwort schon gestimmt hat.
+  const totpSecret = process.env.ADMIN_TOTP_SECRET?.trim();
+  const codeMatches = totpSecret ? verifyTotp(totpSecret, code ?? "") : true;
+
+  if (!user || !passwordMatches || !codeMatches) {
+    return NextResponse.json(
+      {
+        error: totpSecret
+          ? "E-Mail, Passwort oder Einmalcode falsch"
+          : "E-Mail oder Passwort falsch"
+      },
+      { status: 401 }
+    );
   }
 
   const adminEmail = user.email;

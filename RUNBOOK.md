@@ -16,7 +16,7 @@ Kurz und für den Ernstfall geschrieben. Wenn etwas brennt, hier nachsehen — n
 ## Umgebungsvariablen (Vercel → Settings → Environment Variables)
 
 Pflicht: `DATABASE_URL`, `APP_URL`, `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `CRON_SECRET`.
-Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`, `ALERT_EMAIL` (Empfänger der Fehler-Alarme, sonst `ADMIN_EMAIL`), `ADMIN_USERS` (weitere Admin-Konten als `email:bcrypt-hash`, kommagetrennt).
+Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`, `ALERT_EMAIL` (Empfänger der Fehler-Alarme, sonst `ADMIN_EMAIL`), `ADMIN_USERS` (weitere Admin-Konten als `email:bcrypt-hash`, kommagetrennt), `ADMIN_TOTP_SECRET` (zweiter Faktor, siehe unten).
 
 Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt der alte Wert weiter.
 
@@ -49,6 +49,17 @@ Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt d
 npm run hash-password -- "NeuesLangesPasswort"
 ```
 Den ausgegebenen Hash als `ADMIN_PASSWORD_HASH` (bzw. in `ADMIN_USERS`) in Vercel setzen, Redeploy. Damit sind **alle bestehenden Admin-Sessions sofort ungültig** — der Session-Schlüssel wird aus den Passwort-Hashes abgeleitet. `APP_SECRET` muss dafür nicht angefasst werden (das würde auch alle Ticket-QR-Codes ungültig machen).
+
+### … der Admin-Login einen zweiten Faktor bekommen soll (Authenticator-App)
+
+```
+npm run totp-secret -- "deine@email.de"
+```
+Zeigt einen QR-Code fürs Handy (Google Authenticator, Apple Passwörter, Authy …) und den Wert für `ADMIN_TOTP_SECRET`. In Vercel eintragen, Redeploy — ab dann verlangt das Login-Formular zusätzlich den 6-stelligen Code. Der Code gilt für alle Admin-Konten (ein gemeinsames Geheimnis; wer den Scanner am Einlass bedient, braucht also Zugriff auf die App). Handy verloren: Variable löschen (Login wieder nur mit Passwort) oder neu erzeugen. Uhrzeit auf dem Handy muss stimmen — der Server akzeptiert ±30 Sekunden.
+
+### … etwas auf der Seite wegen „Content Security Policy“ blockiert wird
+
+Der Browser meldet das in der Konsole („Refused to load …“). Die Regeln stehen in `src/middleware.ts` (`CSP_BASE`): Skripte, Bilder, Videos, Verbindungen nur von der eigenen Seite und dem Blob-Speicher. Wer z. B. ein Bild von einer fremden Adresse als Hero einträgt oder einen Fremddienst (Analytics, Karten, Instagram-Embed) einbauen will, muss dessen Adresse dort in die passende Zeile aufnehmen (`img-src`, `script-src`, `frame-src`, `connect-src`). Die strengere Nonce-Variante läuft nur zur Beobachtung, wenn das Cookie `soul_csp_debug=1` gesetzt ist; ihre Meldungen landen als `[csp-report]` in den Vercel-Logs.
 
 ### … eine Alarm-Mail „Fehler auf /…“ kommt
 

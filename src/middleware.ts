@@ -29,39 +29,57 @@ function isCrossSite(req: NextRequest) {
 }
 
 /**
- * Content-Security-Policy mit Nonce.
+ * Content-Security-Policy.
  *
- * Zweite Verteidigungslinie gegen eingeschleustes Skript (XSS): der Browser
- * führt nur Skripte aus, die unsere Nonce tragen — Next hängt sie an seine
- * eigenen Inline-Skripte, sobald sie im Request-Header steht. Alles andere
- * (Bilder, Videos, Verbindungen) ist auf die eigene Seite und den
- * Blob-Speicher begrenzt.
+ * Zweite Verteidigungslinie gegen eingeschleustes Skript (XSS) und gegen
+ * Einbettung der Seite in fremde Seiten (Clickjacking). Alles außer Skripten
+ * ist auf die eigene Seite und den Blob-Speicher begrenzt; Formulare dürfen
+ * nur an die eigene Seite senden, <base> und <object> sind gesperrt.
  *
- * Vorerst im Report-Only-Modus: Verstöße werden nicht blockiert, sondern an
- * /api/csp-report gemeldet und dort geloggt. Nach einer Beobachtungsphase
- * ohne Meldungen wird der Header auf Content-Security-Policy umgestellt.
+ * Skripte: die Seite lädt keinerlei Fremdskripte, daher 'self'. Nexts eigene
+ * Inline-Skripte (Hydration) brauchen entweder 'unsafe-inline' oder eine
+ * Nonce. Die Nonce wäre die strengere Variante — Next hängt sie aber auf
+ * Vercel derzeit nicht an seine Skripte (siehe Report-Only-Variante unten,
+ * die nur mit dem Cookie soul_csp_debug=1 mitgeschickt wird, damit sich das
+ * weiter untersuchen lässt, ohne bei jedem Seitenaufruf ein Dutzend
+ * Verstoßmeldungen zu erzeugen). Bis das läuft, gilt die Basis-Policy
+ * scharf: sie blockiert jede fremde Skriptquelle, jedes fremde Formularziel
+ * und jede fremde Einbettung — nur eingeschleuster Inline-Code bleibt
+ * unbehandelt, den React durch sein Escaping ohnehin verhindert.
  */
-function buildCsp(nonce: string) {
+const CSP_BASE = [
+  "default-src 'self'",
+  // Tailwind und next/font schreiben Inline-Styles; 'unsafe-inline' für
+  // Styles ist verbreitet und ungefährlich, solange Skripte gesperrt sind.
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+  "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
+  "font-src 'self'",
+  "connect-src 'self'",
+  // Admin-Baukasten zeigt die eigene Startseite in einem iframe.
+  "frame-src 'self'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "upgrade-insecure-requests"
+];
+
+/** Scharfe Policy: ohne Nonce, dafür ohne Abhängigkeit von Next-Internas. */
+function buildEnforcedCsp() {
+  return [...CSP_BASE, "script-src 'self' 'unsafe-inline'"].join("; ");
+}
+
+/** Strenge Nonce-Policy — nur zur Beobachtung (Report-Only, mit Debug-Cookie). */
+function buildStrictCsp(nonce: string) {
   return [
-    "default-src 'self'",
+    ...CSP_BASE,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    // Tailwind und next/font schreiben Inline-Styles; 'unsafe-inline' für
-    // Styles ist verbreitet und ungefährlich, solange Skripte gesperrt sind.
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
-    "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
-    "font-src 'self'",
-    "connect-src 'self'",
-    // Admin-Baukasten zeigt die eigene Startseite in einem iframe.
-    "frame-src 'self'",
-    "frame-ancestors 'self'",
-    "form-action 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "upgrade-insecure-requests",
     "report-uri /api/csp-report"
   ].join("; ");
 }
+
+const CSP_DEBUG_COOKIE = "soul_csp_debug";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -94,16 +112,30 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Nonce pro Anfrage; im Request-Header, damit Next sie an seine Skripte
-  // hängt, und im Response-Header, damit der Browser sie prüft.
+  const enforced = buildEnforcedCsp();
+
+  // Normalfall: scharfe Basis-Policy, sonst nichts.
+  if (req.cookies.get(CSP_DEBUG_COOKIE)?.value !== "1") {
+    const res = NextResponse.next();
+    res.headers.set("Content-Security-Policy", enforced);
+    return res;
+  }
+
+  // Debug-Fall: zusätzlich die strenge Nonce-Policy im Report-Only-Modus.
+  // Die Nonce geht als Request-Header an die Serverfunktion — unter beiden
+  // Header-Namen, die Next dafür ausliest —, außerdem als x-nonce fürs Layout,
+  // das daraus ein Diagnose-Meta-Tag baut.
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-  const csp = buildCsp(nonce);
+  const strict = buildStrictCsp(nonce);
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("Content-Security-Policy-Report-Only", csp);
+  requestHeaders.set("Content-Security-Policy", strict);
+  requestHeaders.set("Content-Security-Policy-Report-Only", strict);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-csp-debug", "1");
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
-  res.headers.set("Content-Security-Policy-Report-Only", csp);
+  res.headers.set("Content-Security-Policy", enforced);
+  res.headers.set("Content-Security-Policy-Report-Only", strict);
   return res;
 }
 

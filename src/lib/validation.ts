@@ -48,7 +48,10 @@ export const manualGuestsSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string().trim().email(),
-  password: z.string().min(1)
+  password: z.string().min(1),
+  // Einmalcode aus der Authenticator-App — nur Pflicht, wenn
+  // ADMIN_TOTP_SECRET gesetzt ist (prüft die Route).
+  code: z.string().trim().max(12).optional()
 });
 
 export const guestlistTierSchema = z.object({

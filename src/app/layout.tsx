@@ -63,14 +63,24 @@ export default async function RootLayout({
   // anstehendes Event mit externem Shop, erscheint gar kein Knopf.
   const ticketLink = await getNextExternalTicketLink();
 
-  // Nonce aus der Middleware (src/middleware.ts). Next hängt sie selbst an
-  // seine Skripte; hier zusätzlich als Meta-Tag, damit sich live prüfen
-  // lässt, ob die Middleware-Header die Serverfunktion erreichen.
-  const nonce = (await headers()).get("x-nonce") ?? "";
+  // Diagnose für die strenge CSP (nur mit Debug-Cookie, siehe
+  // src/middleware.ts): zeigt, welche der von der Middleware gesetzten
+  // Request-Header die Serverfunktion tatsächlich erreichen. Next liest die
+  // Nonce aus dem CSP-Request-Header — kommt der nicht an, kann Next sie auch
+  // nicht an seine Skripte hängen.
+  const h = await headers();
+  const cspDiag =
+    h.get("x-csp-debug") === "1"
+      ? [
+          `nonce:${h.get("x-nonce") ? 1 : 0}`,
+          `csp:${h.get("content-security-policy") ? 1 : 0}`,
+          `cspro:${h.get("content-security-policy-report-only") ? 1 : 0}`
+        ].join(" ")
+      : "";
 
   return (
     <html lang={locale} className={display.variable}>
-      <head>{nonce && <meta name="csp-nonce" content={nonce} />}</head>
+      <head>{cspDiag && <meta name="csp-diag" content={cspDiag} />}</head>
       {/* Kein bg-ink hier: die Klasse hat als Selektor höhere Spezifität als
           die body{}-Regel in globals.css und würde deren Hintergrundfarbe
           (das aufgehellte Anthrazit gegen den "Perma-Dark-Mode"-Scanner-
