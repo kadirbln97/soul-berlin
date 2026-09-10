@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { TablePlan } from "@/lib/tablePlan";
-import { buildReservationWhatsAppUrl, formatTablePlanEuro } from "@/lib/tablePlan";
+import { buildReservationWhatsAppUrl, formatTablePlanEuro, sortTablesById } from "@/lib/tablePlan";
 
 export function TablePlanSection({
   tablePlan,
@@ -14,6 +14,9 @@ export function TablePlanSection({
   eventDateLabel: string;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Anzeige nach Tischnummer, unabhängig davon, in welcher Reihenfolge die
+  // Tische im Admin angelegt wurden.
+  const tables = sortTablesById(tablePlan.tables);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [partySize, setPartySize] = useState("");
@@ -74,7 +77,7 @@ export function TablePlanSection({
           <div className="relative w-full overflow-hidden rounded-2xl border border-paper/10 bg-neutral-950">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tablePlan.imageUrl} alt="Tischplan" className="block w-full" />
-          {tablePlan.tables.map((table) => {
+          {tables.map((table) => {
             const isSelected = table.id === selectedId;
             const isReserved = Boolean(table.isReserved);
             return (
@@ -142,7 +145,7 @@ export function TablePlanSection({
                 das display:none des Attributs sonst überschreiben. */}
             {listOpen && (
             <ul id="tableplan-list" className="mt-3 flex flex-col divide-y divide-paper/10">
-              {tablePlan.tables.map((table) => {
+              {tables.map((table) => {
                 const isSelected = table.id === selectedId;
                 const isReserved = Boolean(table.isReserved);
                 return (

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { TablePlanEditor } from "./TablePlanEditor";
+import { sortTablesById } from "@/lib/tablePlan";
 
 /** Anderes Event, dessen Tischplan übernommen werden kann. */
 export type TablePlanSource = {
@@ -192,7 +193,7 @@ export function EventForm({
     initial?.tablePlan?.whatsappNumber ?? "4915772524610"
   );
   const [tables, setTables] = useState<TableRow[]>(
-    (initial?.tablePlan?.tables ?? []).map((t) => ({
+    sortTablesById(initial?.tablePlan?.tables ?? []).map((t) => ({
       id: t.id,
       capacity: String(t.capacity),
       minSpendEuro: (t.minSpendCents / 100).toString(),
@@ -351,7 +352,7 @@ export function EventForm({
       setTablePlanImageUrl(plan.imageUrl);
       setTablePlanWhatsapp(plan.whatsappNumber);
       setTables(
-        plan.tables.map((t) => ({
+        sortTablesById(plan.tables).map((t) => ({
           id: t.id,
           capacity: String(t.capacity),
           minSpendEuro: (t.minSpendCents / 100).toString(),
@@ -406,7 +407,7 @@ export function EventForm({
       }>;
       const last = tables[tables.length - 1];
       setTables(
-        detected.slice(0, MAX_TABLES).map((t) => ({
+        sortTablesById(detected).slice(0, MAX_TABLES).map((t) => ({
           id: t.id,
           capacity: t.capacity ? String(t.capacity) : last?.capacity || "4",
           minSpendEuro: last?.minSpendEuro || "300",

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sortTablesById } from "./tablePlan";
 
 /**
  * Automatische Tischerkennung auf einem Grundriss über die Claude API.
@@ -115,7 +116,9 @@ export function parseDetectedTables(text: string): DetectedTable[] {
     throw new Error("Auf dem Bild wurden keine Tische erkannt.");
   }
 
-  return tables;
+  // Das Modell liefert die Tische in Lesereihenfolge des Plans — in der
+  // Liste will man sie aber nach Nummer.
+  return sortTablesById(tables);
 }
 
 /** Beschriftetes 10-%-Raster als SVG, wird per sharp über das Bild gelegt. */

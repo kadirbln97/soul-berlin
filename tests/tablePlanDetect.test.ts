@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildGridOverlaySvg, parseDetectedTables, pickBackground } from "../src/lib/tablePlanDetect";
+import { sortTablesById } from "../src/lib/tablePlan";
 
 test("liest sauberes JSON", () => {
   const tables = parseDetectedTables(
@@ -64,4 +65,18 @@ test("Hintergrund: helle Striche auf Transparenz → dunkler Grund, dunkle → h
   const darkStrokes = Uint8Array.from([0, 0, 0, 0, 20, 20, 20, 255, 255, 255, 255, 100]);
   assert.equal(pickBackground(darkStrokes), "#ffffff");
   assert.equal(pickBackground(Uint8Array.from([])), "#ffffff");
+});
+
+test("Tische werden nach Nummer sortiert, Namen dahinter", () => {
+  const sorted = sortTablesById(
+    ["10", "2", "VIP", "1", "Lounge", "11", " 3"].map((id) => ({ id }))
+  ).map((t) => t.id);
+  assert.deepEqual(sorted, ["1", "2", " 3", "10", "11", "Lounge", "VIP"]);
+});
+
+test("Erkannte Tische kommen sortiert zurück", () => {
+  const tables = parseDetectedTables(
+    '{"tables":[{"id":"12","x":1,"y":1,"w":5,"h":5},{"id":"3","x":20,"y":1,"w":5,"h":5},{"id":"1","x":40,"y":1,"w":5,"h":5}]}'
+  );
+  assert.deepEqual(tables.map((t) => t.id), ["1", "3", "12"]);
 });

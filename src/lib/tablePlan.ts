@@ -56,6 +56,20 @@ export const tablePlanSchema = z.object({
   tables: z.array(tablePlanTableSchema).min(1, "Bitte mindestens einen Tisch anlegen").max(60)
 });
 
+/**
+ * Tische nach Nummer sortieren: 1, 2, 3 … 10, 11 (nicht 1, 10, 11, 2 …),
+ * Bezeichnungen wie "VIP" alphabetisch dahinter. Gibt eine neue Liste zurück.
+ */
+export function sortTablesById<T extends { id: string }>(tables: T[]): T[] {
+  const collator = new Intl.Collator("de", { numeric: true, sensitivity: "base" });
+  return [...tables].sort((a, b) => {
+    const aNum = /^\d+$/.test(a.id.trim());
+    const bNum = /^\d+$/.test(b.id.trim());
+    if (aNum !== bNum) return aNum ? -1 : 1;
+    return collator.compare(a.id.trim(), b.id.trim());
+  });
+}
+
 function formatEuro(cents: number) {
   return (cents / 100).toLocaleString("de-DE", {
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
