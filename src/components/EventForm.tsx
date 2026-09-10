@@ -2,6 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
+import { TablePlanEditor } from "./TablePlanEditor";
+
+/** Anderes Event, dessen Tischplan übernommen werden kann. */
+export type TablePlanSource = {
+  id: string;
+  title: string;
+  /** Vorformatiertes Datum, z.B. "Fr, 12.09.2026". */
+  dateLabel: string;
+};
 
 type TablePlanTableInitial = {
   id: string;
@@ -74,12 +83,23 @@ type TableRow = {
   id: string;
   capacity: string;
   minSpendEuro: string;
-  x: string;
-  y: string;
-  w: string;
-  h: string;
+  /** Geometrie in Prozent vom Bild — wird nur noch im Zeichen-Editor gesetzt. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
   isReserved: boolean;
 };
+
+type TableGeometry = Pick<TableRow, "x" | "y" | "w" | "h">;
+
+/** Nächste freie Tischnummer — kleinste Zahl, die noch nicht vergeben ist. */
+function nextTableId(tables: TableRow[]) {
+  const used = new Set(tables.map((t) => t.id.trim()));
+  let n = 1;
+  while (used.has(String(n))) n++;
+  return String(n);
+}
 
 type PhaseRow = {
   /** Leer bei neu angelegten Phasen — bestehende behalten ihre Id. */
@@ -105,7 +125,13 @@ function toLocalInputValue(iso?: string | null) {
   )}:${pad(d.getMinutes())}`;
 }
 
-export function EventForm({ initial }: { initial?: EventInitial }) {
+export function EventForm({
+  initial,
+  tablePlanSources = []
+}: {
+  initial?: EventInitial;
+  tablePlanSources?: TablePlanSource[];
+}) {
   const router = useRouter();
   const isEdit = Boolean(initial);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -170,13 +196,18 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
       id: t.id,
       capacity: String(t.capacity),
       minSpendEuro: (t.minSpendCents / 100).toString(),
-      x: String(t.x),
-      y: String(t.y),
-      w: String(t.w),
-      h: String(t.h),
+      x: t.x,
+      y: t.y,
+      w: t.w,
+      h: t.h,
       isReserved: t.isReserved ?? false
     }))
   );
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [tablePlanSourceId, setTablePlanSourceId] = useState("");
+  const [tablePlanBusy, setTablePlanBusy] = useState<"copy" | "detect" | null>(null);
+  const [tablePlanNotice, setTablePlanNotice] = useState<string | null>(null);
+  const [tablePlanNoticeIsError, setTablePlanNoticeIsError] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -253,29 +284,148 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
     }
   }
 
+  /** Neuer Tisch — Personen und Mindestverzehr wie beim zuletzt angelegten. */
+  function createTable(geometry: TableGeometry): number {
+    if (tables.length >= MAX_TABLES) return tables.length - 1;
+    const last = tables[tables.length - 1];
+    const next: TableRow = {
+      id: nextTableId(tables),
+      capacity: last?.capacity || "4",
+      minSpendEuro: last?.minSpendEuro || "300",
+      ...geometry,
+      isReserved: false
+    };
+    setTables([...tables, next]);
+    return tables.length;
+  }
+
   function addTableRow() {
-    if (tables.length >= MAX_TABLES) return;
-    setTables([
-      ...tables,
-      {
-        id: String(tables.length + 1),
-        capacity: "4",
-        minSpendEuro: "300",
-        x: "40",
-        y: "40",
-        w: "15",
-        h: "10",
-        isReserved: false
-      }
-    ]);
+    // Ohne Zeichnen: Kasten leicht versetzt zum letzten, damit neue Tische
+    // nicht alle exakt übereinander liegen.
+    const last = tables[tables.length - 1];
+    const x = last ? Math.min(85, last.x + 4) : 40;
+    const y = last ? Math.min(90, last.y + 4) : 40;
+    const index = createTable({ x, y, w: last?.w ?? 12, h: last?.h ?? 8 });
+    setSelectedTable(index);
   }
 
   function removeTableRow(index: number) {
     setTables(tables.filter((_, i) => i !== index));
+    setSelectedTable(null);
   }
 
   function updateTableRow<K extends keyof TableRow>(index: number, field: K, value: TableRow[K]) {
     setTables(tables.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
+  }
+
+  function updateTableGeometry(index: number, geometry: TableGeometry) {
+    setTables(tables.map((t, i) => (i === index ? { ...t, ...geometry } : t)));
+  }
+
+  function showTablePlanNotice(message: string, isError = false) {
+    setTablePlanNotice(message);
+    setTablePlanNoticeIsError(isError);
+  }
+
+  /** Tischplan eines anderen Events übernehmen — „vergeben“ wird zurückgesetzt. */
+  async function copyTablePlanFrom(sourceId: string) {
+    setTablePlanSourceId(sourceId);
+    if (!sourceId) return;
+    if (
+      tables.length > 0 &&
+      !window.confirm("Die vorhandenen Tische werden durch den übernommenen Plan ersetzt. Weiter?")
+    ) {
+      setTablePlanSourceId("");
+      return;
+    }
+    setTablePlanBusy("copy");
+    setTablePlanNotice(null);
+    try {
+      const res = await fetch(`/api/admin/events/${sourceId}/table-plan`);
+      const data = await res.json();
+      if (!res.ok) {
+        showTablePlanNotice(data.error ?? "Übernahme fehlgeschlagen.", true);
+        return;
+      }
+      const plan = data.tablePlan as TablePlanInitial;
+      setTablePlanImageUrl(plan.imageUrl);
+      setTablePlanWhatsapp(plan.whatsappNumber);
+      setTables(
+        plan.tables.map((t) => ({
+          id: t.id,
+          capacity: String(t.capacity),
+          minSpendEuro: (t.minSpendCents / 100).toString(),
+          x: t.x,
+          y: t.y,
+          w: t.w,
+          h: t.h,
+          isReserved: false
+        }))
+      );
+      setSelectedTable(null);
+      showTablePlanNotice(
+        `${plan.tables.length} Tische übernommen — alle als frei markiert. Erst nach „Änderungen speichern“ wirksam.`
+      );
+    } catch {
+      showTablePlanNotice("Verbindung fehlgeschlagen.", true);
+    } finally {
+      setTablePlanBusy(null);
+      setTablePlanSourceId("");
+    }
+  }
+
+  /** Tische per Bildverständnis-Modell erkennen lassen; Ergebnis ist ein Vorschlag. */
+  async function detectTables() {
+    if (!tablePlanImageUrl) return;
+    if (
+      tables.length > 0 &&
+      !window.confirm("Die vorhandenen Tische werden durch die erkannten ersetzt. Weiter?")
+    ) {
+      return;
+    }
+    setTablePlanBusy("detect");
+    setTablePlanNotice(null);
+    try {
+      const res = await fetch("/api/admin/table-plan/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: tablePlanImageUrl })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showTablePlanNotice(data.error ?? "Erkennung fehlgeschlagen.", true);
+        return;
+      }
+      const detected = data.tables as Array<{
+        id: string;
+        capacity: number | null;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+      }>;
+      const last = tables[tables.length - 1];
+      setTables(
+        detected.slice(0, MAX_TABLES).map((t) => ({
+          id: t.id,
+          capacity: t.capacity ? String(t.capacity) : last?.capacity || "4",
+          minSpendEuro: last?.minSpendEuro || "300",
+          x: t.x,
+          y: t.y,
+          w: t.w,
+          h: t.h,
+          isReserved: false
+        }))
+      );
+      setSelectedTable(null);
+      showTablePlanNotice(
+        `${detected.length} Tische erkannt. Bitte Kästen und Nummern prüfen — die Erkennung ist ein Vorschlag, Personen und Mindestverzehr musst du selbst eintragen.`
+      );
+    } catch {
+      showTablePlanNotice("Verbindung fehlgeschlagen.", true);
+    } finally {
+      setTablePlanBusy(null);
+    }
   }
 
   function addTier() {
@@ -382,19 +532,16 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
         setError("Bitte mindestens einen Tisch anlegen (oder den Tischplan deaktivieren).");
         return;
       }
-      if (
-        tables.some(
-          (t) =>
-            !t.id.trim() ||
-            t.capacity === "" ||
-            t.minSpendEuro === "" ||
-            t.x === "" ||
-            t.y === "" ||
-            t.w === "" ||
-            t.h === ""
-        )
-      ) {
-        setError("Bitte bei jedem Tisch alle Felder ausfüllen (oder die Zeile entfernen).");
+      if (tables.some((t) => !t.id.trim() || t.capacity === "" || t.minSpendEuro === "")) {
+        setError(
+          "Bitte bei jedem Tisch Nummer, Personen und Mindestverzehr ausfüllen (oder den Tisch entfernen)."
+        );
+        return;
+      }
+      const ids = tables.map((t) => t.id.trim());
+      const duplicate = ids.find((id, i) => ids.indexOf(id) !== i);
+      if (duplicate) {
+        setError(`Tischnummer „${duplicate}“ ist doppelt vergeben.`);
         return;
       }
       if (!/^[1-9]\d{6,14}$/.test(tablePlanWhatsapp.trim())) {
@@ -413,10 +560,10 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
             id: t.id.trim(),
             capacity: parseInt(t.capacity, 10),
             minSpendCents: Math.round(parseFloat(t.minSpendEuro) * 100),
-            x: parseFloat(t.x),
-            y: parseFloat(t.y),
-            w: parseFloat(t.w),
-            h: parseFloat(t.h),
+            x: t.x,
+            y: t.y,
+            w: t.w,
+            h: t.h,
             isReserved: t.isReserved
           }))
         }
@@ -1092,47 +1239,85 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                 </p>
               </div>
 
-              {tablePlanImageUrl && tables.length > 0 && (
-                <div>
-                  <label className="label-field">Vorschau der Klickflächen</label>
-                  <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-paper/15 bg-neutral-900">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={tablePlanImageUrl} alt="Tischplan" className="block w-full" />
-                    {tables.map((t, i) => (
-                      <div
-                        key={i}
-                        // Nummer oben links statt mittig: mittig läge sie genau
-                        // auf der Tischnummer, die schon im Grundriss gedruckt
-                        // ist. Hier im Admin bleibt sie sichtbar, damit sich
-                        // Zeile und Fläche beim Einmessen zuordnen lassen.
-                        className={`absolute flex items-start justify-start rounded border-2 px-1 text-[10px] font-bold leading-none text-paper ${
-                          t.isReserved
-                            ? "border-paper/25 bg-ink/70 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(245,243,238,0.18)_4px,rgba(245,243,238,0.18)_6px)]"
-                            : "border-soul-orange bg-soul-orange/20"
-                        }`}
-                        style={{
-                          left: `${t.x}%`,
-                          top: `${t.y}%`,
-                          width: `${t.w}%`,
-                          height: `${t.h}%`
-                        }}
+              {(tablePlanSources.length > 0 || tablePlanImageUrl) && (
+                <div className="flex flex-wrap items-end gap-3">
+                  {tablePlanSources.length > 0 && (
+                    <div className="min-w-0 flex-1 sm:max-w-xs">
+                      <label className="label-field" htmlFor="ev-tischplan-quelle">
+                        Tischplan aus anderem Event übernehmen
+                      </label>
+                      <select
+                        id="ev-tischplan-quelle"
+                        value={tablePlanSourceId}
+                        onChange={(e) => copyTablePlanFrom(e.target.value)}
+                        disabled={tablePlanBusy !== null}
+                        className="input-field"
                       >
-                        {t.id}
-                      </div>
-                    ))}
-                  </div>
+                        <option value="">— Event wählen —</option>
+                        {tablePlanSources.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.dateLabel} · {s.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {tablePlanImageUrl && (
+                    <button
+                      type="button"
+                      onClick={detectTables}
+                      disabled={tablePlanBusy !== null}
+                      className="rounded-full border border-soul-orange/60 px-4 py-2 text-xs font-bold uppercase tracking-widest text-soul-orange transition hover:bg-soul-orange/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {tablePlanBusy === "detect"
+                        ? "Erkennt Tische …"
+                        : tablePlanBusy === "copy"
+                          ? "Übernimmt …"
+                          : "Tische automatisch erkennen"}
+                    </button>
+                  )}
+                </div>
+              )}
+              {tablePlanNotice && (
+                <p
+                  role={tablePlanNoticeIsError ? "alert" : "status"}
+                  className={`text-xs ${tablePlanNoticeIsError ? "text-red-400" : "text-paper/70"}`}
+                >
+                  {tablePlanNotice}
+                </p>
+              )}
+
+              {tablePlanImageUrl && (
+                <div>
+                  <label className="label-field">Tische auf dem Plan einzeichnen</label>
+                  <TablePlanEditor
+                    imageUrl={tablePlanImageUrl}
+                    tables={tables}
+                    selectedIndex={selectedTable}
+                    onSelect={setSelectedTable}
+                    onChange={updateTableGeometry}
+                    onCreate={createTable}
+                    onDelete={removeTableRow}
+                  />
                 </div>
               )}
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="label-field mb-0">Tische (max. {MAX_TABLES})</label>
+                  <label className="label-field mb-0">
+                    Tische ({tables.length}/{MAX_TABLES})
+                  </label>
                 </div>
                 <div className="flex flex-col gap-3">
                   {tables.map((t, i) => (
                     <div
                       key={i}
-                      className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-lg border border-paper/5 p-3 [&>*]:min-w-0 sm:grid-cols-[70px_80px_100px_70px_70px_70px_70px_auto] sm:items-end"
+                      onClick={() => setSelectedTable(i)}
+                      className={`grid grid-cols-[minmax(0,1fr)] gap-2 rounded-lg border p-3 [&>*]:min-w-0 sm:grid-cols-[70px_80px_120px_auto] sm:items-end ${
+                        selectedTable === i
+                          ? "border-soul-orange/70 bg-soul-orange/[0.06]"
+                          : "border-paper/5"
+                      }`}
                     >
                       <div>
                         <label className="label-field text-[10px]" htmlFor={`ev-nr-table-${i}`}>Nr.</label>
@@ -1166,61 +1351,12 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                           className="input-field"
                         />
                       </div>
-                      <div>
-                        <label className="label-field text-[10px]" htmlFor={`ev-x-pct-table-${i}`}>X %</label>
-                        <input
-                          id={`ev-x-pct-table-${i}`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.5"
-                          value={t.x}
-                          onChange={(e) => updateTableRow(i, "x", e.target.value)}
-                          className="input-field"
-                        />
-                      </div>
-                      <div>
-                        <label className="label-field text-[10px]" htmlFor={`ev-y-pct-table-${i}`}>Y %</label>
-                        <input
-                          id={`ev-y-pct-table-${i}`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.5"
-                          value={t.y}
-                          onChange={(e) => updateTableRow(i, "y", e.target.value)}
-                          className="input-field"
-                        />
-                      </div>
-                      <div>
-                        <label className="label-field text-[10px]" htmlFor={`ev-breite-pct-table-${i}`}>Breite %</label>
-                        <input
-                          id={`ev-breite-pct-table-${i}`}
-                          type="number"
-                          min="1"
-                          max="100"
-                          step="0.5"
-                          value={t.w}
-                          onChange={(e) => updateTableRow(i, "w", e.target.value)}
-                          className="input-field"
-                        />
-                      </div>
-                      <div>
-                        <label className="label-field text-[10px]" htmlFor={`ev-hoehe-pct-table-${i}`}>Höhe %</label>
-                        <input
-                          id={`ev-hoehe-pct-table-${i}`}
-                          type="number"
-                          min="1"
-                          max="100"
-                          step="0.5"
-                          value={t.h}
-                          onChange={(e) => updateTableRow(i, "h", e.target.value)}
-                          className="input-field"
-                        />
-                      </div>
                       <button
                         type="button"
-                        onClick={() => removeTableRow(i)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTableRow(i);
+                        }}
                         className="justify-self-start text-xs uppercase tracking-widest text-paper/40 hover:text-red-400 sm:pb-3"
                       >
                         Entfernen
@@ -1229,7 +1365,7 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                       {/* Eigene Zeile, weil der Schalter der Grund ist, warum
                           du hier während der Woche überhaupt reinschaust:
                           vergebene Tische ausknipsen. */}
-                      <label className="flex cursor-pointer items-center gap-2 text-xs text-paper/75 sm:col-span-8">
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-paper/75 sm:col-span-4">
                         <input
                           type="checkbox"
                           checked={t.isReserved}
@@ -1252,10 +1388,8 @@ export function EventForm({ initial }: { initial?: EventInitial }) {
                   </button>
                 )}
                 <p className="mt-2 text-[11px] text-paper/40">
-                  X/Y = Position der linken oberen Ecke, Breite/Höhe = Größe der Klickfläche —
-                  alle Werte in Prozent vom Bild (0–100), damit die Fläche bei jeder
-                  Bildschirmgröße an der richtigen Stelle sitzt. In der Vorschau oben
-                  direkt kontrollieren.
+                  Position und Größe der Klickflächen ziehst du oben direkt auf dem Plan.
+                  Ein Klick auf eine Zeile hebt den zugehörigen Tisch im Plan hervor.
                 </p>
               </div>
             </div>

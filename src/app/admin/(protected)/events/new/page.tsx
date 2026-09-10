@@ -1,10 +1,15 @@
 import { EventForm } from "@/components/EventForm";
+import { getTablePlanSources } from "@/lib/tablePlanSources";
 
-export default function NewEventPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewEventPage() {
+  const tablePlanSources = await getTablePlanSources();
+
   return (
     <div className="max-w-3xl">
       <h1 className="text-display mb-8 text-3xl uppercase text-paper">Neues Event</h1>
-      <EventForm />
+      <EventForm tablePlanSources={tablePlanSources} />
     </div>
   );
 }

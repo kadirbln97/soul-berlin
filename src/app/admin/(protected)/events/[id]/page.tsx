@@ -10,6 +10,7 @@ import { DiscountManager } from "@/components/DiscountManager";
 import { ManualGuestForm } from "@/components/ManualGuestForm";
 import { loadResolvedPhases } from "@/lib/loadTicketPhases";
 import { tablePlanSchema } from "@/lib/tablePlan";
+import { getTablePlanSources } from "@/lib/tablePlanSources";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function AdminEventDetailPage({
   const tablePlanParsed = tablePlanSchema.safeParse(event.tablePlan);
   const tablePlan = tablePlanParsed.success ? tablePlanParsed.data : null;
 
-  const [tickets, revenue, discounts, phases] = await Promise.all([
+  const [tickets, revenue, discounts, phases, tablePlanSources] = await Promise.all([
     prisma.ticket.findMany({
       where: { eventId: event.id },
       orderBy: { createdAt: "desc" }
@@ -41,7 +42,8 @@ export default async function AdminEventDetailPage({
       where: { eventId: event.id },
       orderBy: { createdAt: "asc" }
     }),
-    loadResolvedPhases(event.id)
+    loadResolvedPhases(event.id),
+    getTablePlanSources(event.id)
   ]);
 
   return (
@@ -100,6 +102,7 @@ export default async function AdminEventDetailPage({
               })),
               tablePlan
             }}
+            tablePlanSources={tablePlanSources}
           />
         </div>
       </div>

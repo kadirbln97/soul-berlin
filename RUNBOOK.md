@@ -16,7 +16,7 @@ Kurz und für den Ernstfall geschrieben. Wenn etwas brennt, hier nachsehen — n
 ## Umgebungsvariablen (Vercel → Settings → Environment Variables)
 
 Pflicht: `DATABASE_URL`, `APP_URL`, `APP_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `CRON_SECRET`.
-Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`, `ALERT_EMAIL` (Empfänger der Fehler-Alarme, sonst `ADMIN_EMAIL`), `ADMIN_USERS` (weitere Admin-Konten als `email:bcrypt-hash`, kommagetrennt), `ADMIN_TOTP_SECRET` (zweiter Faktor, siehe unten).
+Für Tickets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`. Für E-Mails: `SMTP_*`. Optional: `CONTACT_EMAIL`, `ALERT_EMAIL` (Empfänger der Fehler-Alarme, sonst `ADMIN_EMAIL`), `ADMIN_USERS` (weitere Admin-Konten als `email:bcrypt-hash`, kommagetrennt), `ADMIN_TOTP_SECRET` (zweiter Faktor, siehe unten), `ANTHROPIC_API_KEY` (automatische Tischerkennung im Tischplan-Editor).
 
 Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt der alte Wert weiter.
 
@@ -95,7 +95,7 @@ Löschung: Admin → Gästetabelle → „DSGVO löschen“ am Eintrag (entfernt
 - Admin → Event: Status „Veröffentlicht“, Datum/Uhrzeit, Kontingente, Phasen, Verkaufsschluss.
 - Testkauf mit Stripe-Testkarte in der Vorschau-Umgebung — oder ein 1-€-Ticket live und danach erstatten.
 - Scanner auf dem Handy öffnen (`/admin/scanner`), Kamera freigeben, ein Ticket probescannen. Offline-Modus greift automatisch, wenn das Netz am Einlass wegbricht; die Check-ins werden nachgetragen, sobald es zurück ist.
-- Nach dem Event: Tischplan-Häkchen „Vergeben“ zurücksetzen, falls das nächste Event denselben Plan nutzt.
+- Tischplan fürs nächste Event: im Event-Formular „Tischplan aus anderem Event übernehmen“ wählen — Bild, Nummer und Tische kommen mit, alle als frei. Neuer Grundriss: hochladen, „Tische automatisch erkennen“ (braucht `ANTHROPIC_API_KEY` in Vercel, ca. 1 Cent pro Lauf), dann Kästen auf dem Plan nachziehen; oder gleich selbst zeichnen (Rechteck über jeden Tisch ziehen).
 
 ## Entwickeln
 
