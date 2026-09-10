@@ -183,10 +183,11 @@ export async function askModelForTables(imagePng: Buffer): Promise<string> {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01"
       },
+      // Kein temperature-Parameter: aktuelle Modelle lehnen ihn ab
+      // ("temperature is deprecated for this model").
       body: JSON.stringify({
         model,
         max_tokens: 4096,
-        temperature: 0,
         messages: [
           {
             role: "user",
