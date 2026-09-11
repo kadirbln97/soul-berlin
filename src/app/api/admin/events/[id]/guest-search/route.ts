@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
   }
 
-  const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
+  const q = (new URL(req.url).searchParams.get("q")?.trim() ?? "").slice(0, 100);
   if (q.length < 2) {
     return NextResponse.json({ guests: [] });
   }

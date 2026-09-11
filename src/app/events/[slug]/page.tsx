@@ -14,7 +14,7 @@ import { tablePlanSchema } from "@/lib/tablePlan";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { resolveDiscount } from "@/lib/resolveDiscount";
 import { loadResolvedPhases } from "@/lib/loadTicketPhases";
-import { buildEventJsonLd } from "@/lib/structuredData";
+import { buildEventJsonLd, safeJsonLd } from "@/lib/structuredData";
 import { getTranslations, pickText } from "@/lib/serverLocale";
 
 export const dynamic = "force-dynamic";
@@ -149,7 +149,7 @@ export default async function EventDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(eventJsonLd) }}
       />
       <Header />
       <main id="main-content" className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-5 py-16 lg:grid-cols-[1.2fr_1fr]">

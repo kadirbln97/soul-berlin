@@ -11,7 +11,7 @@ import { getUpcomingPublishedEvents } from "@/lib/events";
 import { getCurrentGuestlistPrice } from "@/lib/guestlistTiers";
 import { getSiteContent } from "@/lib/siteContent";
 import { getTranslations, pickText } from "@/lib/serverLocale";
-import { buildOrganizationJsonLd } from "@/lib/structuredData";
+import { buildOrganizationJsonLd, safeJsonLd } from "@/lib/structuredData";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,7 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: safeJsonLd(
             buildOrganizationJsonLd(process.env.APP_URL ?? "https://soulberlin.de")
           )
         }}

@@ -97,6 +97,18 @@ Löschung: Admin → Gästetabelle → „DSGVO löschen“ am Eintrag (entfernt
 - Scanner auf dem Handy öffnen (`/admin/scanner`), Kamera freigeben, ein Ticket probescannen. Offline-Modus greift automatisch, wenn das Netz am Einlass wegbricht; die Check-ins werden nachgetragen, sobald es zurück ist.
 - Tischplan fürs nächste Event: im Event-Formular „Tischplan aus anderem Event übernehmen“ wählen — Bild, Nummer und Tische kommen mit, alle als frei. Neuer Grundriss: hochladen, „Tische automatisch erkennen“ (braucht `ANTHROPIC_API_KEY` in Vercel, ca. 1 Cent pro Lauf), dann Kästen auf dem Plan nachziehen; oder gleich selbst zeichnen (Rechteck über jeden Tisch ziehen).
 
+## Einmal im Monat: Abhängigkeiten
+
+GitHub Actions führt bei jedem Push `npm audit --audit-level=high` aus. **Rotes Kreuz im CI = bekannte Schwachstelle in einer Abhängigkeit.** Dann im Projektordner:
+
+```
+npm audit                 # zeigt, was betroffen ist
+npm audit fix             # Patches innerhalb der erlaubten Versionen
+npm outdated              # was darüber hinaus veraltet ist
+npm run typecheck && npm test
+```
+Größere Sprünge (neue Hauptversion von Next, Prisma, Stripe) einzeln machen und danach die Kaufstrecke einmal durchspielen. Vercel deployt auch bei rotem CI — das Kreuz ist ein Hinweis, keine Bremse.
+
 ## Entwickeln
 
 ```

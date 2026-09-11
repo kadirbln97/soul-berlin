@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 import { sendTicketEmailWithRetry } from "@/lib/createTicket";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 /**
  * Ticket-E-Mail erneut verschicken — für Tickets, deren Versand beim Anlegen
@@ -13,6 +14,16 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
+  }
+
+  // Jeder Aufruf verschickt eine echte E-Mail an einen Gast. Falls eine
+  // Admin-Sitzung in falsche Hände gerät, begrenzt das den Schaden.
+  const rl = await checkRateLimit(`resend:${session.email}`, 20, 10 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Mails in kurzer Zeit. Bitte ein paar Minuten warten." },
+      { status: 429 }
+    );
   }
 
   const ticket = await prisma.ticket.findUnique({

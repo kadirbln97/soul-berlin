@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { createTransport } from "nodemailer";
 import { ticketQrBuffer } from "./qr";
 import { signTicketToken } from "./ticketToken";
 import { formatEventDate } from "./format";
@@ -13,7 +13,7 @@ function getTransport() {
       "SMTP-Zugangsdaten fehlen in .env (SMTP_HOST/SMTP_USER/SMTP_PASS) — E-Mail-Versand kann nicht funktionieren."
     );
   }
-  return nodemailer.createTransport({
+  return createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT ?? 587),
     secure: Number(SMTP_PORT ?? 587) === 465,

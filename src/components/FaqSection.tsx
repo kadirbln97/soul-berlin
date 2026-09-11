@@ -1,3 +1,4 @@
+import { safeJsonLd } from "@/lib/structuredData";
 import type { SiteContent } from "@/lib/siteContent";
 
 /** Plätze aus dem Baukasten (siehe SITE_CONTENT_FIELDS, Gruppe "Häufige Fragen"). */
@@ -112,7 +113,7 @@ export function FaqSection({ content }: { content: SiteContent }) {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(structuredData) }}
       />
     </section>
   );

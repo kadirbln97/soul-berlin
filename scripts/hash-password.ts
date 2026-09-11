@@ -9,7 +9,9 @@ if (!password) {
   process.exit(1);
 }
 
-const hash = bcrypt.hashSync(password, 10);
+// Kostenfaktor 12: ~250 ms pro Prüfung — für einen Login unmerklich, für
+// einen Angreifer mit gestohlenem Hash 4x teurer als der Standard 10.
+const hash = bcrypt.hashSync(password, 12);
 console.log("\nNur diese Zeile bei Vercel als Wert für ADMIN_PASSWORD_HASH eintragen");
 console.log("(OHNE Anführungszeichen, OHNE 'ADMIN_PASSWORD_HASH=' davor — nur der Teil zwischen >>> und <<<):\n");
 console.log(`>>>${hash}<<<\n`);

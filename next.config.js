@@ -47,6 +47,10 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Trennt unser Fenster von fremden Öffnern/Popups (Schutz gegen
+          // Cross-Site-Leaks). Wir öffnen selbst keine Popups, die uns
+          // zurückrufen müssten.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           {
             key: "Permissions-Policy",
             // Kamera nur für die eigene Seite erlaubt (wird vom Scanner gebraucht),

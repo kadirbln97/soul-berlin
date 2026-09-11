@@ -12,8 +12,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -22,7 +22,7 @@ jobs:
       - run: npx prisma generate
       - run: npm run typecheck
       - run: npm test
-      # Bekannte Schwachstellen in Abhängigkeiten sichtbar machen. "high" als
-      # Schwelle, damit der Lauf nicht an jeder Kleinigkeit scheitert.
+      # Bekannte Schwachstellen in Abhängigkeiten: ab "high" schlägt der Lauf
+      # fehl. Vercel deployt trotzdem — das rote Kreuz hier ist das Signal,
+      # zeitnah `npm audit fix` bzw. ein Update einzuspielen.
       - run: npm audit --audit-level=high
-        continue-on-error: true
