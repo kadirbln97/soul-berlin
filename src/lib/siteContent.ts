@@ -350,7 +350,16 @@ export async function getSiteContentRaw(): Promise<SiteContent> {
   const defaults = getDefaultSiteContent();
   try {
     const rows = await prisma.siteContent.findMany();
-    const stored = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    // Leere Werte gelten wie auf der öffentlichen Seite als "Standard
+    // verwenden" — sonst zeigt der Baukasten ein leeres Feld, obwohl die
+    // Seite den Standardtext ausspielt, und man kann ihn nicht bearbeiten.
+    // Für die "_en"-Felder bleibt leer aber leer: dort heißt leer
+    // "keine englische Fassung gepflegt".
+    const stored = Object.fromEntries(
+      rows
+        .filter((r) => r.value.trim() !== "" || r.key.endsWith("_en"))
+        .map((r) => [r.key, r.value])
+    );
     return { ...defaults, ...stored };
   } catch {
     return defaults;
