@@ -11,6 +11,14 @@ const ALLOWED_KEYS = new Set([
   ...SITE_CONTENT_FIELDS.filter((f) => f.type === "image").map((f) => `${f.key}_ai`)
 ]);
 const MAX_VALUE_LENGTH = 2000;
+// Rechtstexte (Impressum, Datenschutz, AGB) sind ganze Seiten — die
+// Datenschutzerklärung allein hat rund 10.000 Zeichen.
+const MAX_LONGTEXT_LENGTH = 60_000;
+const LONGTEXT_KEYS = new Set(
+  SITE_CONTENT_FIELDS.filter((f) => f.type === "longtext").flatMap((f) =>
+    f.translatable ? [f.key, `${f.key}_en`] : [f.key]
+  )
+);
 
 /**
  * Speichert die im Baukasten (/admin/homepage) geänderten Startseiten-Texte
@@ -35,9 +43,12 @@ export async function POST(req: Request) {
     if (!ALLOWED_KEYS.has(key)) {
       return NextResponse.json({ error: `Unbekanntes Feld: ${key}` }, { status: 400 });
     }
-    if (typeof value !== "string" || value.length > MAX_VALUE_LENGTH) {
+    const maxLength = LONGTEXT_KEYS.has(key) ? MAX_LONGTEXT_LENGTH : MAX_VALUE_LENGTH;
+    if (typeof value !== "string" || value.length > maxLength) {
       return NextResponse.json(
-        { error: `Wert für "${key}" ist ungültig oder zu lang.` },
+        {
+          error: `Wert für "${key}" ist ungültig oder zu lang (max. ${maxLength.toLocaleString("de-DE")} Zeichen).`
+        },
         { status: 400 }
       );
     }
