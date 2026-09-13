@@ -1,7 +1,20 @@
 import { SignJWT, jwtVerify } from "jose";
 
-export const SESSION_COOKIE = "soul_admin_session";
-const SESSION_DURATION = "7d";
+/**
+ * Cookie-Name mit "__Host-"-Präfix in Produktion: der Browser akzeptiert ihn
+ * dann nur mit Secure, Path=/ und ohne Domain — eine Subdomain oder eine
+ * unverschlüsselte Verbindung kann das Cookie damit weder setzen noch
+ * überschreiben. Lokal (http://localhost) ist das Präfix nicht erlaubt.
+ */
+export const SESSION_COOKIE =
+  process.env.NODE_ENV === "production" ? "__Host-soul_admin_session" : "soul_admin_session";
+
+/** 24 Stunden: ein gestohlenes Cookie ist damit spätestens am nächsten Tag wertlos. */
+const SESSION_DURATION = "24h";
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
+
+/** Schlüssel in SiteContent: Sitzungen, die vor diesem Zeitpunkt ausgestellt wurden, sind ungültig. */
+export const SESSIONS_VALID_FROM_KEY = "admin_sessions_valid_from";
 
 export type AdminUser = { email: string; passwordHash: string };
 
@@ -74,8 +87,8 @@ export async function verifySessionToken(token: string | undefined | null) {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, await getSessionKey());
-    if (payload.role !== "admin") return null;
-    return payload as { role: string; email: string };
+    if (payload.role !== "admin" || typeof payload.iat !== "number") return null;
+    return payload as { role: string; email: string; iat: number };
   } catch {
     return null;
   }

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/lib/validation";
-import { createSessionToken, getAdminUsers, SESSION_COOKIE } from "@/lib/auth";
+import {
+  createSessionToken,
+  getAdminUsers,
+  SESSION_COOKIE,
+  SESSION_MAX_AGE_SECONDS
+} from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { verifyTotp } from "@/lib/totp";
 
@@ -27,6 +32,17 @@ export async function POST(req: Request) {
   }
 
   const { email, password, code } = parsed.data;
+
+  // Zweite Bremse pro Konto: aus vielen IPs (Botnetz) ließe sich ein Konto
+  // sonst weiter durchprobieren. 20 Fehlversuche pro Stunde reichen jedem
+  // echten Menschen; ein Angreifer kommt damit nirgendwo hin.
+  const rlUser = await checkRateLimit(`login-user:${email.toLowerCase()}`, 20, 60 * 60_000);
+  if (!rlUser.allowed) {
+    return NextResponse.json(
+      { error: "Zu viele Login-Versuche für dieses Konto. Bitte in einer Stunde erneut versuchen." },
+      { status: 429 }
+    );
+  }
 
   const users = getAdminUsers();
   if (users.length === 0) {
@@ -67,7 +83,7 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7
+    maxAge: SESSION_MAX_AGE_SECONDS
   });
   return res;
 }

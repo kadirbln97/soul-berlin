@@ -43,6 +43,10 @@ Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt d
 2. SMTP-Anbieter-Dashboard prüfen (Kontingent, gesperrter Absender, Bounce).
 3. Gast kann sein Ticket immer unter `/ticket/<token>` öffnen — der Link steht in der E-Mail; notfalls den Token aus der Datenbank (Tabelle `Ticket`) heraussuchen und dem Gast schicken.
 
+### … ein Handy mit Admin-Login verloren geht
+
+Admin → oben rechts **„Überall abmelden"**: entwertet sofort alle Admin-Sitzungen auf allen Geräten (auch die eigene). Sitzungen laufen ohnehin nach 24 Stunden ab. Danach ggf. Passwort wechseln (nächster Abschnitt) und, falls das Handy die Authenticator-App hatte, `ADMIN_TOTP_SECRET` neu erzeugen.
+
 ### … das Admin-Passwort vergessen ist oder jemand Fremdes drin sein könnte
 
 ```
@@ -94,7 +98,7 @@ Löschung: Admin → Gästetabelle → „DSGVO löschen“ am Eintrag (entfernt
 
 - Admin → Event: Status „Veröffentlicht“, Datum/Uhrzeit, Kontingente, Phasen, Verkaufsschluss.
 - Testkauf mit Stripe-Testkarte in der Vorschau-Umgebung — oder ein 1-€-Ticket live und danach erstatten.
-- Scanner auf dem Handy öffnen (`/admin/scanner`), Kamera freigeben, ein Ticket probescannen. Offline-Modus greift automatisch, wenn das Netz am Einlass wegbricht; die Check-ins werden nachgetragen, sobald es zurück ist.
+- Scanner auf dem Handy öffnen (`/admin/scanner`), Kamera freigeben, ein Ticket probescannen. Offline-Modus greift automatisch, wenn das Netz am Einlass wegbricht; die Check-ins werden nachgetragen, sobald es zurück ist. **Achtung:** Für den Offline-Modus liegen Namen und E-Mails der Gäste im Browser des Einlass-Handys — nach dem Event dort abmelden und die Website-Daten im Browser löschen, besonders bei geliehenen Geräten.
 - Tischplan fürs nächste Event: im Event-Formular „Tischplan aus anderem Event übernehmen“ wählen — Bild, Nummer und Tische kommen mit, alle als frei. Neuer Grundriss: hochladen, „Tische automatisch erkennen“ (braucht `ANTHROPIC_API_KEY` in Vercel, ca. 1 Cent pro Lauf), dann Kästen auf dem Plan nachziehen; oder gleich selbst zeichnen (Rechteck über jeden Tisch ziehen).
 
 ## Einmal im Monat: Abhängigkeiten

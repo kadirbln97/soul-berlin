@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { safeInternalPath } from "@/lib/safePath";
 
 export function LoginForm({ totpEnabled }: { totpEnabled: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/admin";
+  // Nur eigene Pfade als Ziel — siehe safeInternalPath (Open Redirect).
+  const next = safeInternalPath(searchParams.get("next"), "/admin");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

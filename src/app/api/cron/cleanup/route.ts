@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { runRetentionCleanup } from "@/lib/retention";
 
 /**
@@ -22,8 +23,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "CRON_SECRET nicht konfiguriert" }, { status: 503 });
   }
 
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${secret}`) {
+  // Zeitkonstanter Vergleich: ein "!==" bricht beim ersten falschen Zeichen
+  // ab und verrät über die Antwortzeit, wie viele Zeichen schon stimmen.
+  const auth = Buffer.from(req.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${secret}`);
+  if (auth.length !== expected.length || !timingSafeEqual(auth, expected)) {
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 401 });
   }
 

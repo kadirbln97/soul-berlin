@@ -1,6 +1,32 @@
 import { prisma } from "./prisma";
 import { sendTicketEmail } from "./email";
-import type { Event, Ticket } from "@prisma/client";
+import type { Event, Prisma, Ticket } from "@prisma/client";
+
+/** Normaler Client oder Transaktions-Client — beide können lesen und schreiben. */
+export type Db = typeof prisma | Prisma.TransactionClient;
+
+/**
+ * Führt fn in einer Transaktion aus, in der die Event-Zeile gesperrt ist.
+ *
+ * Ohne Sperre gilt: zwei gleichzeitige Anmeldungen zählen beide "noch ein
+ * Platz frei" und legen beide ein Ticket an — die Kapazität läuft über.
+ * SELECT … FOR UPDATE lässt die zweite Anfrage warten, bis die erste
+ * geschrieben hat; sie sieht dann den aktuellen Stand. Postgres hebt die
+ * Sperre mit dem Ende der Transaktion auf. Langsame Dinge (E-Mail-Versand)
+ * gehören NICHT in fn, sondern danach.
+ */
+export async function withEventLock<T>(
+  eventId: string,
+  fn: (tx: Prisma.TransactionClient) => Promise<T>
+): Promise<T> {
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Event" WHERE "id" = ${eventId} FOR UPDATE`;
+      return fn(tx);
+    },
+    { timeout: 10_000 }
+  );
+}
 
 /**
  * Zentrale Stelle, an der ein Ticket entsteht — egal ob über die kostenlose
@@ -27,7 +53,20 @@ export async function createTicketAndSendEmail(params: {
   stripeSessionId?: string | null;
   stripePaymentIntentId?: string | null;
 }) {
-  const ticket = await prisma.ticket.create({
+  const ticket = await createTicketRecord(params);
+  await sendTicketEmailWithRetry(ticket, params.event);
+  return ticket;
+}
+
+export type CreateTicketParams = Parameters<typeof createTicketAndSendEmail>[0];
+
+/**
+ * Nur der Datensatz — ohne E-Mail. Für Aufrufe innerhalb einer Transaktion
+ * (siehe withEventLock): die Mail wird danach mit sendTicketEmailWithRetry
+ * verschickt, damit die Sperre nicht auf den SMTP-Server wartet.
+ */
+export async function createTicketRecord(params: CreateTicketParams, db: Db = prisma) {
+  return db.ticket.create({
     data: {
       eventId: params.event.id,
       name: params.name,
@@ -46,10 +85,6 @@ export async function createTicketAndSendEmail(params: {
       stripePaymentIntentId: params.stripePaymentIntentId ?? null
     }
   });
-
-  await sendTicketEmailWithRetry(ticket, params.event);
-
-  return ticket;
 }
 
 /**
@@ -122,8 +157,8 @@ export async function sendTicketEmailWithRetry(
  * sonst wäre die Kapazitätsgrenze faktisch wirkungslos, sobald Promoter mit
  * Begleitungen arbeiten.
  */
-export async function countActiveTickets(eventId: string) {
-  const result = await prisma.ticket.aggregate({
+export async function countActiveTickets(eventId: string, db: Db = prisma) {
+  const result = await db.ticket.aggregate({
     where: {
       eventId,
       status: { in: ["VALID", "CHECKED_IN"] }
@@ -143,8 +178,8 @@ export async function countActiveTickets(eventId: string) {
  * eingetragene Promoter-Gäste zählen bewusst mit — sie stehen genauso auf
  * der Liste und nehmen an der Tür genauso Platz weg.
  */
-export async function countGuestlistPeople(eventId: string) {
-  const result = await prisma.ticket.aggregate({
+export async function countGuestlistPeople(eventId: string, db: Db = prisma) {
+  const result = await db.ticket.aggregate({
     where: {
       eventId,
       status: { in: ["VALID", "CHECKED_IN"] },

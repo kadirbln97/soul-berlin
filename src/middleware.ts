@@ -15,18 +15,30 @@ const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * Routen bleibt davon unberührt. Stripe-Webhooks laufen unter /api/webhooks
  * und sind hier bewusst nicht erfasst: sie kommen naturgemäß von fremd.
  */
-function isCrossSite(req: NextRequest) {
+function isCrossSite(req: NextRequest, strict: boolean) {
   const fetchSite = req.headers.get("sec-fetch-site");
   if (fetchSite) return fetchSite === "cross-site";
 
   const origin = req.headers.get("origin");
-  if (!origin) return false;
+  // Fehlen beide Header, kommt die Anfrage nicht aus einem aktuellen Browser.
+  // Für Cookie-geschützte Routen (Admin, Tickets) wird das verworfen — ein
+  // echter Admin sitzt immer in einem Browser, der die Header schickt. Für
+  // öffentliche Formulare bleibt es erlaubt (dort gibt es kein Cookie, also
+  // auch nichts, was CSRF ausnutzen könnte).
+  if (!origin) return strict;
   try {
     return new URL(origin).host !== req.nextUrl.host;
   } catch {
     return true;
   }
 }
+
+/** Routen, die eine Admin-Sitzung (Cookie) voraussetzen — hier gilt die strenge CSRF-Regel. */
+function isCookieProtectedApi(pathname: string) {
+  return pathname.startsWith("/api/admin/") || pathname.startsWith("/api/tickets/");
+}
+
+const PAGE_METHODS = new Set(["GET", "HEAD", "POST", "OPTIONS"]);
 
 /**
  * Content-Security-Policy.
@@ -89,13 +101,20 @@ export async function middleware(req: NextRequest) {
     // eigener Signaturprüfung in der Route. Hier bewusst ausgenommen.
     if (pathname.startsWith("/api/webhooks/")) return NextResponse.next();
 
-    if (MUTATING.has(req.method) && isCrossSite(req)) {
+    if (MUTATING.has(req.method) && isCrossSite(req, isCookieProtectedApi(pathname))) {
       return NextResponse.json(
         { error: "Anfrage von fremder Seite abgelehnt" },
         { status: 403 }
       );
     }
     return NextResponse.next();
+  }
+
+  // Seiten kennen nur GET/HEAD (Lesen), POST (Server Actions) und OPTIONS.
+  // Next würde für PUT/DELETE/PATCH trotzdem die Seite rendern — unnötig
+  // und ein Signal für Scanner. Sauber mit 405 beantworten.
+  if (!PAGE_METHODS.has(req.method)) {
+    return new NextResponse(null, { status: 405, headers: { Allow: "GET, HEAD, POST" } });
   }
 
   // Schützt den gesamten /admin-Bereich (Dashboard, Event-Verwaltung, Scanner).

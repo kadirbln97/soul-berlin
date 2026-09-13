@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildUnsubscribeToken } from "@/lib/newsletterTokens";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 
@@ -27,7 +28,7 @@ export async function GET() {
       consentAt: true,
       confirmedAt: true,
       createdAt: true,
-      unsubscribeToken: true
+      id: true
     }
   });
 
@@ -57,7 +58,7 @@ export async function GET() {
         e.source === "CONSENT" ? "Einwilligung" : "Bestandskunde (§ 7 Abs. 3 UWG)",
         e.consentAt ? fmt.format(e.consentAt) : "",
         e.confirmedAt ? fmt.format(e.confirmedAt) : "",
-        `${appUrl}/newsletter/abmelden?token=${e.unsubscribeToken}`
+        `${appUrl}/newsletter/abmelden?token=${buildUnsubscribeToken(e.id)}`
       ]
         .map(feld)
         .join(";")

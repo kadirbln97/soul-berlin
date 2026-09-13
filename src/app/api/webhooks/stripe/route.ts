@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { createTicketAndSendEmail } from "@/lib/createTicket";
+import {
+  countActiveTickets,
+  createTicketRecord,
+  sendTicketEmailWithRetry,
+  withEventLock
+} from "@/lib/createTicket";
+import { sendAlertEmail } from "@/lib/email";
 import { bestandskundeErfassen } from "@/lib/newsletter";
 import type Stripe from "stripe";
 
@@ -79,26 +85,65 @@ export async function POST(req: Request) {
       return index === 0 ? base + (total - base * quantity) : base;
     };
 
-    for (let i = 0; i < quantity; i++) {
-      await createTicketAndSendEmail({
-        event: dbEvent,
-        name,
-        email,
-        phone: phone || null,
-        amountCents: perTicket(ticketsTotalCents, i),
-        feeCents: perTicket(feeCents, i),
-        discountCents: discountCents > 0 ? perTicket(discountCents, i) : null,
-        discountCode,
-        // Phase und ihr Name kommen aus den Metadaten der Checkout-Session,
-        // die serverseitig gesetzt wurden. tierLabel bleibt als Snapshot
-        // erhalten, falls die Phase später umbenannt oder gelöscht wird.
-        phaseId: session.metadata?.phaseId || null,
-        tierLabel: session.metadata?.phaseLabel || null,
-        locale: session.metadata?.locale || undefined,
-        stripeSessionId: session.id,
-        stripePaymentIntentId:
-          typeof session.payment_intent === "string" ? session.payment_intent : null
-      });
+    // Anlage unter gesperrter Event-Zeile (siehe withEventLock): die
+    // Idempotenz-Prüfung wird darin wiederholt, damit zwei gleichzeitig
+    // zugestellte Webhooks nicht beide Tickets anlegen. Die Kapazität wurde
+    // beim Checkout-Start geprüft; hier wird nur noch festgestellt, ob sie
+    // durch parallele Käufe überschritten wurde — bezahlt ist bezahlt, das
+    // Ticket wird angelegt, aber der Admin erfährt es sofort.
+    const { tickets, overbookedBy } = await withEventLock(dbEvent.id, async (tx) => {
+      const already = await tx.ticket.count({ where: { stripeSessionId: session.id } });
+      if (already > 0) return { tickets: [], overbookedBy: 0 };
+
+      const created = [];
+      for (let i = 0; i < quantity; i++) {
+        created.push(
+          await createTicketRecord(
+            {
+              event: dbEvent,
+              name,
+              email,
+              phone: phone || null,
+              amountCents: perTicket(ticketsTotalCents, i),
+              feeCents: perTicket(feeCents, i),
+              discountCents: discountCents > 0 ? perTicket(discountCents, i) : null,
+              discountCode,
+              // Phase und ihr Name kommen aus den Metadaten der Checkout-Session,
+              // die serverseitig gesetzt wurden. tierLabel bleibt als Snapshot
+              // erhalten, falls die Phase später umbenannt oder gelöscht wird.
+              phaseId: session.metadata?.phaseId || null,
+              tierLabel: session.metadata?.phaseLabel || null,
+              locale: session.metadata?.locale || undefined,
+              stripeSessionId: session.id,
+              stripePaymentIntentId:
+                typeof session.payment_intent === "string" ? session.payment_intent : null
+            },
+            tx
+          )
+        );
+      }
+
+      const active = dbEvent.capacity ? await countActiveTickets(dbEvent.id, tx) : 0;
+      return {
+        tickets: created,
+        overbookedBy: dbEvent.capacity ? Math.max(0, active - dbEvent.capacity) : 0
+      };
+    });
+
+    if (tickets.length === 0) {
+      return NextResponse.json({ received: true });
+    }
+
+    for (const ticket of tickets) {
+      await sendTicketEmailWithRetry(ticket, dbEvent);
+    }
+
+    if (overbookedBy > 0) {
+      console.warn(`[stripe webhook] Event ${dbEvent.id} um ${overbookedBy} Plätze überbucht`);
+      sendAlertEmail({
+        subject: `Überbuchung: ${dbEvent.title} (+${overbookedBy})`,
+        text: `Durch gleichzeitige Käufe liegt die Zahl der gültigen Tickets für "${dbEvent.title}" jetzt ${overbookedBy} über der Kapazität von ${dbEvent.capacity}. Letzter Kauf: ${email}, Stripe-Session ${session.id}. Entweder Kapazität anpassen oder das Ticket im Admin erstatten.`
+      }).catch((err) => console.error("[stripe webhook] Alarm-Mail fehlgeschlagen:", err));
     }
 
     // Bestandskunde nach § 7 Abs. 3 UWG: Die Adresse stammt aus einem

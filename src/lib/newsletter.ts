@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
+import { hashToken, parseUnsubscribeToken } from "./newsletterTokens";
 
 /**
  * Newsletter-Verwaltung mit zwei sauber getrennten Rechtsgrundlagen.
@@ -42,6 +43,8 @@ export async function einwilligungErfassen(params: {
 
   const confirmToken = neuerToken();
 
+  // In der Datenbank liegt nur der Hash des Bestätigungstokens (siehe
+  // newsletterTokens.ts); der Klartext geht ausschließlich in die Mail.
   await prisma.newsletterSubscriber.upsert({
     where: { email },
     create: {
@@ -51,7 +54,9 @@ export async function einwilligungErfassen(params: {
       status: "PENDING",
       consentAt: new Date(),
       consentIp: params.ip ?? null,
-      confirmToken,
+      confirmToken: hashToken(confirmToken),
+      // Abmeldelinks werden aus der ID abgeleitet; die Spalte bleibt nur
+      // aus Kompatibilität gefüllt (Pflichtfeld, eindeutig).
       unsubscribeToken: neuerToken()
     },
     update: {
@@ -62,7 +67,7 @@ export async function einwilligungErfassen(params: {
       status: "PENDING",
       consentAt: new Date(),
       consentIp: params.ip ?? null,
-      confirmToken,
+      confirmToken: hashToken(confirmToken),
       unsubscribedAt: null
     }
   });
@@ -119,9 +124,16 @@ export async function einwilligungBestaetigen(params: {
   token: string;
   ip?: string | null;
 }): Promise<{ ok: boolean; email?: string }> {
-  const eintrag = await prisma.newsletterSubscriber.findUnique({
-    where: { confirmToken: params.token }
-  });
+  // Neue Links tragen den Klartext, gespeichert ist der Hash. Links aus
+  // Mails vor der Umstellung stehen noch im Klartext in der Datenbank —
+  // zweiter Versuch, damit niemand seine Bestätigung verliert.
+  const eintrag =
+    (await prisma.newsletterSubscriber.findUnique({
+      where: { confirmToken: hashToken(params.token) }
+    })) ??
+    (await prisma.newsletterSubscriber.findUnique({
+      where: { confirmToken: params.token }
+    }));
 
   if (!eintrag) return { ok: false };
 
@@ -144,9 +156,12 @@ export async function einwilligungBestaetigen(params: {
  * und ohne Rückfrage: Werbung abzustellen muss mit einem Klick gehen.
  */
 export async function abmelden(token: string): Promise<{ ok: boolean; email?: string }> {
-  const eintrag = await prisma.newsletterSubscriber.findUnique({
-    where: { unsubscribeToken: token }
-  });
+  // Neuer Aufbau "<id>.<signatur>" (siehe newsletterTokens.ts); alte Mails
+  // enthalten noch den gespeicherten Klartext-Token — beides bleibt gültig.
+  const id = parseUnsubscribeToken(token);
+  const eintrag = id
+    ? await prisma.newsletterSubscriber.findUnique({ where: { id } })
+    : await prisma.newsletterSubscriber.findUnique({ where: { unsubscribeToken: token } });
 
   if (!eintrag) return { ok: false };
 

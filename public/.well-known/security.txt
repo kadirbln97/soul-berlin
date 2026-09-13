@@ -1,0 +1,6 @@
+# Sicherheitshinweise zu soulberlin.de (RFC 9116)
+Contact: https://soulberlin.de/kontakt
+Preferred-Languages: de, en
+Canonical: https://soulberlin.de/.well-known/security.txt
+Policy: https://soulberlin.de/legal/datenschutz
+Expires: 2027-09-13T00:00:00.000Z
