@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildUnsubscribeToken } from "@/lib/newsletterTokens";
+import { csvRow } from "@/lib/csv";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/authGuard";
 
@@ -41,27 +42,22 @@ export async function GET() {
     timeZone: "Europe/Berlin"
   });
 
-  // Excel öffnet CSV nur mit Semikolon zuverlässig in Spalten; Felder werden
-  // gequotet, damit Kommas oder Semikolons in Namen nichts zerschießen.
-  const feld = (wert: string) => `"${wert.replace(/"/g, '""')}"`;
-
   const appUrl = (process.env.APP_URL ?? "https://soulberlin.de").replace(/\/$/, "");
 
+  // Semikolon als Trennzeichen (Excel im Deutschen) und jedes Feld über
+  // csvRow entschärft — Namen kommen aus einem öffentlichen Formular und
+  // dürfen beim Öffnen der Datei keine Formel werden (siehe lib/csv.ts).
   const zeilen = [
-    ["E-Mail", "Name", "Grundlage", "Eingewilligt am", "Bestätigt am", "Abmeldelink"]
-      .map(feld)
-      .join(";"),
+    csvRow(["E-Mail", "Name", "Grundlage", "Eingewilligt am", "Bestätigt am", "Abmeldelink"]),
     ...empfaenger.map((e) =>
-      [
+      csvRow([
         e.email,
         e.name ?? "",
         e.source === "CONSENT" ? "Einwilligung" : "Bestandskunde (§ 7 Abs. 3 UWG)",
         e.consentAt ? fmt.format(e.consentAt) : "",
         e.confirmedAt ? fmt.format(e.confirmedAt) : "",
         `${appUrl}/newsletter/abmelden?token=${buildUnsubscribeToken(e.id)}`
-      ]
-        .map(feld)
-        .join(";")
+      ])
     )
   ];
 

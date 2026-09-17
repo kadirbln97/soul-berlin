@@ -22,6 +22,10 @@ Nach jeder Änderung an Umgebungsvariablen: **Redeploy** auslösen, sonst gilt d
 
 `DATABASE_URL` sollte Neons **Pooler-Endpunkt** sein (Hostname enthält `-pooler`). Ohne Pooler gehen bei einem Ticketstart mit vielen gleichzeitigen Aufrufen die Verbindungen aus.
 
+`APP_SECRET` muss mindestens 32 Zeichen haben — sonst starten Admin-Login und Ticket-Seiten mit einer klaren Fehlermeldung nicht. Empfohlen: `openssl rand -hex 32` (64 Zeichen).
+
+Das Admin-Passwort wird beim nächsten Wechsel automatisch mit dem stärkeren Kostenfaktor 12 gespeichert (`npm run hash-password`); ältere Hashes mit Faktor 10 bleiben gültig.
+
 ## Was tun, wenn …
 
 ### … die Seite einen Fehler zeigt („Da ist etwas schiefgelaufen")
@@ -72,6 +76,10 @@ Der Server hat einen Fehler beim Rendern oder in einer API-Route gemeldet (`src/
 ### … Login oder Gästeliste „Zu viele Versuche“ meldet, obwohl niemand spammt
 
 Die Zähler liegen in der Tabelle `RateLimitBucket` (Neon). Einen Schlüssel freigeben: Zeile mit `key = 'login:<IP>'` löschen. Alle Fenster laufen von selbst nach 10 Minuten (Scanner: 1 Minute) ab.
+
+### … eine Alarm-Mail „Überbuchung" oder „Rabattcode über Limit" kommt
+
+Beides entsteht nur, wenn mehrere Leute im selben Moment kaufen. Das Geld ist eingegangen, das Ticket ist gültig. Entscheide: Platz bzw. Rabatt gewähren (nichts tun) oder im Admin erstatten. Die Mail nennt Event, Anzahl und die Stripe-Session.
 
 ### … `APP_SECRET` rotiert werden muss
 

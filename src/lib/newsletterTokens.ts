@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { getAppSecret } from "./appSecret";
 
 /**
  * Newsletter-Links ohne Klartext-Geheimnisse in der Datenbank.
@@ -12,13 +13,6 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
  * Link jederzeit neu bilden, und ein Datenbank-Leck verrät keine Links.
  */
 
-function getSecret() {
-  const secret = process.env.APP_SECRET;
-  if (!secret || secret === "change-me-to-a-long-random-string") {
-    throw new Error("APP_SECRET fehlt oder ist noch der Platzhalter.");
-  }
-  return secret;
-}
 
 /** SHA-256 (hex) eines Tokens — so wird der Bestätigungstoken gespeichert. */
 export function hashToken(token: string): string {
@@ -31,7 +25,7 @@ export function looksLikeTokenHash(value: string): boolean {
 }
 
 function unsubscribeSignature(id: string): string {
-  return createHmac("sha256", getSecret()).update(`newsletter-unsubscribe:${id}`).digest("base64url");
+  return createHmac("sha256", getAppSecret()).update(`newsletter-unsubscribe:${id}`).digest("base64url");
 }
 
 /** Abmeldetoken für einen Datensatz: "<id>.<signatur>". */

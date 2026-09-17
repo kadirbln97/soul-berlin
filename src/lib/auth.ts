@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { getAppSecret } from "./appSecret";
 
 /**
  * Cookie-Name mit "__Host-"-Präfix in Produktion: der Browser akzeptiert ihn
@@ -46,16 +47,6 @@ export function getAdminUsers(): AdminUser[] {
     if (email && passwordHash.startsWith("$2")) users.push({ email, passwordHash });
   }
   return users;
-}
-
-function getAppSecret() {
-  const secret = process.env.APP_SECRET;
-  if (!secret || secret === "change-me-to-a-long-random-string") {
-    throw new Error(
-      "APP_SECRET fehlt oder ist noch der Platzhalter. Setze einen langen, zufälligen Wert in .env (z.B. mit `openssl rand -hex 32`)."
-    );
-  }
-  return secret;
 }
 
 /**

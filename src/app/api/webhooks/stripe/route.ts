@@ -91,9 +91,9 @@ export async function POST(req: Request) {
     // beim Checkout-Start geprüft; hier wird nur noch festgestellt, ob sie
     // durch parallele Käufe überschritten wurde — bezahlt ist bezahlt, das
     // Ticket wird angelegt, aber der Admin erfährt es sofort.
-    const { tickets, overbookedBy } = await withEventLock(dbEvent.id, async (tx) => {
+    const { tickets, overbookedBy, phaseOverbookedBy } = await withEventLock(dbEvent.id, async (tx) => {
       const already = await tx.ticket.count({ where: { stripeSessionId: session.id } });
-      if (already > 0) return { tickets: [], overbookedBy: 0 };
+      if (already > 0) return { tickets: [], overbookedBy: 0, phaseOverbookedBy: 0 };
 
       const created = [];
       for (let i = 0; i < quantity; i++) {
@@ -124,9 +124,26 @@ export async function POST(req: Request) {
       }
 
       const active = dbEvent.capacity ? await countActiveTickets(dbEvent.id, tx) : 0;
+
+      // Kontingent der Verkaufsphase: beim Checkout-Start geprüft, aber
+      // zwischen Prüfung und Zahlung können andere dieselbe letzte Karte
+      // gekauft haben. Hier im Lock steht der endgültige Stand.
+      let phaseOverbookedBy = 0;
+      const phaseId = session.metadata?.phaseId || null;
+      if (phaseId) {
+        const phase = await tx.ticketPhase.findUnique({ where: { id: phaseId } });
+        if (phase?.quantity) {
+          const verkauft = await tx.ticket.count({
+            where: { phaseId, status: { in: ["VALID", "CHECKED_IN"] } }
+          });
+          phaseOverbookedBy = Math.max(0, verkauft - phase.quantity);
+        }
+      }
+
       return {
         tickets: created,
-        overbookedBy: dbEvent.capacity ? Math.max(0, active - dbEvent.capacity) : 0
+        overbookedBy: dbEvent.capacity ? Math.max(0, active - dbEvent.capacity) : 0,
+        phaseOverbookedBy
       };
     });
 
@@ -136,6 +153,14 @@ export async function POST(req: Request) {
 
     for (const ticket of tickets) {
       await sendTicketEmailWithRetry(ticket, dbEvent);
+    }
+
+    if (phaseOverbookedBy > 0) {
+      console.warn(`[stripe webhook] Phase ${session.metadata?.phaseLabel} um ${phaseOverbookedBy} überbucht`);
+      sendAlertEmail({
+        subject: `Phase überbucht: ${session.metadata?.phaseLabel ?? "Verkaufsphase"} (+${phaseOverbookedBy})`,
+        text: `In der Phase "${session.metadata?.phaseLabel ?? session.metadata?.phaseId}" von "${dbEvent.title}" wurden ${phaseOverbookedBy} Tickets mehr verkauft als vorgesehen — gleichzeitige Käufe kurz vor dem Ausverkauf. Letzter Kauf: ${email}, Stripe-Session ${session.id}. Entweder Kontingent anpassen oder das Ticket im Admin erstatten.`
+      }).catch((err) => console.error("[stripe webhook] Alarm-Mail fehlgeschlagen:", err));
     }
 
     if (overbookedBy > 0) {
@@ -158,12 +183,28 @@ export async function POST(req: Request) {
     }
 
     if (discountId) {
-      await prisma.discount
-        .update({ where: { id: discountId }, data: { usedCount: { increment: 1 } } })
-        .catch((err: unknown) => {
-          // Zählerfehler darf den Kauf nicht scheitern lassen.
-          console.error("[stripe webhook] Rabatt-Zähler konnte nicht erhöht werden:", err);
-        });
+      try {
+        // Bedingtes Hochzählen in EINER Anweisung: die Datenbank erhöht nur,
+        // solange das Limit nicht erreicht ist. Zwei gleichzeitige Käufe mit
+        // demselben Einmal-Code können so nicht beide durchgehen — beim
+        // zweiten ändert sich keine Zeile, und wir erfahren davon.
+        const erhoeht = await prisma.$executeRaw`
+          UPDATE "Discount"
+          SET "usedCount" = "usedCount" + 1
+          WHERE "id" = ${discountId}
+            AND ("maxUses" IS NULL OR "usedCount" < "maxUses")
+        `;
+        if (erhoeht === 0) {
+          console.warn(`[stripe webhook] Rabattcode ${discountCode ?? discountId} über Limit eingelöst`);
+          sendAlertEmail({
+            subject: `Rabattcode über Limit: ${discountCode ?? discountId}`,
+            text: `Der Code "${discountCode ?? discountId}" wurde eingelöst, obwohl sein Limit bereits erreicht war — das passiert, wenn mehrere Bestellungen gleichzeitig laufen. Die Zahlung von ${email} (Stripe-Session ${session.id}) ist durch, der Rabatt wurde gewährt. Falls das nicht sein soll: Code im Admin deaktivieren.`
+          }).catch(() => undefined);
+        }
+      } catch (err) {
+        // Zählerfehler darf den Kauf nicht scheitern lassen.
+        console.error("[stripe webhook] Rabatt-Zähler konnte nicht erhöht werden:", err);
+      }
     }
   }
 

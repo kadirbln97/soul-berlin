@@ -86,6 +86,20 @@ export async function checkRateLimit(
   }
 }
 
+/**
+ * Zähler für einen Schlüssel löschen — nach einem erfolgreichen Login, damit
+ * frühere Fehlversuche den nächsten Versuch nicht mehr belasten.
+ */
+export async function resetRateLimit(key: string): Promise<void> {
+  memoryBuckets.delete(key);
+  try {
+    await prisma.$executeRaw`DELETE FROM "RateLimitBucket" WHERE "key" = ${key}`;
+  } catch (err) {
+    // Unkritisch: der Zähler läuft ohnehin nach seinem Fenster ab.
+    console.error("[rateLimit] Zähler konnte nicht zurückgesetzt werden:", err);
+  }
+}
+
 /** Liest die Client-IP aus Standard-Proxy-Headern (Vercel/nginx setzen x-forwarded-for). */
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for");

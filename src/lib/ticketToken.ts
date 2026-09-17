@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { getAppSecret } from "./appSecret";
 
 /**
  * Signiert eine Ticket-ID zu einem fälschungssicheren Token, das als QR-Code
@@ -8,19 +9,10 @@ import crypto from "node:crypto";
  *
  * Format: <ticketId>.<hmac-hex>
  */
-function getSecret() {
-  const secret = process.env.APP_SECRET;
-  if (!secret || secret === "change-me-to-a-long-random-string") {
-    throw new Error(
-      "APP_SECRET fehlt oder ist noch der Platzhalter. Setze einen langen, zufälligen Wert in .env."
-    );
-  }
-  return secret;
-}
 
 export function signTicketToken(ticketId: string): string {
   const hmac = crypto
-    .createHmac("sha256", getSecret())
+    .createHmac("sha256", getAppSecret())
     .update(ticketId)
     .digest("hex");
   return `${ticketId}.${hmac}`;
@@ -35,7 +27,7 @@ export function verifyTicketToken(token: string): { valid: boolean; ticketId?: s
 
   if (!ticketId || !signature) return { valid: false };
 
-  const expected = crypto.createHmac("sha256", getSecret()).update(ticketId).digest("hex");
+  const expected = crypto.createHmac("sha256", getAppSecret()).update(ticketId).digest("hex");
 
   const sigBuf = Buffer.from(signature);
   const expBuf = Buffer.from(expected);

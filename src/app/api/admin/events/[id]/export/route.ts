@@ -71,6 +71,10 @@ export async function GET(
     timeZone: "Europe/Berlin"
   });
 
+  // Hinweis für spätere Änderungen: ExcelJS schreibt Zeichenketten als Text
+  // (shared string), nie als Formel — ein Gastname wie "=HYPERLINK(...)"
+  // landet also harmlos als Text in der Zelle. Wer hier je auf CSV umstellt,
+  // muss csvField() aus lib/csv.ts verwenden, sonst führt Excel das aus.
   for (const t of tickets) {
     sheet.addRow({
       name: t.name,

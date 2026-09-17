@@ -45,7 +45,10 @@ export const onRequestError: Instrumentation.onRequestError = async (error, requ
           `Art: ${context.routeType} (${context.renderSource ?? "-"})`,
           `Fehler: ${err.message}`,
           "",
-          err.stack ?? "",
+          // Gekürzt: ein Stack kann Werte aus der fehlgeschlagenen Anfrage
+          // enthalten (z.B. Gästedaten). Für die Fehlersuche reicht der Anfang;
+          // vollständig steht alles in den Vercel-Logs.
+          (err.stack ?? "").slice(0, 1500),
           "",
           "Nächste Schritte: RUNBOOK.md → 'die Seite zeigt einen Fehler'.",
           "Diese Mail kommt pro Fehlerart höchstens alle 15 Minuten."

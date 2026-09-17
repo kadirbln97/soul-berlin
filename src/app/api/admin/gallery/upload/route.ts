@@ -3,6 +3,7 @@ import { put } from "@vercel/blob";
 import { getAdminSession } from "@/lib/authGuard";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { safeOptimizeImage, shouldOptimize } from "@/lib/optimizeImage";
+import { fileTypeMatches, sniffFileType } from "@/lib/fileType";
 
 // Eigene Upload-Route für die Galerie (statt die Event-Cover-Route
 // mitzubenutzen), weil hier zusätzlich Videos + größere Dateien erlaubt sein
@@ -57,6 +58,18 @@ export async function POST(req: Request) {
   if (file.size > maxBytes) {
     return NextResponse.json(
       { error: `Datei zu groß (max. ${Math.round(maxBytes / 1024 / 1024)} MB).` },
+      { status: 400 }
+    );
+  }
+
+
+  // Der Content-Type kommt vom Browser und ist frei behauptbar. Die ersten
+  // Bytes verraten das echte Format — passt beides nicht zusammen, wird der
+  // Upload abgelehnt (siehe lib/fileType.ts).
+  const kopf = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  if (!fileTypeMatches(file.type, sniffFileType(kopf))) {
+    return NextResponse.json(
+      { error: "Der Dateiinhalt passt nicht zum angegebenen Dateityp." },
       { status: 400 }
     );
   }

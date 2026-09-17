@@ -7,7 +7,7 @@ import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS
 } from "@/lib/auth";
-import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rateLimit";
 import { verifyTotp } from "@/lib/totp";
 
 // TOTP braucht node:crypto — nicht im Edge-Runtime ausführen.
@@ -33,16 +33,7 @@ export async function POST(req: Request) {
 
   const { email, password, code } = parsed.data;
 
-  // Zweite Bremse pro Konto: aus vielen IPs (Botnetz) ließe sich ein Konto
-  // sonst weiter durchprobieren. 20 Fehlversuche pro Stunde reichen jedem
-  // echten Menschen; ein Angreifer kommt damit nirgendwo hin.
-  const rlUser = await checkRateLimit(`login-user:${email.toLowerCase()}`, 20, 60 * 60_000);
-  if (!rlUser.allowed) {
-    return NextResponse.json(
-      { error: "Zu viele Login-Versuche für dieses Konto. Bitte in einer Stunde erneut versuchen." },
-      { status: 429 }
-    );
-  }
+  const accountKey = `login-user:${email.toLowerCase()}`;
 
   const users = getAdminUsers();
   if (users.length === 0) {
@@ -65,15 +56,27 @@ export async function POST(req: Request) {
   const codeMatches = totpSecret ? verifyTotp(totpSecret, code ?? "") : true;
 
   if (!user || !passwordMatches || !codeMatches) {
+    // Zweite Bremse pro Konto — gezählt werden ausschließlich FEHLVERSUCHE,
+    // und zwar erst hier, nach der Prüfung. Würde der Zähler vorher laufen,
+    // könnte jeder, der die Admin-Adresse kennt, den echten Admin mit ein
+    // paar falschen Anfragen aussperren (Kontosperre als Angriff). So kommt
+    // das richtige Passwort immer durch und setzt den Zähler zurück; ein
+    // Angreifer ohne Passwort ist nach 20 Versuchen pro Stunde am Ende.
+    const rlUser = await checkRateLimit(accountKey, 20, 60 * 60_000);
     return NextResponse.json(
       {
-        error: totpSecret
-          ? "E-Mail, Passwort oder Einmalcode falsch"
-          : "E-Mail oder Passwort falsch"
+        error: rlUser.allowed
+          ? totpSecret
+            ? "E-Mail, Passwort oder Einmalcode falsch"
+            : "E-Mail oder Passwort falsch"
+          : "Zu viele Fehlversuche für dieses Konto. Bitte in einer Stunde erneut versuchen."
       },
-      { status: 401 }
+      { status: rlUser.allowed ? 401 : 429 }
     );
   }
+
+  // Erfolgreich: Fehlversuchszähler dieses Kontos zurücksetzen.
+  await resetRateLimit(accountKey);
 
   const adminEmail = user.email;
   const token = await createSessionToken(adminEmail);
