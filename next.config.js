@@ -1,3 +1,39 @@
+// Geheimnis-Prüfung beim Bauen — bewusst hier und nicht erst zur Laufzeit.
+//
+// APP_SECRET signiert Admin-Sitzungen und die QR-Codes auf den Tickets. Ist es
+// zu kurz oder noch der Platzhalter, soll das auffallen, BEVOR etwas live geht:
+// Ein fehlgeschlagener Build ändert nichts an der laufenden Seite (Vercel
+// behält einfach das letzte Deployment), während ein Fehler zur Laufzeit den
+// Admin-Bereich und alle Ticket-Seiten lahmlegen würde.
+//
+// Geprüft wird nur dort, wo die Variable auch gesetzt sein muss: beim Bauen auf
+// Vercel. Lokal (ohne .env) stört die Prüfung niemanden.
+if (process.env.VERCEL === "1" || process.env.APP_SECRET) {
+  const secret = process.env.APP_SECRET ?? "";
+  const zuKurz = secret.length < 32;
+  const platzhalter = secret === "change-me-to-a-long-random-string";
+  if (!secret || zuKurz || platzhalter) {
+    throw new Error(
+      [
+        "APP_SECRET ist nicht brauchbar gesetzt:",
+        !secret
+          ? "  Die Variable fehlt."
+          : platzhalter
+            ? "  Es steht noch der Platzhalter aus .env.example darin."
+            : `  Es hat nur ${secret.length} Zeichen, nötig sind mindestens 32.`,
+        "",
+        "  Neuen Wert erzeugen:  openssl rand -hex 32",
+        "  In Vercel unter Settings -> Environment Variables setzen, dann neu deployen.",
+        "  ACHTUNG: Ein Wechsel macht alle bereits verschickten Ticket-QR-Codes",
+        "  ungültig — siehe RUNBOOK.md, Abschnitt 'APP_SECRET rotieren'.",
+        "",
+        "  Diese Prüfung schützt: Solange sie fehlschlägt, bleibt die bisherige",
+        "  Seite unverändert online."
+      ].join("\n")
+    );
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Verrät sonst in jeder Antwort "X-Powered-By: Next.js" — unnötige
